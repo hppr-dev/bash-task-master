@@ -66,7 +66,7 @@ task(){
     else
       echo "Only long arguments are allowed"
       echo "Try using something like '--arg value' that will be translated to \$ARG=value in the task script."
-      exit 1
+      return
     fi
   done
 

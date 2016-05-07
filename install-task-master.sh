@@ -40,4 +40,4 @@ export TASK_MASTER_HOME=$HOME/.task-master
 [ -s "$TASK_MASTER_HOME/task-runner.sh" ] && . "$TASK_MASTER_HOME/task-runner.sh"
 
 echo "Task Master successfully installed"
-echo "Run 'task list to see available tasks"
+echo "Run 'task list' to see available tasks"
