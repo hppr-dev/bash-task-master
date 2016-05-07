@@ -33,11 +33,10 @@ then
   exit 1
 fi
 
+echo >> ~/.bashrc
 echo "export TASK_MASTER_HOME=$HOME/.task-master" >> ~/.bashrc
 echo "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" >> ~/.bashrc
 
-export TASK_MASTER_HOME=$HOME/.task-master
-[ -s "$TASK_MASTER_HOME/task-runner.sh" ] && . "$TASK_MASTER_HOME/task-runner.sh"
-
 echo "Task Master successfully installed"
+echo "You may have to start a new bash session to apply changes"
 echo "Run 'task list' to see available tasks"
