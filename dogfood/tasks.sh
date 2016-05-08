@@ -1,7 +1,8 @@
 task_edit() {
   vim /home/swalker/.task-master/dogfood/tasks.sh
 }
-# Recorded Task
+
+# Task to update the lib-functions.sh with the current global functions
 task_gen-lib-func() {
     pushd `pwd` > /dev/null
     cd /home/swalker/.task-master/dogfood
