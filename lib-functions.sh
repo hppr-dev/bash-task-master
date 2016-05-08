@@ -29,3 +29,5 @@ readonly -f task_spawn
 readonly -f task_record 
 readonly -f task_help 
 readonly -f task_list 
+readonly -f task_init 
+readonly -f task_export 

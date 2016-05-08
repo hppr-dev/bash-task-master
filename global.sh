@@ -27,9 +27,14 @@ You may also record tasks on command by using 'task record'. run 'task record he
 }
 
 task_list() {
-  echo "AVailable tasks:"
+  echo "AVailable global tasks:"
   echo
-  declare -F  | grep task_ | sed 's/declare -f task_/     /' | tr '\n' ' '
+  declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_/     /' | tr '\n' ' '
+  echo
+  echo
+  echo "AVailable local tasks:"
+  echo
+  declare -F  | grep -e "declare -f task_" | sed 's/declare -f task_/     /' | tr '\n' ' '
   echo
   echo
 }
