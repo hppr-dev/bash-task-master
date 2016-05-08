@@ -107,3 +107,7 @@ task_global() {
     global_unset
   fi
 }
+
+task_export() {
+  echo "TODO: add export to a script file"
+}

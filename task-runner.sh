@@ -89,7 +89,10 @@ task(){
     . $GLOBAL_FUNCTION_DEFS
 
     #Load local tasks
-    . $TASKS_FILE
+    if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
+    then
+      . $TASKS_FILE
+    fi
     if [[ $? == "1" ]]
     then
       echo "A problem occured when loading tasks"
