@@ -39,6 +39,7 @@ task_init() {
 }
 
 task_record() {
+
   NAME=${ARG_NAME,,}
   if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
   then
@@ -78,44 +79,63 @@ task_record() {
   #### record start
   elif [ $TASK_SUBCOMMAND == "start" ]
   then
-    echo "Starting record..."
-    # setup recording file to save context
-    export RECORDING_FILE=$TASKS_DIR/.rec_$NAME
-    # save starting directory
-    export RECORD_START=$RUNNING_DIR
-    # save name
-    export RECORD_NAME=$NAME
-    
-    # Save prompt command and change it to save commands
-    export OLD_PROMPT_COMMAND=$PROMPT_COMMAND
-    export PROMPT_COMMAND="echo \`history 1 | tr -s ' ' | cut -f 3- -d ' '\` >> $RECORDING_FILE; $PROMPT_COMMAND"
-
+    record_start
   #### record stop
   elif [ $TASK_SUBCOMMAND == "stop" ]
   then
-    if [ ! -z "$RECORDING_FILE" ]
+    record_stop
+  #### record restart
+  elif [ $TASK_SUBCOMMAND == "restart" ]
+  then
+    record_restart
+  ### record trash
+  elif [ $TASK_SUBCOMMAND == "trash" ]
+  then
+    record_trash
+  else
+    echo "Unknown subcommand: $TASK_SUBCOMMAND"
+    echo "$HELP_STRING"
+  fi
+  
+}
+
+record_start(){
+  echo "Starting record..."
+  # setup recording file to save context
+  globalize "RECORDING_FILE=$TASKS_DIR/.rec_$NAME"
+  # save starting directory
+  globalize "RECORD_START=$RUNNING_DIR"
+  # save name
+  globalize "RECORD_NAME=$NAME"
+  # Save prompt command and change it to save commands
+  globalize 'OLD_PROMPT_COMMAND=$PROMPT_COMMAND'
+  globalize PROMPT_COMMAND="'echo \$(history 1 | tr -s \" \" | cut -f 3- -d \" \") >> \$RECORDING_FILE;'"
+}
+
+record_stop(){
+  if [ ! -z "$RECORDING_FILE" ]
+  then
+    #Check to see if the user gave a name on record stop
+    if [[ ! -z "$NAME" ]] && [[ "$RECORD_NAME" != "$NAME" ]]
     then
-      #Check to see if the user gave a name on record stop
-      if [[ ! -z "$NAME" ]] && [[ "$RECORD_NAME" != "$NAME" ]]
-      then
-        mv $RECORDING_FILE $TASKS_DIR/.rec_$NAME
-        RECORDING_FILE=$TASKS_DIR/.rec_$NAME
-      elif [[ -z "$NAME" ]] 
-      then
-        $NAME=$RECORD_NAME
-      fi
+      mv $RECORDING_FILE $TASKS_DIR/.rec_$NAME
+      RECORDING_FILE=$TASKS_DIR/.rec_$NAME
+    elif [[ -z "$NAME" ]] 
+    then
+      $NAME=$RECORD_NAME
+    fi
 
-      # Change prompt back what it was before recording
-      export PROMPT_COMMAND=$OLD_PROMPT_COMMAND
-      echo "Stopped Recording..."
+    # Change prompt back what it was before recording
+    globalize 'PROMPT_COMMAND=$OLD_PROMPT_COMMAND'
+    echo "Stopped Recording..."
 
-      # Test to see if task is already defined
-      type "task_$NAME" > /dev/null
-      if [[ "$?" == "1" ]]
-      then
-        # Write it to file
-        echo "Writing record to $TASKS_FILE : "
-        tee -a $TASKS_FILE << EOM
+    # Test to see if task is already defined
+    type "task_$NAME" &> /dev/null
+    if [[ "$?" == "1" ]]
+    then
+      # Write it to file
+      echo "Writing record to $TASKS_FILE : "
+      tee -a $TASKS_FILE << EOM
 # Recorded Task
 task_$NAME() {
     pushd \`pwd\` > /dev/null
@@ -124,51 +144,30 @@ task_$NAME() {
     popd > /dev/null
 }
 EOM
-        # cleanup
-        rm $RECORDING_FILE
-        unset RECORDING_FILE
-        unset RECORD_START
-        unset RECORD_NAME
-        unset OLD_PROMPT_COMMAND
-      else
-        echo "Wont write to file: task_$NAME already exists"
-        echo "Try supplying another name using 'task record stop --name something_else'"
-      fi
-    else
-      echo "You are not recording..."
-      echo "Run 'task record start' to start "
-    fi
-
-  #### record restart
-  elif [ $TASK_SUBCOMMAND == "restart" ]
-  then
-    if [ ! -z "$RECORDING_FILE" ]
-    then
-      # Reset recording file
-      echo "Resetting record file..."
+      # cleanup
       rm $RECORDING_FILE
-      echo "Moving back to the start directory..."
-      cd $RECORD_START
+      remove_state
     else
-      echo "You are not recording..."
-      echo "Run 'task record start' to start "
+      echo "Wont write to file: task_$NAME already exists"
+      echo "Try supplying another name using 'task record stop --name something_else'"
     fi
-  
-  ### record trash
-  elif [ $TASK_SUBCOMMAND == "trash" ]
-  then
+  else
+    echo "You are not recording..."
+    echo "Run 'task record start' to start "
+  fi
+}
+
+record_trash(){
     if [ ! -z "$RECORDING_FILE" ]
     then
-      # Change prompt back what it was before recording
-      export PROMPT_COMMAND=$OLD_PROMPT_COMMAND
+      #remove_state first
+      remove_state
+      #then Change prompt back what it was before recording
+      globalize "PROMPT_COMMAND=$OLD_PROMPT_COMMAND"
       # Write it to file
       echo "Trashing record file $RECORDING_FILE"
-      # cleanup variables
-      unset RECORD_START
-      unset OLD_PROMPT_COMMAND
       # Remove recording file
       rm $RECORDING_FILE
-      unset RECORDING_FILE
     else
       if [ ! -z "$ARG_FORCE" ]
       then
@@ -179,5 +178,32 @@ EOM
         echo "Run 'task record trash --force' to remove all .rec_* files in $TASKS_DIR "
       fi
     fi
+}
+
+record_restart(){
+    if [ ! -z "$RECORDING_FILE" ]
+    then
+      # Reset recording file
+      echo "Resetting record file..."
+      rm $RECORDING_FILE
+      echo "Moving back to the start directory..."
+      globalize 'cd $RECORD_START'
+    else
+      echo "You are not recording..."
+      echo "Run 'task record start' to start "
+    fi
+}
+
+globalize() {
+  echo $1 >> $STATE_FILE
+}
+
+remove_state() {
+  if [[ -f $STATE_FILE ]]
+  then
+    grep $STATE_FILE -e "=" > $STATE_FILE.tmp
+    sed -e 's/^\(.*\)=.*$/unset \1/' $STATE_FILE.tmp > $STATE_FILE.tmp
+    globalize 'DESTROY_STATE_FILE="1"'
+    mv $STATE_FILE.tmp $STATE_FILE
   fi
 }

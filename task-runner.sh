@@ -1,3 +1,4 @@
+#!/bin/bash
 #########################################################################################################
 # Main Task Runner:
 #   Supplies the following environment variables to tasks:
@@ -15,12 +16,11 @@
 ##########################################################################################################
 task(){
   # Save directory that you are running it from
-  RUNNING_DIR=`pwd`
-  pushd $RUNNING_DIR > /dev/null
+  local RUNNING_DIR=`pwd`
 
-  GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
-  TASKS_DIR=$RUNNING_DIR
-  TASKS_FILE=$TASKS_DIR/tasks.sh
+  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
+  local TASKS_DIR=$RUNNING_DIR
+  local TASKS_FILE=$TASKS_DIR/tasks.sh
 
 
   # Find tasks.sh file
@@ -30,6 +30,7 @@ task(){
     TASKS_DIR=`pwd`
     TASKS_FILE=$TASKS_DIR/tasks.sh
   done
+  cd $RUNNING_DIR
 
   if [[ "$TASKS_DIR" == "$HOME" ]]
   then
@@ -37,23 +38,17 @@ task(){
     TASKS_FILE=$GLOBAL_TASKS_FILE
   fi
 
-  # Load global and local tasks
-  . $GLOBAL_TASKS_FILE
-  . $TASKS_FILE
-
   #Parse arguments
-  TASK_COMMAND=$1
-  shift
-  TASK_SUBCOMMAND=$1
-  # All arguments after the subcommand will be parsed into environment variables
+  local TASK_COMMAND=$1
+  # All arguments after the command will be parsed into environment variables
   # Only long arguments can be used
   while [[ $# > 1 ]]
   do
     shift
-    ARGUMENT=$1
+    local ARGUMENT=$1
     if [[ $ARGUMENT =~ ^--[a-z]*$ ]]
     then
-      TRANSLATE_ARG=${ARGUMENT//-}
+      local TRANSLATE_ARG=${ARGUMENT//-}
       TRANSLATE_ARG=${TRANSLATE_ARG^^}
       if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]$ ]]
       then
@@ -62,31 +57,55 @@ task(){
         shift
         eval "ARG_$TRANSLATE_ARG=$1"
       fi
-      unset TRANSLATE_ARG
+    elif [[ $ARGUMENT =~ ^[a-z]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
+    then
+      local TASK_SUBCOMMAND=$ARGUMENT
+    elif [[ $ARGUMENT =~ ^[a-z]*$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
+    then
+      echo "Only one subcommand is allowed"
+      echo "Got $TASK_SUBCOMMAND as a subcommand, and also got $ARGUMENT"
+      popd > /dev/null
+      return
     else
       echo "Only long arguments are allowed"
       echo "Try using something like '--arg value' that will be translated to \$ARG=value in the task script."
+      popd > /dev/null
       return
     fi
   done
 
-  #Run requested task
-  TASK_NAME=task_$TASK_COMMAND
-  type $TASK_NAME &> /dev/null
-  if [ "$?" == "0" ]
+  local STATE_FILE=$TASK_MASTER_HOME/state/$TASK_COMMAND.vars
+  if [[ -f $STATE_FILE ]]
   then
-    echo "Running $TASK_COMMAND task..."
-    shift
-    eval "$TASK_NAME"
-  else
-    echo "Can't find $TASK_COMMAND task in the global or local tasks file"
-    echo "check $TASKS_FILE for a definition of $TASK_NAME"
+      source $STATE_FILE
   fi
 
-  # unset task functions
-  eval $(grep $TASKS_FILE -e "task_.*()" | sed 's/\(task_.*\)() *{*/unset \1;/')
-  eval $(grep $GLOBAL_TASKS_FILE -e "task_.*()" | sed 's/\(task_.*\)() *{*/unset \1;/')
+  #Run requested task in subshell
+  (
+    # Load global and local tasks
+    . $GLOBAL_TASKS_FILE
+    . $TASKS_FILE
 
-  #Return to working directory
-  popd > /dev/null
+    local TASK_NAME=task_$TASK_COMMAND
+    type $TASK_NAME &> /dev/null
+    if [ "$?" == "0" ]
+    then
+      echo "Running $TASK_COMMAND task..."
+      shift
+      eval "$TASK_NAME"
+    else
+      echo "Can't find $TASK_COMMAND task in the global or local tasks file"
+      echo "check $TASKS_FILE for a definition of $TASK_NAME"
+    fi
+  )
+
+  if [[ -f $STATE_FILE ]]
+  then
+      source $STATE_FILE
+      if [[ -z "$DESTROY_STATE_FILE" ]]
+      then
+        rm $STATE_FILE
+      fi
+  fi
 }
+
