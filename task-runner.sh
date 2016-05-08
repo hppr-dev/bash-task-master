@@ -19,6 +19,7 @@ task(){
   local RUNNING_DIR=`pwd`
 
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
+  local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib-functions.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$TASKS_DIR/tasks.sh
 
@@ -82,9 +83,21 @@ task(){
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
 
-    # Load global and local tasks
+    # Load global
     . $GLOBAL_TASKS_FILE
+    # Read function defs so that lib functions can't be overwritten
+    . $GLOBAL_FUNCTION_DEFS
+
+    #Load local tasks
     . $TASKS_FILE
+    if [[ $? == "1" ]]
+    then
+      echo "A problem occured when loading tasks"
+      echo "It appears that a function or task in the local scope is trying to overwrite a protected function"
+      echo "Please rename the above function to proceed"
+      echo "If absolutely need to overwrite the function, comment the funciton out in $GLOBAL_FUNCTION_DEFS"
+      return
+    fi
 
     local TASK_NAME=task_$TASK_COMMAND
     type $TASK_NAME &> /dev/null
