@@ -27,7 +27,11 @@ You may also record tasks on command by using 'task record'. run 'task record he
 }
 
 task_list() {
-  declare -F  | grep task_
+  echo "AVailable tasks:"
+  echo
+  declare -F  | grep task_ | sed 's/declare -f task_/     /' | tr '\n' ' '
+  echo
+  echo
 }
 
 task_init() {
@@ -35,7 +39,11 @@ task_init() {
   then
     ARG_DIR=$RUNNING_DIR
   fi
-  touch $ARG_DIR/tasks.sh
+  cat > $ARG_DIR/tasks.sh << EOF
+task_edit() {
+  vim $ARG_DIR/tasks.sh
+}
+EOF
 }
 
 task_record() {
