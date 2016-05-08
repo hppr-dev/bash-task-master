@@ -74,14 +74,15 @@ task(){
     fi
   done
 
+
   local STATE_FILE=$TASK_MASTER_HOME/state/$TASK_COMMAND.vars
-  if [[ -f $STATE_FILE ]]
-  then
-      source $STATE_FILE
-  fi
 
   #Run requested task in subshell
   (
+    source $TASK_MASTER_HOME/lib/state.sh
+    source $TASK_MASTER_HOME/lib/record.sh
+    load_state
+
     # Load global and local tasks
     . $GLOBAL_TASKS_FILE
     . $TASKS_FILE
@@ -99,13 +100,26 @@ task(){
     fi
   )
 
+  #This needs to be here because it interacts with the outside
   if [[ -f $STATE_FILE ]]
   then
-      source $STATE_FILE
-      if [[ -z "$DESTROY_STATE_FILE" ]]
-      then
-        rm $STATE_FILE
-      fi
+    grep $STATE_FILE -e TASK_RETURN_DIR > /dev/null
+    if [[ "$?" == "0" ]]
+    then
+      eval $(grep $STATE_FILE -e TASK_RETURN_DIR)
+      cd $TASK_RETURN_DIR
+    fi
+    grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
+    if [[ "$?" == "0" ]]
+    then
+      rm $STATE_FILE
+    fi
+  fi
+  if [[ -f $STATE_FILE.export ]]
+  then
+    source $STATE_FILE.export
+    rm $STATE_FILE.export
   fi
 }
+
 
