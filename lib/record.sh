@@ -42,9 +42,11 @@ record_start(){
   persist_var RECORD_START "$RUNNING_DIR"
   # save name
   persist_var RECORD_NAME "$NAME"
+  # save current tasks file
+  persist_var RECORD_TASKS_FILE "$TASKS_FILE"
   # Save prompt command and change it to save commands
   hold_var PROMPT_COMMAND
-  export_var PROMPT_COMMAND "echo \$(history 1 | tr -s \" \" | cut -f 3- -d \" \") >> $RECORDING_FILE ;"
+  export_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
 }
 
 record_stop(){
@@ -73,8 +75,8 @@ record_stop(){
     if [[ "$?" == "1" ]]
     then
       # Write it to file
-      echo "Writing record to $TASKS_FILE : "
-      tee -a $TASKS_FILE << EOM
+      echo "Writing record to $RECORD_TASKS_FILE : "
+      tee -a $RECORD_TASKS_FILE << EOM
 # Recorded Task
 task_$NAME() {
     pushd \`pwd\` > /dev/null
