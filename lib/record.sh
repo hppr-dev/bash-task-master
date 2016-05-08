@@ -1,3 +1,33 @@
+record_help() {
+  HELP_STRING="usage: task record (start|stop|restart|trash|help)
+
+  This task is designed to create other tasks by recording your bash history
+
+  To start a recording run:
+
+        task record start [--name <task_name>]
+
+  To stop a recording and write it as a task to the local tasks.sh file run:
+
+        task record stop [--name <task_name>]
+
+  To throw away the current recording or old recordings run:
+
+         task record trash [--force]
+
+  To start a new recording after you have started recording run:
+
+         task record restart
+
+  To view this help run
+
+         task record (start|stop|restart|trash) --help
+                    or
+         task record help"
+
+  echo "$HELP_STRING"
+}
+
 record_start(){
   echo "Starting record..."
   # setup recording file to save context
