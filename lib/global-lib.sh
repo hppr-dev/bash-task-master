@@ -14,6 +14,10 @@ global_help() {
   To unset state variables for a command run (unsets KEY for the spawn command): 
 
       task global set --key KEY --command spawn
+
+  To edit state variables for a command run:
+
+      task global edit --command spawn
   "
 
   echo "$HELP_STRING"
@@ -57,5 +61,14 @@ global_unset() {
     global_debug
   else
     echo "Could not remove value, must specify --key 'key' and --command 'command'"
+  fi
+}
+
+global_edit() {
+  if [[ ! -z "$ARG_COMMAND" ]]
+  then
+    vim $TASK_MASTER_HOME/state/$ARG_COMMAND.vars
+  else
+    echo "Need to specify --command"
   fi
 }

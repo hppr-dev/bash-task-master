@@ -83,23 +83,28 @@ task(){
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
 
-    # Load global
-    . $GLOBAL_TASKS_FILE
-    # Read function defs so that lib functions can't be overwritten
-    . $GLOBAL_FUNCTION_DEFS
+    if [[ -z "$TASKS_LOADED" ]]
+    then
+      # Load global
+      . $GLOBAL_TASKS_FILE
+      # Read function defs so that lib functions can't be overwritten
+      . $GLOBAL_FUNCTION_DEFS
 
-    #Load local tasks
-    if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
-    then
-      . $TASKS_FILE
-    fi
-    if [[ $? == "1" ]]
-    then
-      echo "A problem occured when loading tasks"
-      echo "It appears that a function or task in the local scope is trying to overwrite a protected function"
-      echo "Please rename the above function to proceed"
-      echo "If absolutely need to overwrite the function, comment the funciton out in $GLOBAL_FUNCTION_DEFS"
-      return
+      local TASKS_LOADED=1
+
+      #Load local tasks
+      if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
+      then
+        . $TASKS_FILE
+      fi
+      if [[ $? == "1" ]]
+      then
+        echo "A problem occured when loading tasks"
+        echo "It appears that a function or task in the local scope is trying to overwrite a protected function"
+        echo "Please rename the above function to proceed"
+        echo "If absolutely need to overwrite the function, comment the funciton out in $GLOBAL_FUNCTION_DEFS"
+        return
+      fi
     fi
 
     local TASK_NAME=task_$TASK_COMMAND

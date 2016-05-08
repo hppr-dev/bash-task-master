@@ -8,7 +8,6 @@ readonly -f spawn_stop
 readonly -f spawn_list
 readonly -f spawn_output
 readonly -f spawn_clean
-readonly -f spawn_reindex
 readonly -f record_help
 readonly -f record_start
 readonly -f record_stop

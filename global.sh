@@ -91,6 +91,9 @@ task_spawn() {
   elif [ $TASK_SUBCOMMAND == "output" ]
   then
     spawn_output
+  elif [ $TASK_SUBCOMMAND == "clean" ]
+  then
+    spawn_clean
   else
     echo "Unknown subcommand: $TASK_SUBCOMMAND"
     spawn_help
@@ -110,6 +113,9 @@ task_global() {
   elif [[ $TASK_SUBCOMMAND == "unset" ]]
   then
     global_unset
+  elif [[ $TASK_SUBCOMMAND == "edit" ]]
+  then
+    global_edit
   fi
 }
 
