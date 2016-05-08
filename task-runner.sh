@@ -94,7 +94,8 @@ task(){
       $TASK_NAME
     else
       echo "Can't find $TASK_COMMAND task in the global or local tasks file"
-      echo "check $TASKS_FILE for a definition of $TASK_NAME"
+      echo "Available command are:"
+      task list
     fi
   )
 

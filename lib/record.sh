@@ -29,6 +29,12 @@ record_help() {
 }
 
 record_start(){
+  NAME=${ARG_NAME,,}
+  if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
+  then
+     NAME="unnamed"
+  fi
+  echo "NAME $NAME"
   echo "Starting record..."
   # setup recording file to save context
   persist_var RECORDING_FILE "$TASKS_DIR/.rec_$NAME"
@@ -38,20 +44,24 @@ record_start(){
   persist_var RECORD_NAME "$NAME"
   # Save prompt command and change it to save commands
   hold_var PROMPT_COMMAND
-  export_var PROMPT_COMMAND "'echo \$(history 1 | tr -s \" \" | cut -f 3- -d \" \") >> $RECORDING_FILE;'"
+  export_var PROMPT_COMMAND "echo \$(history 1 | tr -s \" \" | cut -f 3- -d \" \") >> $RECORDING_FILE ;"
 }
 
 record_stop(){
+  NAME=${ARG_NAME,,}
+  if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
+  then
+     NAME="unnamed"
+  fi
   if [ ! -z "$RECORDING_FILE" ]
   then
     #Check to see if the user gave a name on record stop
-    if [[ ! -z "$NAME" ]] && [[ "$RECORD_NAME" != "$NAME" ]]
+    #user gives name on start: $RECORD_NAME is set but $NAME is unnamed
+    if [[ "$NAME" == "unnamed" ]] && [[ ! -z "$RECORD_NAME" ]]
     then
+      NAME=$RECORD_NAME
       mv $RECORDING_FILE $TASKS_DIR/.rec_$NAME
       RECORDING_FILE=$TASKS_DIR/.rec_$NAME
-    elif [[ -z "$NAME" ]] 
-    then
-      $NAME=$RECORD_NAME
     fi
 
     # Change prompt back what it was before recording

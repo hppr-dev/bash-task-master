@@ -48,68 +48,33 @@ EOF
 
 task_record() {
 
-  NAME=${ARG_NAME,,}
-  if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
-  then
-     NAME="unnamed"
-  fi
-  HELP_STRING="usage: task record (start|stop|restart|trash|help)
-
-  This task is designed to create other tasks by recording your bash history
-
-  To start a recording run:
-
-        task record start [--name <task_name>]
-
-  To stop a recording and write it as a task to the local tasks.sh file run:
-
-        task record stop [--name <task_name>]
-
-  To throw away the current recording or old recordings run:
-
-         task record trash [--force]
-
-  To start a new recording after you have started recording run:
-
-         task record restart
-
-  To view this help run
-
-         task record (start|stop|restart|trash) --help
-                    or
-         task record help"
-
-  #### record help or record (start|stop|restart|trash|help)
   if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
-    echo "$HELP_STRING"
-
-  #### record start
+    record_help
   elif [ $TASK_SUBCOMMAND == "start" ]
   then
     record_start
-  #### record stop
   elif [ $TASK_SUBCOMMAND == "stop" ]
   then
     record_stop
-  #### record restart
   elif [ $TASK_SUBCOMMAND == "restart" ]
   then
     record_restart
-  ### record trash
   elif [ $TASK_SUBCOMMAND == "trash" ]
   then
     record_trash
   else
     echo "Unknown subcommand: $TASK_SUBCOMMAND"
-    echo "$HELP_STRING"
+    record_help
   fi
   
 }
 
 task_spawn() {
-  #### spawn start
-  if [ $TASK_SUBCOMMAND == "start" ]
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  then 
+    spawn_help
+  elif [ $TASK_SUBCOMMAND == "start" ]
   then
     spawn_start
   elif [ $TASK_SUBCOMMAND == "stop" ] || [ $TASK_SUBCOMMAND == "kill" ]
@@ -121,5 +86,24 @@ task_spawn() {
   elif [ $TASK_SUBCOMMAND == "output" ]
   then
     spawn_output
+  else
+    echo "Unknown subcommand: $TASK_SUBCOMMAND"
+    spawn_help
+  fi
+}
+
+task_global() {
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  then 
+    global_help
+  elif [[ $TASK_SUBCOMMAND == "debug" ]]
+  then
+    global_debug
+  elif [[ $TASK_SUBCOMMAND == "set" ]]
+  then
+    global_set
+  elif [[ $TASK_SUBCOMMAND == "unset" ]]
+  then
+    global_unset
   fi
 }

@@ -6,8 +6,8 @@
 #Used for when values are needed to be retained between runs
 persist_var() {
   remove_file_value $1 $STATE_FILE
-  echo "$1=$2" >> $STATE_FILE
-  eval "$1=$2"
+  echo "$1=\"$2\"" >> $STATE_FILE
+  eval "$1=\"$2\""
 }
 
 remove_var() {
@@ -17,7 +17,7 @@ remove_var() {
 # export a variable to the outside session
 export_var(){
   remove_file_value $1 $STATE_FILE.export
-  echo "$1=$2" >> $STATE_FILE.export
+  echo "$1=\"$2\"" >> $STATE_FILE.export
 }
 
 # hold the current value of a variable
