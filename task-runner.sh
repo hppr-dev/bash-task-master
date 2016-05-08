@@ -52,10 +52,10 @@ task(){
       TRANSLATE_ARG=${TRANSLATE_ARG^^}
       if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]$ ]]
       then
-        eval "ARG_$TRANSLATE_ARG='1'"
+        local ARG_$TRANSLATE_ARG='1'
       else
         shift
-        eval "ARG_$TRANSLATE_ARG=$1"
+        local ARG_$TRANSLATE_ARG="$1"
       fi
     elif [[ $ARGUMENT =~ ^[a-z]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
@@ -79,8 +79,7 @@ task(){
 
   #Run requested task in subshell
   (
-    source $TASK_MASTER_HOME/lib/state.sh
-    source $TASK_MASTER_HOME/lib/record.sh
+    for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
 
     # Load global and local tasks
@@ -92,8 +91,7 @@ task(){
     if [ "$?" == "0" ]
     then
       echo "Running $TASK_COMMAND task..."
-      shift
-      eval "$TASK_NAME"
+      $TASK_NAME
     else
       echo "Can't find $TASK_COMMAND task in the global or local tasks file"
       echo "check $TASKS_FILE for a definition of $TASK_NAME"
@@ -106,7 +104,7 @@ task(){
     grep $STATE_FILE -e TASK_RETURN_DIR > /dev/null
     if [[ "$?" == "0" ]]
     then
-      eval $(grep $STATE_FILE -e TASK_RETURN_DIR)
+      $(grep $STATE_FILE -e TASK_RETURN_DIR)
       cd $TASK_RETURN_DIR
     fi
     grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null

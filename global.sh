@@ -107,3 +107,19 @@ task_record() {
   
 }
 
+task_spawn() {
+  #### spawn start
+  if [ $TASK_SUBCOMMAND == "start" ]
+  then
+    spawn_start
+  elif [ $TASK_SUBCOMMAND == "stop" ] || [ $TASK_SUBCOMMAND == "kill" ]
+  then
+    spawn_stop
+  elif [ $TASK_SUBCOMMAND == "list" ]
+  then
+    spawn_list
+  elif [ $TASK_SUBCOMMAND == "output" ]
+  then
+    spawn_output
+  fi
+}

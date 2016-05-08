@@ -5,13 +5,13 @@
 #This function writes to the state file
 #Used for when values are needed to be retained between runs
 persist_var() {
-  if [[ -f $STATE_FILE ]]
-  then
-    grep -v $1 $STATE_FILE > $STATE_FILE.tmp
-    mv $STATE_FILE.tmp $STATE_FILE
-  fi
+  remove_file_value $1 $STATE_FILE
   echo "$1=$2" >> $STATE_FILE
   eval "$1=$2"
+}
+
+remove_var() {
+  remove_file_value $1 $STATE_FILE
 }
 
 # export a variable to the outside session
@@ -60,7 +60,7 @@ load_state() {
 remove_file_value() {
   if [[ -f $2 ]]
   then
-    grep -v $1 $2  > $2.tmp
+    grep -F -v $1 $2  > $2.tmp
     mv $2.tmp $2
   fi
 }
