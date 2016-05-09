@@ -40,20 +40,20 @@ task_list() {
 }
 
 task_init() {
-  if [[ -z "${ARGS['DIR']}" ]]
+  if [[ -z "$ARG_DIR" ]]
   then
-    ARGS['DIR']=$RUNNING_DIR
+    ARG_DIR=$RUNNING_DIR
   fi
-  cat > ${ARGS['DIR']}/tasks.sh << EOF
+  cat > $ARG_DIR/tasks.sh << EOF
 task_edit() {
-  vim ${ARGS['DIR']}/tasks.sh
+  vim $ARG_DIR/tasks.sh
 }
 EOF
 }
 
 task_record() {
 
-  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     record_help
   elif [ $TASK_SUBCOMMAND == "start" ]
@@ -76,7 +76,7 @@ task_record() {
 }
 
 task_spawn() {
-  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     spawn_help
   elif [ $TASK_SUBCOMMAND == "start" ]
@@ -101,7 +101,7 @@ task_spawn() {
 }
 
 task_global() {
-  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     global_help
   elif [[ $TASK_SUBCOMMAND == "debug" ]]
@@ -116,6 +116,9 @@ task_global() {
   elif [[ $TASK_SUBCOMMAND == "edit" ]]
   then
     global_edit
+  elif [[ $TASK_SUBCOMMAND == "check-defs" ]]
+  then
+    global_check-defs
   fi
 }
 

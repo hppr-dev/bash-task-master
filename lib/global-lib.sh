@@ -1,4 +1,3 @@
-
 global_help() {
   HELP_STRING="Usage: task global (debug|set|unset)
   Used to manipulate/display internal variables
@@ -24,10 +23,11 @@ global_help() {
 }
 
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit'
+  SUBCOMMANDS='debug|set|unset|edit|check-defs'
   SET_REQUIREMENTS='KEY:varname VALUE:str COMMAND:str'
   UNSET_REQUIREMENTS='KEY:str COMMAND:str'
   EDIT_REQUIREMENTS='COMMAND:str'
+  DEBUG_OPTIONS='COMMAND:str'
 }
 
 global_debug() {
@@ -48,34 +48,30 @@ global_debug() {
 }
 
 global_set() {
-  if [[ ! -z "$ARG_VALUE" ]] && [[ ! -z "$ARG_KEY" ]] && [[ ! -z "$ARG_COMMAND" ]]
-  then
-    local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
-    persist_var "$ARG_KEY" "$ARG_VALUE"
-    echo "Value saved, variables for $ARG_COMMAND :"
-    global_debug
-  else
-    echo "Could not set value, must specify --value 'value' --key 'key' and --command 'command'"
-  fi
+  local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
+  persist_var "$ARG_KEY" "$ARG_VALUE"
+  echo "Value saved, variables for $ARG_COMMAND :"
+  global_debug
 }
 
 global_unset() {
-  if [[ ! -z $ARG_KEY ]] && [[ ! -z $ARG_COMMAND ]]
-  then
-    local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
-    remove_var "$ARG_KEY" "$ARG_VALUE"
-    echo "Value removed, variables for $ARG_COMMAND :"
-    global_debug
-  else
-    echo "Could not remove value, must specify --key 'key' and --command 'command'"
-  fi
+  local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
+  remove_var "$ARG_KEY" "$ARG_VALUE"
+  echo "Value removed, variables for $ARG_COMMAND :"
+  global_debug
 }
 
 global_edit() {
-  if [[ ! -z "$ARG_COMMAND" ]]
-  then
     vim $TASK_MASTER_HOME/state/$ARG_COMMAND.vars
+}
+
+global_check-defs() {
+  #Check to see if any global functions have been overwritten
+  . $GLOBAL_FUNCTION_DEFS  
+  if [[ $GLOBAL_TASKS_FILE != $TASKS_FILE ]]
+  then
+    . $TASKS_FILE
   else
-    echo "Need to specify --command"
+    echo "Can't check defs without a local tasks file"
   fi
 }

@@ -49,33 +49,14 @@ task(){
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
 
-    if [[ "$TASKS_LOADED" != "1" ]]
+    export TASKS_LOADED=1
+    # Load global
+    . $GLOBAL_TASKS_FILE
+
+    #Load local tasks
+    if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
     then
-      export TASKS_LOADED=1
-      # Load global
-      . $GLOBAL_TASKS_FILE
-      # Read function defs so that lib functions can't be overwritten
-      # Assume that if export_var has already been loaded then don't load them again
-      type export_var &> /dev/null
-      if [[ "$?" == "1" ]]
-      then
-        . $GLOBAL_FUNCTION_DEFS 
-      fi
-
-
-      #Load local tasks
-      if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
-      then
-        . $TASKS_FILE
-      fi
-      if [[ $? == "1" ]]
-      then
-        echo "A problem occured when loading tasks"
-        echo "It appears that a function or task in the local scope is trying to overwrite a protected function"
-        echo "Please rename the above function to proceed"
-        echo "If absolutely need to overwrite the function, comment the funciton out in $GLOBAL_FUNCTION_DEFS"
-        return
-      fi
+      . $TASKS_FILE
     fi
 
     #Parse and validate arguments
