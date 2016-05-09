@@ -48,18 +48,10 @@ task(){
   (
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
-    #Parse and validate arguments
-    parse_args_for_task $@
-    validate_args_for_task
-    if [[ "$?" == "1" ]]
-    then
-      return 
-    fi
 
     if [[ "$TASKS_LOADED" != "1" ]]
     then
       export TASKS_LOADED=1
-      echo Loading tasks
       # Load global
       . $GLOBAL_TASKS_FILE
       # Read function defs so that lib functions can't be overwritten
@@ -84,6 +76,14 @@ task(){
         echo "If absolutely need to overwrite the function, comment the funciton out in $GLOBAL_FUNCTION_DEFS"
         return
       fi
+    fi
+
+    #Parse and validate arguments
+    parse_args_for_task $@
+    validate_args_for_task
+    if [[ "$?" == "1" ]]
+    then
+      return 
     fi
 
     local TASK_NAME=task_$TASK_COMMAND

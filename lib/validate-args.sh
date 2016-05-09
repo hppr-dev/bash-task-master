@@ -29,7 +29,6 @@ validate_args_for_task() {
         do
           local name=${requirement%:*}
           local atype=${requirement##*:}
-          echo "Checking $name:$atype"
           # Make sure that the argument exists
           local valname="ARG_$name"
           if [[ -z "${!valname}" ]]

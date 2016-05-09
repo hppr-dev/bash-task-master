@@ -1,4 +1,5 @@
 readonly -f record_help
+readonly -f requirements_record
 readonly -f record_start
 readonly -f record_stop
 readonly -f record_trash
@@ -13,16 +14,20 @@ readonly -f set_return_directory
 readonly -f load_state
 readonly -f remove_file_value
 readonly -f global_help
+readonly -f requirements_global
 readonly -f global_debug
 readonly -f global_set
 readonly -f global_unset
 readonly -f global_edit
+readonly -f requirements_spawn
 readonly -f spawn_help
 readonly -f spawn_start
 readonly -f spawn_stop
 readonly -f spawn_list
 readonly -f spawn_output
 readonly -f spawn_clean
+readonly -f validate_args_for_task
+readonly -f parse_args_for_task
 
 readonly -f task_help
 readonly -f task_list
@@ -30,4 +35,5 @@ readonly -f task_init
 readonly -f task_record
 readonly -f task_spawn
 readonly -f task_global
+readonly -f requirements_export
 readonly -f task_export
