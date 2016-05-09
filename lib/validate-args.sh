@@ -76,25 +76,42 @@ parse_args_for_task() {
   then
     arguments_$TASK_COMMAND
   fi
-  local SPEC_REQUIREMENT_NAME=${TASK_COMMAND}_REQUIREMENTS
-  local SPEC_OPTION_NAME=${TASK_COMMAND}_OPTIONS
-  while [[ $# > 1 ]]
+  local SPEC_REQUIREMENT_NAME=${TASK_COMMAND^^}_REQUIREMENTS
+  local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
+  #check if there are more than one specified arg and add the first ones to the end
+  local new_args=""
+  for i in $@
+  do
+    if [[ $i =~ ^\-[A-Za-z]+$ ]]
+    then
+      local separated=$(echo "$i" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
+      new_args="$new_args $separated"
+    else
+      new_args="$new_args $i"
+    fi
+  done
+  set -- $new_args
+  while [[ $# != 0 ]]
   do
     shift
     local ARGUMENT=$1
     #Translate shortend arg
-    if [[ -z "${ARGUMENT/-[A-Za-z]}" ]]
+    if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
-      local requirements=${!SPEC_REQUIREMENT_NAME}
-      local options=${!SPEC_OPTION_NAME}
+      local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
       local spec=$(echo "$requirements" | sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" | tr -d '[[:space:]]')
       local long_arg=${spec%%:*}
+      if [[ -z "$long_arg" ]]
+      then
+        echo "Unknown argument: $ARGUMENT"
+        return 1
+      fi
       ARGUMENT="--${long_arg,,}"
     fi
-    if [[ $ARGUMENT =~ ^--[a-z]*$ ]]
+    if [[ $ARGUMENT =~ ^--[a-z]+$ ]]
     then
-      local TRANSLATE_ARG=${ARGUMENT//-}
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]$ ]]
+      local TRANSLATE_ARG=${ARGUMENT#--}
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[A-Za-z]$ ]] 
       then
         export ARG_${TRANSLATE_ARG^^}='1'
       else

@@ -61,6 +61,10 @@ task(){
 
     #Parse and validate arguments
     parse_args_for_task $@
+    if [[ "$?" == "1" ]]
+    then
+      return 
+    fi
     validate_args_for_task
     if [[ "$?" == "1" ]]
     then
