@@ -23,6 +23,13 @@ global_help() {
   echo "$HELP_STRING"
 }
 
+requirements_global() {
+  SUBCOMMANDS='debug|set|unset|edit'
+  SET_REQUIREMENTS='KEY:varname VALUE:str COMMAND:str'
+  UNSET_REQUIREMENTS='KEY:str COMMAND:str'
+  EDIT_REQUIREMENTS='COMMAND:str'
+}
+
 global_debug() {
   if [[ ! -z "$ARG_COMMAND" ]]
   then
@@ -41,7 +48,7 @@ global_debug() {
 }
 
 global_set() {
-  if [[ ! -z "$ARG_VALUE" ]] && [[ ! -z $ARG_KEY ]] && [[ ! -z $ARG_COMMAND ]]
+  if [[ ! -z "$ARG_VALUE" ]] && [[ ! -z "$ARG_KEY" ]] && [[ ! -z "$ARG_COMMAND" ]]
   then
     local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
     persist_var "$ARG_KEY" "$ARG_VALUE"

@@ -28,13 +28,19 @@ record_help() {
   echo "$HELP_STRING"
 }
 
+requirements_record() {
+  SUBCOMMANDS='start|stop|restart|trash|help'
+  START_OPTIONS='NAME:str'
+  STOP_OPTIONS='NAME:str'
+  TRASH_OPTIONS='FORCE:bool'
+}
+
 record_start(){
   NAME=${ARG_NAME,,}
   if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
   then
      NAME="unnamed"
   fi
-  echo "NAME $NAME"
   echo "Starting record..."
   # setup recording file to save context
   persist_var RECORDING_FILE "$TASKS_DIR/.rec_$NAME"
@@ -55,7 +61,7 @@ record_stop(){
   then
      NAME="unnamed"
   fi
-  if [ ! -z "$RECORDING_FILE" ]
+  if [[ ! -z "$RECORDING_FILE" ]]
   then
     #Check to see if the user gave a name on record stop
     #user gives name on start: $RECORD_NAME is set but $NAME is unnamed
@@ -99,7 +105,7 @@ EOM
 }
 
 record_trash(){
-    if [ ! -z "$RECORDING_FILE" ]
+    if [[ ! -z "$RECORDING_FILE" ]]
     then
       #remove_state first
       clean_up_state 
@@ -110,7 +116,7 @@ record_trash(){
       # Remove recording file
       rm $RECORDING_FILE
     else
-      if [ ! -z "$ARG_FORCE" ]
+      if [[ ! -z "$ARG_FORCE" ]]
       then
         echo "Forcing removal of all .rec files in $TASKS_DIR"
         rm -i $TASKS_DIR/.rec_*
@@ -122,7 +128,7 @@ record_trash(){
 }
 
 record_restart(){
-    if [ ! -z "$RECORDING_FILE" ]
+    if [[ ! -z "$RECORDING_FILE" ]]
     then
       # Reset recording file
       echo "Resetting record file..."

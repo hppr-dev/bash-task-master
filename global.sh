@@ -18,7 +18,7 @@ To write your own commands:
 You may also run 'task init [--dir <dir_name>]' to create a local tasks.sh file in the current directory or the directory specified by the --dir option.
 
 Tasks can take long arguments by using the \$ARG_LONG_NAME.
-For instance, running 'task get --addr 1324 --local' will set \$ARG_ADDR='1324' and \$ARG_LOCAL='1' for the 'task_get' task
+For instance, running 'task get --addr 1324 --local' will set \${ARGS['ADDR']}='1324' and \${ARGS['LOCAL']}='1' for the 'task_get' task
 
 You may also record tasks on command by using 'task record'. run 'task record help' for more details
 "
@@ -40,20 +40,20 @@ task_list() {
 }
 
 task_init() {
-  if [[ -z "$ARG_DIR" ]]
+  if [[ -z "${ARGS['DIR']}" ]]
   then
-    ARG_DIR=$RUNNING_DIR
+    ARGS['DIR']=$RUNNING_DIR
   fi
-  cat > $ARG_DIR/tasks.sh << EOF
+  cat > ${ARGS['DIR']}/tasks.sh << EOF
 task_edit() {
-  vim $ARG_DIR/tasks.sh
+  vim ${ARGS['DIR']}/tasks.sh
 }
 EOF
 }
 
 task_record() {
 
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     record_help
   elif [ $TASK_SUBCOMMAND == "start" ]
@@ -76,7 +76,7 @@ task_record() {
 }
 
 task_spawn() {
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     spawn_help
   elif [ $TASK_SUBCOMMAND == "start" ]
@@ -101,7 +101,7 @@ task_spawn() {
 }
 
 task_global() {
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  if [[ ! -z "${ARGS['HELP']}" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
   then 
     global_help
   elif [[ $TASK_SUBCOMMAND == "debug" ]]

@@ -1,3 +1,11 @@
+requirements_spawn(){
+  SUBCOMMANDS='start|stop|kill|list|output|clean'
+  START_REQUIREMENTS='PROC:str'
+  STOP_REQUIREMENTS='NUM:int'
+  OUTPUT_REQUIREMENTS='NUM:int'
+  START_OPTIONS='OUT:str'
+  OUTPUT_OPTIONS='FOLLOW:bool'
+}
 
 spawn_help() {
   HELP_STRING="usage: task spawn (start|stop|kill|stop|list|output|clean)
@@ -49,7 +57,7 @@ spawn_stop() {
   then
     echo "No --num argument supplied"
     echo "Defaulting to 1"
-    ARG_NUM=1
+    ARGS_NUM=1
   fi
   echo "Killing ${SPAWNED_PROC[$ARG_NUM]}..."
   ps ${SPAWNED_PROC[$ARG_NUM]} > /dev/null
@@ -89,7 +97,7 @@ spawn_output() {
     echo "Use 'task spawn list' to find a number to stop"
     return
   fi
-  if [[ -z "$ARG_FOLLoW" ]]
+  if [[ ! -z "$ARG_FOLLOW" ]]
   then
     tailf ${SPAWNED_PROC_OUT[$ARG_NUM]}
   else

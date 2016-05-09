@@ -35,46 +35,12 @@ task(){
 
   if [[ "$TASKS_DIR" == "$HOME" ]]
   then
-    echo Could not file local task file, only loading global
     TASKS_FILE=$GLOBAL_TASKS_FILE
   fi
 
-  #Parse arguments
-  local TASK_COMMAND=$1
-  # All arguments after the command will be parsed into environment variables
-  # Only long arguments can be used
-  while [[ $# > 1 ]]
-  do
-    shift
-    local ARGUMENT=$1
-    if [[ $ARGUMENT =~ ^--[a-z]*$ ]]
-    then
-      local TRANSLATE_ARG=${ARGUMENT//-}
-      TRANSLATE_ARG=${TRANSLATE_ARG^^}
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]$ ]]
-      then
-        local ARG_$TRANSLATE_ARG='1'
-      else
-        shift
-        local ARG_$TRANSLATE_ARG="$1"
-      fi
-    elif [[ $ARGUMENT =~ ^[a-z]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
-    then
-      local TASK_SUBCOMMAND=$ARGUMENT
-    elif [[ $ARGUMENT =~ ^[a-z]*$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
-    then
-      echo "Only one subcommand is allowed"
-      echo "Got $TASK_SUBCOMMAND as a subcommand, and also got $ARGUMENT"
-      popd > /dev/null
-      return
-    else
-      echo "Only long arguments are allowed"
-      echo "Try using something like '--arg value' that will be translated to \$ARG=value in the task script."
-      popd > /dev/null
-      return
-    fi
-  done
 
+  local TASK_COMMAND=$1
+  
 
   local STATE_FILE=$TASK_MASTER_HOME/state/$TASK_COMMAND.vars
 
@@ -82,15 +48,28 @@ task(){
   (
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
-
-    if [[ -z "$TASKS_LOADED" ]]
+    #Parse and validate arguments
+    parse_args_for_task $@
+    validate_args_for_task
+    if [[ "$?" == "1" ]]
     then
+      return 
+    fi
+
+    if [[ "$TASKS_LOADED" != "1" ]]
+    then
+      export TASKS_LOADED=1
+      echo Loading tasks
       # Load global
       . $GLOBAL_TASKS_FILE
       # Read function defs so that lib functions can't be overwritten
-      . $GLOBAL_FUNCTION_DEFS
+      # Assume that if export_var has already been loaded then don't load them again
+      type export_var &> /dev/null
+      if [[ "$?" == "1" ]]
+      then
+        . $GLOBAL_FUNCTION_DEFS 
+      fi
 
-      local TASKS_LOADED=1
 
       #Load local tasks
       if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
@@ -109,14 +88,14 @@ task(){
 
     local TASK_NAME=task_$TASK_COMMAND
     type $TASK_NAME &> /dev/null
-    if [ "$?" == "0" ]
+    if [[ "$?" == "0" ]]
     then
-      echo "Running $TASK_COMMAND task..."
+      echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
       $TASK_NAME
     else
       echo "Can't find $TASK_COMMAND task in the global or local tasks file"
       echo "Available command are:"
-      task list
+      task_list
     fi
   )
 
