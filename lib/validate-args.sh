@@ -85,9 +85,9 @@ parse_args_for_task() {
     if [[ $i =~ ^\-[A-Za-z]+$ ]]
     then
       local separated=$(echo "$i" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
-      new_args="$new_args $separated"
+      new_args=$new_args\ $separated
     else
-      new_args="$new_args $i"
+      new_args=$new_args\ $i
     fi
   done
   set -- $new_args
@@ -95,6 +95,11 @@ parse_args_for_task() {
   do
     shift
     local ARGUMENT=$1
+    #ignore any whitespace arguments
+    if [[ -z "$ARGUMENT" ]]
+    then
+      continue
+    fi
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
@@ -123,7 +128,7 @@ parse_args_for_task() {
       TASK_SUBCOMMAND=$ARGUMENT
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
-    elif [[ $ARGUMENT =~ ^[a-z_-]*$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
+    elif [[ $ARGUMENT =~ ^[a-z_-]+$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
     then
       echo "Only one subcommand is allowed"
       echo "Got $TASK_SUBCOMMAND as a subcommand, and also got $ARGUMENT"

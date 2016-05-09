@@ -40,7 +40,6 @@ task(){
 
 
   local TASK_COMMAND=$1
-  
 
   local STATE_FILE=$TASK_MASTER_HOME/state/$TASK_COMMAND.vars
 
