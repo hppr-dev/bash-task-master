@@ -38,7 +38,7 @@ Start by recording a task:
 ```
   $task record start --name hello-world
   Starting recording
-  $echo "Hello World!!"
+  $echo 'Hello World!!'
   Hello World!!
   $task record stop
   Storing recording to tasks.sh
@@ -69,7 +69,7 @@ For instance with a task definition like:
 You may run:
 
 ```
-  $task echo --msg "Hello!!!!"
+  $task echo --msg 'Hello!!!!'
   Hello!!!!
   Hello!!!!
   Hello!!!!
