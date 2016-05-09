@@ -23,7 +23,7 @@ export_var(){
 # hold the current value of a variable
 hold_var() {
   remove_file_value $1 $STATE_FILE.hold
-  echo "$1=${!1}" >> $STATE_FILE.hold
+  echo "$1=\"${!1}\"" >> $STATE_FILE.hold
 }
 
 # release a held value of a variable and export it back to the outside session

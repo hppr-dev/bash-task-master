@@ -12,3 +12,14 @@ task_gen-lib-func() {
     grep -h -I global.sh -e ".*()" | sed 's/\(.*\)().*/readonly -f \1/' | grep -v '\$' | grep -v 'task_edit' >> lib-functions.sh
     popd > /dev/null
 }
+
+task_tester() {
+  if [[ $TASK_SUBCOMMAND == "set" ]]
+  then
+    hold_var "PS1"
+    export_var "PS1" "(tester)"
+  elif [[ $TASK_SUBCOMMAND == "unset" ]]
+  then
+    release_var "PS1"
+  fi
+}
