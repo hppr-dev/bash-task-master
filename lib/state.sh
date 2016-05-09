@@ -24,6 +24,10 @@ export_var(){
 hold_var() {
   remove_file_value $1 $STATE_FILE.hold
   echo "$1=\"${!1}\"" >> $STATE_FILE.hold
+  if [[ ! -z "$2" ]]
+  then
+    export_var $@
+  fi
 }
 
 # release a held value of a variable and export it back to the outside session
