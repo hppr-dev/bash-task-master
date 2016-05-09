@@ -159,11 +159,11 @@ For example the following creates a task to change the value of PS1 to "(tester)
 
 ```
   task_tester() {
-    if [[ $ARG_SUBCOMMAND == "set" ]]
+    if [[ $TASK_SUBCOMMAND == "set" ]]
     then
       hold_var "PS1"
       export_var "PS1" "(tester)"
-    elif [[ $ARG_SUBCOMMAND == "unset" ]]
+    elif [[ $TASK_SUBCOMMAND == "unset" ]]
     then
       release_var "PS1"
     fi
