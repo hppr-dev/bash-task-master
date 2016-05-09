@@ -51,8 +51,7 @@ record_start(){
   # save current tasks file
   persist_var RECORD_TASKS_FILE "$TASKS_FILE"
   # Save prompt command and change it to save commands
-  hold_var PROMPT_COMMAND
-  export_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
+  hold_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
 }
 
 record_stop(){

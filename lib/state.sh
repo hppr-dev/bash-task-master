@@ -26,7 +26,7 @@ hold_var() {
   echo "$1=\"${!1}\"" >> $STATE_FILE.hold
   if [[ ! -z "$2" ]]
   then
-    export_var $@
+    export_var "$1" "$2"
   fi
 }
 
