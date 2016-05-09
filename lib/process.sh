@@ -1,4 +1,4 @@
-requirements_spawn(){
+arguments_spawn(){
   SUBCOMMANDS='start|stop|kill|list|output|clean'
   START_REQUIREMENTS='PROC:str'
   STOP_REQUIREMENTS='NUM:int'

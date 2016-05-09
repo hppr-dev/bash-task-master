@@ -119,7 +119,7 @@ task_global() {
   fi
 }
 
-requirements_export() {
+arguments_export() {
   EXPORT_REQUIREMENTS="COMMAND:str OUT:str"
 }
 

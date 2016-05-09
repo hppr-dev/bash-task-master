@@ -28,7 +28,7 @@ record_help() {
   echo "$HELP_STRING"
 }
 
-requirements_record() {
+arguments_record() {
   SUBCOMMANDS='start|stop|restart|trash|help'
   START_OPTIONS='NAME:str'
   STOP_OPTIONS='NAME:str'

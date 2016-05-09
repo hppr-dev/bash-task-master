@@ -23,7 +23,7 @@ global_help() {
   echo "$HELP_STRING"
 }
 
-requirements_global() {
+arguments_global() {
   SUBCOMMANDS='debug|set|unset|edit'
   SET_REQUIREMENTS='KEY:varname VALUE:str COMMAND:str'
   UNSET_REQUIREMENTS='KEY:str COMMAND:str'

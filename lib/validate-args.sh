@@ -7,11 +7,11 @@ validate_args_for_task() {
   local verif[int]='[0-9]*'
   local verif[bool]='[01]'
 
-  # Check if requirements exist
-  type requirements_$TASK_COMMAND &> /dev/null 
+  # Check if argument specifications exist
+  type arguments_$TASK_COMMAND &> /dev/null 
   if [[ "$?" == "0" ]]
   then
-    requirements_$TASK_COMMAND
+    arguments_$TASK_COMMAND
     # check if subcommand exists or if there are no subcommands
     if [[ $TASK_SUBCOMMAND =~ ^$SUBCOMMANDS$ ]] || [[ -z "$SUBCOMMANDS" ]]
     then
