@@ -24,10 +24,10 @@ global_help() {
 
 arguments_global() {
   SUBCOMMANDS='debug|set|unset|edit|check-defs'
-  SET_REQUIREMENTS='KEY:varname VALUE:str COMMAND:str'
-  UNSET_REQUIREMENTS='KEY:str COMMAND:str'
-  EDIT_REQUIREMENTS='COMMAND:str'
-  DEBUG_OPTIONS='COMMAND:str'
+  SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
+  UNSET_REQUIREMENTS='key:k:str command:c:str'
+  EDIT_REQUIREMENTS='command:c:str'
+  DEBUG_OPTIONS='command:c:str'
 }
 
 global_debug() {

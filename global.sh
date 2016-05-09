@@ -124,7 +124,7 @@ task_global() {
 }
 
 arguments_export() {
-  EXPORT_REQUIREMENTS="COMMAND:str OUT:str"
+  EXPORT_REQUIREMENTS="command:c:str out:o:str"
 }
 
 task_export() {

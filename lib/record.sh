@@ -30,9 +30,9 @@ record_help() {
 
 arguments_record() {
   SUBCOMMANDS='start|stop|restart|trash|help'
-  START_OPTIONS='NAME:str'
-  STOP_OPTIONS='NAME:str'
-  TRASH_OPTIONS='FORCE:bool'
+  START_OPTIONS='name:n:str'
+  STOP_OPTIONS='name:n:str'
+  TRASH_OPTIONS='force:bool'
 }
 
 record_start(){

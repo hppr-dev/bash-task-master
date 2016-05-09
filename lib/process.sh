@@ -1,10 +1,10 @@
 arguments_spawn(){
   SUBCOMMANDS='start|stop|kill|list|output|clean'
-  START_REQUIREMENTS='PROC:str'
-  STOP_REQUIREMENTS='NUM:int'
-  OUTPUT_REQUIREMENTS='NUM:int'
-  START_OPTIONS='OUT:str'
-  OUTPUT_OPTIONS='FOLLOW:bool'
+  START_REQUIREMENTS='proc:p:str'
+  STOP_REQUIREMENTS='num:n:int'
+  OUTPUT_REQUIREMENTS='num:n:int'
+  START_OPTIONS='out:n:str'
+  OUTPUT_OPTIONS='follow:n:bool'
 }
 
 spawn_help() {

@@ -1,9 +1,8 @@
 validate_args_for_task() {
   # Define available types
   declare -A verif
-  local avail_types='str|varname|int|bool'
+  local avail_types='str|int|bool'
   local verif[str]='.*'
-  local verif[varname]='[A-Z_\[\]]*'
   local verif[int]='[0-9]*'
   local verif[bool]='[01]'
 
@@ -11,7 +10,6 @@ validate_args_for_task() {
   type arguments_$TASK_COMMAND &> /dev/null 
   if [[ "$?" == "0" ]]
   then
-    arguments_$TASK_COMMAND
     # check if subcommand exists or if there are no subcommands
     if [[ $TASK_SUBCOMMAND =~ ^$SUBCOMMANDS$ ]] || [[ -z "$SUBCOMMANDS" ]]
     then
@@ -27,10 +25,10 @@ validate_args_for_task() {
       then
         for requirement in ${!reqvar}
         do
-          local name=${requirement%:*}
+          local name=${requirement%%:*}
           local atype=${requirement##*:}
           # Make sure that the argument exists
-          local valname="ARG_$name"
+          local valname="ARG_${name^^}"
           if [[ -z "${!valname}" ]]
           then
             echo "Missing required argument: --${name,,}"
@@ -39,7 +37,7 @@ validate_args_for_task() {
           # Make sure that the argument is the right type
           if [[ ! "${!valname}" =~ ^${verif[$atype]}$ ]]
           then
-            echo "Argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
+            echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
             return 1
           fi
         done
@@ -52,7 +50,7 @@ validate_args_for_task() {
         do
           local name=${option%:*}
           local atype=${option##*:}
-          local valname="ARG_$name"
+          local valname="ARG_${name^^}"
           if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ^${verif[$atype]}$ ]]
           then
             echo "Argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
@@ -72,11 +70,27 @@ validate_args_for_task() {
 
 parse_args_for_task() {
   # All arguments after the command will be parsed into environment variables
-  # Only long arguments can be used
+  # load argument specification
+  type arguments_$TASK_COMMAND &> /dev/null 
+  if [[ "$?" == "0" ]]
+  then
+    arguments_$TASK_COMMAND
+  fi
+  local SPEC_REQUIREMENT_NAME=${TASK_COMMAND}_REQUIREMENTS
+  local SPEC_OPTION_NAME=${TASK_COMMAND}_OPTIONS
   while [[ $# > 1 ]]
   do
     shift
     local ARGUMENT=$1
+    #Translate shortend arg
+    if [[ -z "${ARGUMENT/-[A-Za-z]}" ]]
+    then
+      local requirements=${!SPEC_REQUIREMENT_NAME}
+      local options=${!SPEC_OPTION_NAME}
+      local spec=$(echo "$requirements" | sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" | tr -d '[[:space:]]')
+      local long_arg=${spec%%:*}
+      ARGUMENT="--${long_arg,,}"
+    fi
     if [[ $ARGUMENT =~ ^--[a-z]*$ ]]
     then
       local TRANSLATE_ARG=${ARGUMENT//-}
@@ -90,6 +104,8 @@ parse_args_for_task() {
     elif [[ $ARGUMENT =~ ^[a-z_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
       TASK_SUBCOMMAND=$ARGUMENT
+      SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
+      SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
     elif [[ $ARGUMENT =~ ^[a-z_-]*$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
     then
       echo "Only one subcommand is allowed"
