@@ -110,12 +110,9 @@ parse_args_for_task() {
     then
       echo "Only one subcommand is allowed"
       echo "Got $TASK_SUBCOMMAND as a subcommand, and also got $ARGUMENT"
-      popd > /dev/null
       return
     else
-      echo "Only long arguments are allowed"
-      echo "Try using something like '--value value' that will be translated to \$ARG_VALUE=value in the task script."
-      popd > /dev/null
+      echo "Unrecognized argument: $ARGUMENT"
       return
     fi
   done
