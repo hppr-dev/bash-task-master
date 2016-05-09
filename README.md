@@ -53,8 +53,8 @@ Now run your new script:
 Using Command Line Arguments
 ============================
 
-The task command itself doesn't have any command line arguments, but created tasks can use long arguments to retrieve data.
-Arguments are parsed and passed to the task as ARG_NAME.
+The task command itself doesn't have any command line arguments, but created tasks can use arguments to retrieve data.
+Arguments are parsed and passed to the task as ARG_NAME. See the following section about defining short arguments.
 For instance with a task definition like:
 
 ```
@@ -82,15 +82,15 @@ Arguments without specified values are set to `'1'`.
 Validating Command Line Arguments
 ================================
 
-To validate command line arguments simply create an arguments specification like so:
+To validate command line arguments and set short arguments simply create an arguments specification like so:
 
 ```
 
   arguments_build() {
     SUBCOMMANDS="help|frontend|backend|all"
-    FRONTEND_REQUIREMENTS="OUT:str IN:str"
-    BACKEND_REQUIREMENTS="PID:int"
-    FRONTEND_OPTIONS="VERBOSE:bool LINT:bool DIR:str"
+    FRONTEND_REQUIREMENTS="OUT:o:str IN:i:str"
+    BACKEND_REQUIREMENTS="PID:P:int"
+    FRONTEND_OPTIONS="VERBOSE:v:bool LINT:L:bool DIR:d:str"
   }
 
 ```
@@ -101,8 +101,10 @@ Which would allow all of the following to run:
 
   $task build frontend --out outdir --in infile
   $task build frontend --out outdir --in infile --lint --verbose
+  $task build frontend -o outdir -i infile -L -v
   $task build all
   $task build backend --pid 123
+  $task build backend -P 123
 
 ```
 
@@ -113,6 +115,7 @@ But none of the following to run:
   $task build frontend 
   $task build frontend --in infile --lint --verbose
   $task build backend --pid 12 --verbose garbage
+  $task build backend -P 12 -v garbage
 
 ```
 
