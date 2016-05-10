@@ -59,7 +59,7 @@ validate_args_for_task() {
         done
       fi
     else
-      echo $SUBCOMMANDS
+      echo Available $SUBCOMMANDS
       echo "Unknown subcommand: $TASK_SUBCOMMAND"
       return 1
     fi
@@ -71,6 +71,7 @@ validate_args_for_task() {
 parse_args_for_task() {
   # All arguments after the command will be parsed into environment variables
   # load argument specification
+  unset TASK_SUBCOMMAND
   type arguments_$TASK_COMMAND &> /dev/null 
   if [[ "$?" == "0" ]]
   then
@@ -80,9 +81,9 @@ parse_args_for_task() {
   local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
   #check if there are more than one specified arg and add the first ones to the end
   local new_args=""
-  for i in $@
+  for i in "$@"
   do
-    if [[ $i =~ ^\-[A-Za-z]+$ ]]
+    if [[ $i =~ ^\-[A-Za-z]{2,}$ ]]
     then
       local separated=$(echo "$i" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
       new_args=$new_args\ $separated
@@ -91,21 +92,22 @@ parse_args_for_task() {
     fi
   done
   set -- $new_args
-  while [[ $# != 0 ]]
+  shift
+  while [[ $# != "0" ]]
   do
-    shift
-    local ARGUMENT=$1
+    ARGUMENT="$1"
     #ignore any whitespace arguments
     if [[ -z "$ARGUMENT" ]]
     then
-      continue
+      shift
+      ARGUMENT="$1"
     fi
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
       local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
-      local spec=$(echo "$requirements" | sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" | tr -d '[[:space:]]')
-      local long_arg=${spec%%:*}
+      local spec=$(sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
+      local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]]
       then
         echo "Unknown argument: $ARGUMENT"
@@ -113,29 +115,25 @@ parse_args_for_task() {
       fi
       ARGUMENT="--${long_arg,,}"
     fi
-    if [[ $ARGUMENT =~ ^--[a-z]+$ ]]
+    if [[ "$ARGUMENT" =~ ^--[a-z]+$ ]]
     then
-      local TRANSLATE_ARG=${ARGUMENT#--}
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[A-Za-z]$ ]] 
+      local TRANSLATE_ARG="${ARGUMENT#--}"
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] 
       then
         export ARG_${TRANSLATE_ARG^^}='1'
       else
         shift
         export ARG_${TRANSLATE_ARG^^}="$1"
       fi
-    elif [[ $ARGUMENT =~ ^[a-z_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
+    elif [[ "$ARGUMENT" =~ ^[a-z_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
-      TASK_SUBCOMMAND=$ARGUMENT
+      TASK_SUBCOMMAND="$ARGUMENT"
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
-    elif [[ $ARGUMENT =~ ^[a-z_-]+$ ]] && [[ ! -z "$TASK_SUBCOMMAND" ]]
-    then
-      echo "Only one subcommand is allowed"
-      echo "Got $TASK_SUBCOMMAND as a subcommand, and also got $ARGUMENT"
-      return
     else
       echo "Unrecognized argument: $ARGUMENT"
-      return
+      return 1
     fi
+    shift
   done
 }

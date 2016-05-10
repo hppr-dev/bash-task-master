@@ -59,7 +59,7 @@ task(){
     fi
 
     #Parse and validate arguments
-    parse_args_for_task $@
+    parse_args_for_task "$@"
     if [[ "$?" == "1" ]]
     then
       return 
@@ -86,10 +86,11 @@ task(){
   #This needs to be here because it interacts with the outside
   if [[ -f $STATE_FILE ]]
   then
-    grep $STATE_FILE -e TASK_RETURN_DIR > /dev/null
+    grep -e "TASK_RETURN_DIR" $STATE_FILE > /dev/null
     if [[ "$?" == "0" ]]
     then
-      $(grep $STATE_FILE -e TASK_RETURN_DIR)
+      echo state file $STATE_FILE
+      eval $(grep -e "TASK_RETURN_DIR" $STATE_FILE)
       cd $TASK_RETURN_DIR
     fi
     grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
@@ -101,6 +102,7 @@ task(){
   if [[ -f $STATE_FILE.export ]]
   then
     source $STATE_FILE.export
+    cat "$STATE_FILE.export"
     rm $STATE_FILE.export
   fi
 }

@@ -30,9 +30,9 @@ record_help() {
 
 arguments_record() {
   SUBCOMMANDS='start|stop|restart|trash|help'
-  START_OPTIONS='name:n:str'
-  STOP_OPTIONS='name:n:str'
-  TRASH_OPTIONS='force:bool'
+  START_OPTIONS='name:n:str sub:s:str'
+  STOP_OPTIONS='name:n:str sub:s:str'
+  TRASH_OPTIONS='force:f:bool'
 }
 
 record_start(){
@@ -50,6 +50,11 @@ record_start(){
   persist_var RECORD_NAME "$NAME"
   # save current tasks file
   persist_var RECORD_TASKS_FILE "$TASKS_FILE"
+  # save if the sub was given
+  if [[ ! -z "$ARG_SUB" ]]
+  then
+    persist_var "ARG_SUB" "$ARG_SUB"
+  fi
   # Save prompt command and change it to save commands
   hold_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
 }
@@ -77,10 +82,12 @@ record_stop(){
 
     # Test to see if task is already defined
     type "task_$NAME" &> /dev/null
-    if [[ "$?" == "1" ]]
+    if [[ "$?" == "1" ]] || [[ ! -z "$ARG_SUB" ]]
     then
       # Write it to file
       echo "Writing record to $RECORD_TASKS_FILE : "
+      if [[ -z "$ARG_SUB" ]]
+      then
       tee -a $RECORD_TASKS_FILE << EOM
 # Recorded Task
 task_$NAME() {
@@ -90,6 +97,42 @@ task_$NAME() {
     popd > /dev/null
 }
 EOM
+      else
+        # Extract text from the definition
+        local before_text=$(awk "/^task_$NAME.*/ {f=1} f==0" $TASKS_FILE)
+        local task_text=$(awk "/^task_$NAME.*/ {f=1} /^}$/ {f=0;next} f" $TASKS_FILE)
+        local after_text=$(awk "/^task_$NAME.*/ {f=1} /^}$/ {s=f} f&&s" $TASKS_FILE)
+
+        # Generate boilerplate
+        local insert_text="
+  #Recorded subcommand
+  if [[ \$TASK_SUBCOMMAND == \"$ARG_SUB\" ]]
+  then
+`tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
+  fi"
+        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/"
+        cp $TASKS_FILE $TASK_MASTER_HOME/$TASKS_FILE.bk
+
+        # Always need to have the before text
+        echo "$before_text" > $TASKS_FILE
+
+        # If there is no task_text, create a body
+        if [[ -z "$task_text" ]] 
+        then
+        tee -a $RECORD_TASKS_FILE << EOM
+# Recorded Task
+task_$NAME() {
+EOM
+        echo "$insert_text" >> $TASKS_FILE
+        echo "}" >> $TASKS_FILE
+        echo "$after_text" >> $TASKS_FILE
+        else
+          # if there is a prexisting task place it after the other stuffs
+          echo "$task_text" >> $TASKS_FILE
+          echo "$insert_text" >> $TASKS_FILE
+          echo "$after_text" >> $TASKS_FILE
+        fi
+      fi
       # cleanup
       rm $RECORDING_FILE
       clean_up_state
