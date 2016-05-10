@@ -111,7 +111,7 @@ EOM
 `tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
   fi"
         echo "Backing up tasks file to $TASK_MASTER_HOME/backup/"
-        cp $TASKS_FILE $TASK_MASTER_HOME/$TASKS_FILE.bk
+        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.bk
 
         # Always need to have the before text
         echo "$before_text" > $TASKS_FILE
