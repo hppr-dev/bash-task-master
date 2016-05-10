@@ -30,8 +30,8 @@ record_help() {
 
 arguments_record() {
   SUBCOMMANDS='start|stop|restart|trash|help'
-  START_OPTIONS='name:n:str sub:s:str'
-  STOP_OPTIONS='name:n:str sub:s:str'
+  START_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
+  STOP_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
   TRASH_OPTIONS='force:f:bool'
 }
 
@@ -54,6 +54,14 @@ record_start(){
   if [[ ! -z "$ARG_SUB" ]]
   then
     persist_var "ARG_SUB" "$ARG_SUB"
+  fi
+  if [[ ! -z "$ARG_OPTS" ]]
+  then
+    persist_var "ARG_OPTS" "$ARG_OPTS"
+  fi
+  if [[ ! -z "$ARG_REQS" ]]
+  then
+    persist_var "ARG_REQS" "$ARG_REQS"
   fi
   # Save prompt command and change it to save commands
   hold_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
@@ -91,17 +99,12 @@ record_stop(){
       tee -a $RECORD_TASKS_FILE << EOM
 # Recorded Task
 task_$NAME() {
-    pushd \`pwd\` > /dev/null
-    cd $RECORD_START
+  cd $RECORD_START
 `tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
-    popd > /dev/null
 }
 EOM
       else
-        # Extract text from the definition
-        local before_text=$(awk "/^task_$NAME.*/ {f=1} f==0" $TASKS_FILE)
-        local task_text=$(awk "/^task_$NAME.*/ {f=1} /^}$/ {f=0;next} f" $TASKS_FILE)
-        local after_text=$(awk "/^task_$NAME.*/ {f=1} /^}$/ {s=f} f&&s" $TASKS_FILE)
+        record_extract_text_from_tasks "task_$NAME"
 
         # Generate boilerplate
         local insert_text="
@@ -110,14 +113,14 @@ EOM
   then
 `tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
   fi"
-        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/"
+        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.bk"
         cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.bk
 
         # Always need to have the before text
         echo "$before_text" > $TASKS_FILE
 
-        # If there is no task_text, create a body
-        if [[ -z "$task_text" ]] 
+        # If there is no text, create a body
+        if [[ -z "$text" ]] 
         then
         tee -a $RECORD_TASKS_FILE << EOM
 # Recorded Task
@@ -128,10 +131,56 @@ EOM
         echo "$after_text" >> $TASKS_FILE
         else
           # if there is a prexisting task place it after the other stuffs
-          echo "$task_text" >> $TASKS_FILE
+          echo "$text" >> $TASKS_FILE
           echo "$insert_text" >> $TASKS_FILE
           echo "$after_text" >> $TASKS_FILE
         fi
+      fi
+
+      # Write requirements
+      if [[ ! -z "$ARG_REQS" ]]
+      then
+        echo "Writing Requirements..."
+        record_extract_text_from_tasks "arguments_$NAME"
+        if [[ -z "$text" ]]
+        then
+          text="arguments_$NAME() {"
+          after_text="}"
+        fi
+        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.req.bk"
+        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.req.bk
+        echo "$before_text" > $TASKS_FILE
+        echo "$text" >> $TASKS_FILE
+        if [[ -z "$ARG_SUB" ]]
+        then
+          echo "  ${NAME^^}_REQUIREMENTS=\"$ARG_REQS\"" >> $TASKS_FILE
+        else
+          echo "  ${ARG_SUB^^}_REQUIREMENTS=\"$ARG_REQS\"" >> $TASKS_FILE
+        fi
+        echo "$after_text" >> $TASKS_FILE
+      fi
+  
+      # Write options
+      if [[ ! -z "$ARG_OPTS" ]]
+      then
+        echo "Writing Options..."
+        record_extract_text_from_tasks "arguments_$NAME"
+        if [[ -z "$text" ]]
+        then
+          text="arguments_$NAME() {"
+          after_text="}"
+        fi
+        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.opts.bk"
+        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.opts.bk
+        echo "$before_text" > $TASKS_FILE
+        echo "$text" >> $TASKS_FILE
+        if [[ -z "$ARG_SUB" ]]
+        then
+          echo "  ${NAME^^}_OPTIONS=\"$ARG_OPTS\"" >> $TASKS_FILE
+        else
+          echo "  ${ARG_SUB^^}_OPTIONS=\"$ARG_OPTS\"" >> $TASKS_FILE
+        fi
+        echo "$after_text" >> $TASKS_FILE
       fi
       # cleanup
       rm $RECORDING_FILE
@@ -181,4 +230,13 @@ record_restart(){
       echo "You are not recording..."
       echo "Run 'task record start' to start "
     fi
+}
+
+# before text = everything before the given def
+# text = everything up to the close of the def
+# after text = everything after (includes the } of the def)
+record_extract_text_from_tasks(){
+  before_text=$(awk "/^$1.*/ {f=1} f==0" $TASKS_FILE)
+  text=$(awk "/^$1.*/ {f=1} /^}$/ {f=0;next} f" $TASKS_FILE)
+  after_text=$(awk "/^$1.*/ {f=1} /^}$/ {s=f} f&&s" $TASKS_FILE)
 }

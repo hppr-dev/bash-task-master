@@ -102,7 +102,6 @@ task(){
   if [[ -f $STATE_FILE.export ]]
   then
     source $STATE_FILE.export
-    cat "$STATE_FILE.export"
     rm $STATE_FILE.export
   fi
 }
