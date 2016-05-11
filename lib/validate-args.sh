@@ -137,7 +137,6 @@ parse_args_for_task() {
   done
   if [[ ! -z "$ADDED_ARGS" ]]
   then
-    echo processing added args "$ADDED_ARGS"
     parse_args_for_task "GARBAGE" $ADDED_ARGS
   fi
 }
