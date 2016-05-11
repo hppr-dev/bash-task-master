@@ -97,48 +97,19 @@ record_stop(){
     then
       # Write it to file
       echo "Writing record to $RECORD_TASKS_FILE : "
-      if [[ -z "$ARG_SUB" ]]
+      local insert_text="  cd $RECORD_START
+$(tail -n +2 $RECORDING_FILE | sed 's/^/  /')"
+      if [[ ! -z "$ARG_SUB" ]]
       then
-      tee -a $RECORD_TASKS_FILE << EOM
-# Recorded Task
-task_$NAME() {
-  cd $RECORD_START
-`tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
-}
-EOM
-      else
-        record_extract_text_from_tasks "task_$NAME"
-
-        # Generate boilerplate
+        # Write subcommand
         local insert_text="
   #Recorded subcommand
   if [[ \$TASK_SUBCOMMAND == \"$ARG_SUB\" ]]
   then
-`tail -n +2 $RECORDING_FILE | sed 's/^/    /'`
+$(sed 's/^/  /' <<< "$insert_text")
   fi"
-        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.bk"
-        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.bk
-
-        # Always need to have the before text
-        echo "$before_text" > $TASKS_FILE
-
-        # If there is no text, create a body
-        if [[ -z "$text" ]] 
-        then
-        tee -a $RECORD_TASKS_FILE << EOM
-# Recorded Task
-task_$NAME() {
-EOM
-        echo "$insert_text" >> $TASKS_FILE
-        echo "}" >> $TASKS_FILE
-        echo "$after_text" >> $TASKS_FILE
-        else
-          # if there is a prexisting task place it after the other stuffs
-          echo "$text" >> $TASKS_FILE
-          echo "$insert_text" >> $TASKS_FILE
-          echo "$after_text" >> $TASKS_FILE
-        fi
       fi
+      awk -f $TASK_AWK_DIR/command.awk -v name="$NAME" -v code="$insert_text" -i inplace $TASKS_FILE
 
       local task_ref=${ARG_SUB^^}
       if [[ -z "$ARG_SUB" ]]
@@ -170,7 +141,9 @@ EOM
 
       # Update subcommands
       echo "Updating subcommands.."
-      if [[ ! -z "$SUBCOMMANDS" ]]
+      # If the task already exists we want to match empty string
+      type "task_$NAME" &> /dev/null
+      if [[ "$?" != "0" ]] || [[ ! -z "$SUBCOMMANDS" ]]
       then
         ARG_SUB="$ARG_SUB|$SUBCOMMANDS"
       fi
