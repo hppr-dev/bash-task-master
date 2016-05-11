@@ -18,6 +18,7 @@ task(){
   # Save directory that you are running it from
   local RUNNING_DIR=`pwd`
 
+  local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
   local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib-functions.sh
   local TASKS_DIR=$RUNNING_DIR

@@ -88,6 +88,9 @@ record_stop(){
     release_var PROMPT_COMMAND
     echo "Stopped Recording..."
 
+    echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.bk"
+    cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.bk
+
     # Test to see if task is already defined
     type "task_$NAME" &> /dev/null
     if [[ "$?" == "1" ]] || [[ ! -z "$ARG_SUB" ]]
@@ -137,51 +140,42 @@ EOM
         fi
       fi
 
+      local task_ref=${ARG_SUB^^}
+      if [[ -z "$ARG_SUB" ]]
+      then
+        local task_ref=${NAME^^}
+      fi
+
+      # Load existing options if they exist
+      SUBCOMMANDS=""
+      type arguments_$NAME &> /dev/null 
+      if [[ "$?" == "0" ]]
+      then
+        arguments_$NAME
+      fi
+
       # Write requirements
       if [[ ! -z "$ARG_REQS" ]]
       then
         echo "Writing Requirements..."
-        record_extract_text_from_tasks "arguments_$NAME"
-        if [[ -z "$text" ]]
-        then
-          text="arguments_$NAME() {"
-          after_text="}"
-        fi
-        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.req.bk"
-        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.req.bk
-        echo "$before_text" > $TASKS_FILE
-        echo "$text" >> $TASKS_FILE
-        if [[ -z "$ARG_SUB" ]]
-        then
-          echo "  ${NAME^^}_REQUIREMENTS=\"$ARG_REQS\"" >> $TASKS_FILE
-        else
-          echo "  ${ARG_SUB^^}_REQUIREMENTS=\"$ARG_REQS\"" >> $TASKS_FILE
-        fi
-        echo "$after_text" >> $TASKS_FILE
+        awk -f $TASK_AWK_DIR/arguments.awk -v name="$NAME" -v key="${task_ref}_REQUIREMENTS" -v value="$ARG_REQS" -i inplace $TASKS_FILE
       fi
   
       # Write options
       if [[ ! -z "$ARG_OPTS" ]]
       then
         echo "Writing Options..."
-        record_extract_text_from_tasks "arguments_$NAME"
-        if [[ -z "$text" ]]
-        then
-          text="arguments_$NAME() {"
-          after_text="}"
-        fi
-        echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.opts.bk"
-        cp $TASKS_FILE $TASK_MASTER_HOME/backup/tasks.opts.bk
-        echo "$before_text" > $TASKS_FILE
-        echo "$text" >> $TASKS_FILE
-        if [[ -z "$ARG_SUB" ]]
-        then
-          echo "  ${NAME^^}_OPTIONS=\"$ARG_OPTS\"" >> $TASKS_FILE
-        else
-          echo "  ${ARG_SUB^^}_OPTIONS=\"$ARG_OPTS\"" >> $TASKS_FILE
-        fi
-        echo "$after_text" >> $TASKS_FILE
+        awk -f $TASK_AWK_DIR/arguments.awk -v name="$NAME" -v key="${task_ref}_OPTIONS" -v value="$ARG_OPTS" -i inplace $TASKS_FILE
       fi
+
+      # Update subcommands
+      echo "Updating subcommands.."
+      if [[ ! -z "$SUBCOMMANDS" ]]
+      then
+        ARG_SUB="$ARG_SUB|$SUBCOMMANDS"
+      fi
+      awk -f $TASK_AWK_DIR/arguments.awk -v name="$NAME" -v key="SUBCOMMANDS" -v value="$ARG_SUB" -i inplace $TASKS_FILE
+
       # cleanup
       rm $RECORDING_FILE
       clean_up_state
