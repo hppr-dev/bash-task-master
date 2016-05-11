@@ -11,11 +11,11 @@ validate_args_for_task() {
   if [[ "$?" == "0" ]]
   then
     # check if subcommand exists or if there are no subcommands
-    if [[ $TASK_SUBCOMMAND =~ ^$SUBCOMMANDS$ ]] || [[ -z "$SUBCOMMANDS" ]]
+    if [[ $TASK_SUBCOMMAND =~ ^($SUBCOMMANDS)$ ]] || [[ -z "$SUBCOMMANDS" ]]
     then
       # handle subcommandless tasks
       local sub=${TASK_SUBCOMMAND^^}
-      if [[ -z "$SUBCOMMANDS" ]]
+      if [[ -z "$TASK_SUBCOMMAND" ]]
       then
         sub=${TASK_COMMAND^^}
       fi
@@ -48,7 +48,7 @@ validate_args_for_task() {
       then
         for option in ${!optvar}
         do
-          local name=${option%:*}
+          local name=${option%%:*}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
           if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ^${verif[$atype]}$ ]]
@@ -59,8 +59,8 @@ validate_args_for_task() {
         done
       fi
     else
-      echo Available $SUBCOMMANDS
       echo "Unknown subcommand: $TASK_SUBCOMMAND"
+      echo Available subcommands: $SUBCOMMANDS
       return 1
     fi
   fi
@@ -71,31 +71,30 @@ validate_args_for_task() {
 parse_args_for_task() {
   # All arguments after the command will be parsed into environment variables
   # load argument specification
-  unset TASK_SUBCOMMAND
   type arguments_$TASK_COMMAND &> /dev/null 
   if [[ "$?" == "0" ]]
   then
     arguments_$TASK_COMMAND
   fi
-  local SPEC_REQUIREMENT_NAME=${TASK_COMMAND^^}_REQUIREMENTS
-  local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
+  if [[ -z "$SPEC_REQUIREMENT_NAME" ]]
+  then
+    local SPEC_REQUIREMENT_NAME=${TASK_COMMAND^^}_REQUIREMENTS
+    local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
+  fi
   #check if there are more than one specified arg and add the first ones to the end
-  local new_args=""
-  for i in "$@"
-  do
-    if [[ $i =~ ^\-[A-Za-z]{2,}$ ]]
-    then
-      local separated=$(echo "$i" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
-      new_args=$new_args\ $separated
-    else
-      new_args=$new_args\ $i
-    fi
-  done
-  set -- $new_args
+  unset ADDED_ARGS
   shift
   while [[ $# != "0" ]]
   do
     ARGUMENT="$1"
+    if [[ $ARGUMENT =~ ^\-[A-Za-z]{2,}$ ]]
+    then
+      local separated=$(echo "$ARGUMENT" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
+      # grab the last character as this argument
+      ARGUMENT="-${separated:${#separated}-1:1}"
+      # add added args
+      local ADDED_ARGS="$ADDED_ARGS ${separated%-[[:alpha:]]}"
+    fi
     #ignore any whitespace arguments
     if [[ -z "$ARGUMENT" ]]
     then
@@ -118,7 +117,7 @@ parse_args_for_task() {
     if [[ "$ARGUMENT" =~ ^--[a-z]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] 
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]]
       then
         export ARG_${TRANSLATE_ARG^^}='1'
       else
@@ -136,4 +135,9 @@ parse_args_for_task() {
     fi
     shift
   done
+  if [[ ! -z "$ADDED_ARGS" ]]
+  then
+    echo processing added args "$ADDED_ARGS"
+    parse_args_for_task "GARBAGE" $ADDED_ARGS
+  fi
 }

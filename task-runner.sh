@@ -60,6 +60,7 @@ task(){
     fi
 
     #Parse and validate arguments
+    unset TASK_SUBCOMMAND
     parse_args_for_task "$@"
     if [[ "$?" == "1" ]]
     then
