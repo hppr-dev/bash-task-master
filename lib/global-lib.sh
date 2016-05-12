@@ -23,7 +23,7 @@ global_help() {
 }
 
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit|check-defs|clean|locations'
+  SUBCOMMANDS='help|debug|set|unset|edit|check-defs|clean|locations'
   SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
   UNSET_REQUIREMENTS='key:k:str command:c:str'
   EDIT_REQUIREMENTS='command:c:str'

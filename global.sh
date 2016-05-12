@@ -1,4 +1,16 @@
 task_help() {
+  if [[ ! -z "$TASK_SUBCOMMAND" ]]
+  then
+    type arguments_$TASK_SUBCOMMAND &> /dev/null
+    if [[ "$?" == "0" ]]
+    then
+      echo "Command specification is as follows:"
+      type arguments_$TASK_SUBCOMMAND | tail -n +2
+    else
+      echo "No arguments are defined"
+    fi
+    return
+  fi
   HELP_STRING="usage: task subcommand [arguments]
 
 Task Master 0.1: Bash Task Management Utility
