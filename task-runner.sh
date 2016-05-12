@@ -55,18 +55,16 @@ task(){
 
   #Run requested task in subshell
   (
-    for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
-    load_state
-
-
-    # Load global
-    . $GLOBAL_TASKS_FILE
-
-    # Mark global functions only in an originating subshell
-    if [[ $BASH_SUBSHELL == "1" ]]
+    # load global functions only in originating shell
+    if [[ "$BASH_SUBSHELL" == "1" ]]
     then
+      for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
+      # Load global
+      . $GLOBAL_TASKS_FILE
       global_check-defs
     fi
+
+    load_state
 
     #Load local tasks
     if [[ "$RUNNING_GLOBAL" != "1" ]]

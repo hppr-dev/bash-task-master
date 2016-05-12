@@ -76,6 +76,15 @@ global_check-defs() {
 }
 
 global_clean() {
+  echo "Removing nonexistant locations from locations file..."
+  for file in $(sed 's/.*=\(.*\)/\1/' $LOCATIONS_FILE)
+  do
+    if [[ ! -d $file ]]
+    then
+      grep -v $file $LOCATIONS_FILE > $LOCATIONS_FILE.tmp
+      mv $LOCATIONS_FILE.tmp $LOCATIONS_FILE
+    fi
+  done
   echo "Cleaning state files from tasks files not in $LOCATIONS_FILE"
   for file in $TASK_MASTER_HOME/state/*
   do
@@ -90,15 +99,6 @@ global_clean() {
   done
   echo "Removing empty files from state directory..."
   rm $(find $TASK_MASTER_HOME/state/* -type f -empty) 2> /dev/null
-  echo "Removing nonexistant locations from locations file..."
-  for file in $(sed 's/.*=\(.*\)/\1/' $LOCATIONS_FILE)
-  do
-    if [[ ! -d $file ]]
-    then
-      grep -v $file $LOCATIONS_FILE > $LOCATIONS_FILE.tmp
-      mv $LOCATIONS_FILE.tmp $LOCATIONS_FILE
-    fi
-  done
 }
 
 global_locations() {

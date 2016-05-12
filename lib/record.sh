@@ -69,7 +69,10 @@ record_start(){
     persist_var "ARG_REQS" "$ARG_REQS"
   fi
   # Save prompt command and change it to save commands
-  hold_var PROMPT_COMMAND "echo \\\$( history 1 | tr -s \\\" \\\" | cut -f 3- -d \\\" \\\") >> $RECORDING_FILE ;"
+  echo 'echo $( history 1 | tr -s " " | cut -f 3- -d " ") >>' $RECORDING_FILE > $TASKS_DIR/.record-script
+  chmod +x $TASKS_DIR/.record-script
+  hold_var PROMPT_COMMAND " $TASKS_DIR/.record-script ; $PROMPT_COMMAND"
+  hold_var PS1 "(rec/$LOCAL_TASKS_UUID) $PS1"
 }
 
 record_stop(){
@@ -91,6 +94,7 @@ record_stop(){
 
     # Change prompt back what it was before recording
     release_var PROMPT_COMMAND
+    release_var PS1
     echo "Stopped Recording..."
 
     echo "Backing up tasks file to $TASK_MASTER_HOME/backup/tasks.bk"
@@ -155,7 +159,7 @@ $(sed 's/^/  /' <<< "$insert_text")
       awk -f $TASK_AWK_DIR/arguments.awk -v name="$NAME" -v key="SUBCOMMANDS" -v value="$ARG_SUB" -i inplace $TASKS_FILE
 
       # cleanup
-      rm $RECORDING_FILE
+      rm $RECORDING_FILE $TASKS_DIR/.record-script
       clean_up_state
     else
       echo "Wont write to file: task_$NAME already exists"
