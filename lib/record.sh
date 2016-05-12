@@ -36,6 +36,11 @@ arguments_record() {
 }
 
 record_start(){
+  if [[ "$RUNNING_GLOBAL" == "1" ]]
+  then
+    echo "Can't record with a tasks file. run 'task init' to create one" 
+    return 1
+  fi
   NAME=${ARG_NAME,,}
   if [[ -z "$NAME" ]] || [[ $NAME == "1" ]]
   then

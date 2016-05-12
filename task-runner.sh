@@ -38,6 +38,7 @@ task(){
   if [[ "$TASKS_DIR" == "$HOME" ]]
   then
     TASKS_FILE=$GLOBAL_TASKS_FILE
+    local RUNNING_GLOBAL=1
   fi
 
 
@@ -45,6 +46,10 @@ task(){
 
   # Load Local Task UUID
   local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
+  if [[ -z "$LOCAL_TASKS_UUID" ]] && [[ "$RUNNING_GLOBAL" != "1" ]]
+  then
+    echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+  fi
   local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
   local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
 
@@ -64,7 +69,7 @@ task(){
     fi
 
     #Load local tasks
-    if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
+    if [[ "$RUNNING_GLOBAL" != "1" ]]
     then
       . $TASKS_FILE
     fi
