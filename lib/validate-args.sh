@@ -80,6 +80,7 @@ parse_args_for_task() {
   then
     local SPEC_REQUIREMENT_NAME=${TASK_COMMAND^^}_REQUIREMENTS
     local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
+    local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
   fi
   #check if there are more than one specified arg and add the first ones to the end
   unset ADDED_ARGS
@@ -104,8 +105,9 @@ parse_args_for_task() {
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
-      local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
+      echo requirements $requirements
       local spec=$(sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
+      echo spec $spec
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]]
       then
@@ -129,6 +131,7 @@ parse_args_for_task() {
       TASK_SUBCOMMAND="$ARGUMENT"
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
+      requirements="${requirements} ${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
     else
       echo "Unrecognized argument: $ARGUMENT"
       return 1

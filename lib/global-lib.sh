@@ -72,8 +72,6 @@ global_check-defs() {
   if [[ $GLOBAL_TASKS_FILE != $TASKS_FILE ]]
   then
     . $TASKS_FILE
-  else
-    echo "Can't check defs without a local tasks file"
   fi
 }
 
