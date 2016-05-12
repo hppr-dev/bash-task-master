@@ -28,7 +28,7 @@ arguments_global() {
   UNSET_REQUIREMENTS='key:k:str command:c:str'
   EDIT_REQUIREMENTS='command:c:str'
   DEBUG_OPTIONS='command:c:str'
-  LOCATIONS_OPTIONS='list:l:bool del:d:str'
+  LOCATIONS_OPTIONS='list:l:bool del:d:str add:a:str'
 }
 
 global_debug() {
@@ -102,11 +102,19 @@ global_clean() {
 }
 
 global_locations() {
-  if [[ ! -z "$ARG_LIST" ]]
+  if [[ ! -z "$ARG_LIST" ]] || ( [[ -z "$ARG_DEL" ]] && [[ -z "$ARG_ADD" ]] )
   then
     cat $LOCATIONS_FILE
   elif [[ ! -z "$ARG_DEL" ]]
   then
-    awk "/^$ARG_DEL=.*/{next} 1" -i inplace $LOCATIONS_FILE
+    awk -i inplace "/^UUID_$ARG_DEL=.*/{next} 1" $LOCATIONS_FILE
+  elif [[ ! -z "$ARG_ADD" ]]
+  then
+    if [[ -z "$(grep -e "UUID_$ARG_ADD=" $LOCATIONS_FILE)" ]]
+    then
+      echo "UUID_$ARG_ADD=$RUNNING_DIR" >> $LOCATIONS_FILE
+    else
+      echo "Can't add $ARG_ADD to locations, it already exists"
+    fi
   fi
 }

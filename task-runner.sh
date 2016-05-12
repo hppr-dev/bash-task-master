@@ -92,8 +92,7 @@ task(){
       echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
       $TASK_NAME
     else
-      echo "Can't find $TASK_COMMAND task in the global or local tasks file"
-      echo "Available command are:"
+      echo "Invalid task: $TASK_COMMAND"
       task_list
     fi
   )
