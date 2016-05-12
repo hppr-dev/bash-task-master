@@ -124,7 +124,7 @@ parse_args_for_task() {
         shift
         export ARG_${TRANSLATE_ARG^^}="$1"
       fi
-    elif [[ "$ARGUMENT" =~ ^[a-z_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
+    elif [[ "$ARGUMENT" =~ ^[a-z0-9_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
       TASK_SUBCOMMAND="$ARGUMENT"
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS

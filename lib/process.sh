@@ -40,6 +40,10 @@ spawn_start() {
     echo "No --proc argument supplied can't spawn"
     return
   fi
+  if [[ -z "$NUM_SPAWNED" ]]
+  then
+    NUM_SPAWNED=0
+  fi
   persist_var NUM_SPAWNED $(expr $NUM_SPAWNED + 1)
   if [[ -z "$ARG_OUT" ]]
   then
@@ -57,7 +61,12 @@ spawn_stop() {
   then
     echo "No --num argument supplied"
     echo "Defaulting to 1"
-    ARGS_NUM=1
+    ARG_NUM=1
+  fi
+  if [[ -z "$NUM_SPAWNED" ]] || [[ "$NUM_SPAWNED" == "0" ]]
+  then
+    echo "No processes running..."
+    return 0
   fi
   echo "Killing ${SPAWNED_PROC[$ARG_NUM]}..."
   ps ${SPAWNED_PROC[$ARG_NUM]} > /dev/null
@@ -84,6 +93,11 @@ spawn_stop() {
 
 spawn_list() {
   echo "Listing spawned processes:"
+  if [[ -z "$NUM_SPAWNED" ]] || [[ "$NUM_SPAWNED" == "0" ]]
+  then
+    echo "No processes running..."
+    return 0
+  fi
   for i in $(seq 1 $NUM_SPAWNED)
   do
     echo "   $i : ${SPAWNED_PROC_NAME[$i]} -> ${SPAWNED_PROC_OUT[$i]}"
@@ -97,6 +111,11 @@ spawn_output() {
     echo "Use 'task spawn list' to find a number to stop"
     return
   fi
+  if [[ -z "$NUM_SPAWNED" ]] || [[ "$NUM_SPAWNED" == "0" ]]
+  then
+    echo "No processes running..."
+    return 0
+  fi
   if [[ ! -z "$ARG_FOLLOW" ]]
   then
     tailf ${SPAWNED_PROC_OUT[$ARG_NUM]}
@@ -108,6 +127,11 @@ spawn_output() {
 spawn_clean() {
   echo "Cleaning..."
   echo "Killing all processes..."
+  if [[ -z "$NUM_SPAWNED" ]] || [[ "$NUM_SPAWNED" == "0" ]]
+  then
+    echo "No processes running..."
+    return 0
+  fi
   for num in $(seq 1 ${#SPAWNED_PROC[@]})
   do
     echo "Killing ${SPAWNED_PROC[$num]}..."

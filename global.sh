@@ -27,7 +27,6 @@ You may also record tasks on command by using 'task record'. run 'task record he
 }
 
 task_list() {
-  global_check-defs
   echo "AVailable global tasks:"
   echo
   declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_/     /' | tr '\n' ' '
@@ -40,16 +39,51 @@ task_list() {
   echo
 }
 
+arguments_init() {
+  SUBCOMMANDS=""
+  INIT_OPTIONS="dir:d:str name:n:str clean:c:bool"
+}
+
 task_init() {
   if [[ -z "$ARG_DIR" ]]
   then
     ARG_DIR=$RUNNING_DIR
   fi
+  if [[ -f "$ARG_DIR/tasks.sh" ]]
+  then
+    echo "Tasks file already exists can't init $ARG_DIR"
+    return 1
+  fi
+  echo "Initializing tasks.sh file in $ARG_DIR..."
+  local LOCAL_TASKS_UUID="l$(cat $LOCATIONS_FILE | wc -l)"
+  if [[ $ARG_NAME ]]
+  then
+    LOCAL_TASKS_UUID="$ARG_NAME"
+  fi
   cat > $ARG_DIR/tasks.sh << EOF
+LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID
 task_edit() {
   vim $ARG_DIR/tasks.sh
 }
 EOF
+  echo "Creating state directory..."
+  mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
+  echo "Saving tasks file location to $LOCATIONS_FILE"
+  echo "UUID_$LOCAL_TASKS_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+}
+
+task_goto() {
+  local location=UUID_$TASK_SUBCOMMAND
+  local $(awk "/^$location=.*$/{print} 0" $LOCATIONS_FILE) > /dev/null
+  if [[ -z "${!location}" ]]
+  then
+     echo "Unknown location: $TASK_SUBCOMMAND"
+     echo "Available locations are:"
+     echo $(sed 's/^UUID_\(.*\)=.*/\1/' $LOCATIONS_FILE)
+     return 0
+  fi
+  set_return_directory ${!location}
+  clean_up_state
 }
 
 task_record() {
@@ -120,6 +154,12 @@ task_global() {
   elif [[ $TASK_SUBCOMMAND == "check-defs" ]]
   then
     global_check-defs
+  elif [[ $TASK_SUBCOMMAND == "clean" ]]
+  then
+    global_clean
+  elif [[ $TASK_SUBCOMMAND == "locations" ]]
+  then
+    global_locations
   fi
 }
 

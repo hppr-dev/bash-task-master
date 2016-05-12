@@ -23,6 +23,7 @@ task(){
   local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib-functions.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$TASKS_DIR/tasks.sh
+  local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
 
   # Find tasks.sh file
@@ -42,16 +43,25 @@ task(){
 
   local TASK_COMMAND=$1
 
-  local STATE_FILE=$TASK_MASTER_HOME/state/$TASK_COMMAND.vars
+  # Load Local Task UUID
+  local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
+  local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
+  local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
 
   #Run requested task in subshell
   (
     for f in  $TASK_MASTER_HOME/lib/*.sh ; do source $f ; done
     load_state
 
-    export TASKS_LOADED=1
+
     # Load global
     . $GLOBAL_TASKS_FILE
+
+    # Mark global functions only in an originating subshell
+    if [[ $BASH_SUBSHELL == "1" ]]
+    then
+      global_check-defs
+    fi
 
     #Load local tasks
     if [[ "$TASKS_FILE" != "$GLOBAL_TASKS_FILE" ]]
@@ -91,9 +101,9 @@ task(){
     grep -e "TASK_RETURN_DIR" $STATE_FILE > /dev/null
     if [[ "$?" == "0" ]]
     then
-      echo state file $STATE_FILE
       eval $(grep -e "TASK_RETURN_DIR" $STATE_FILE)
-      cd $TASK_RETURN_DIR
+      local retdir=${TASK_RETURN_DIR//\'}
+      cd ${retdir//\"}
     fi
     grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
     if [[ "$?" == "0" ]]

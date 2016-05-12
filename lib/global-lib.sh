@@ -23,23 +23,24 @@ global_help() {
 }
 
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit|check-defs'
+  SUBCOMMANDS='debug|set|unset|edit|check-defs|clean|locations'
   SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
   UNSET_REQUIREMENTS='key:k:str command:c:str'
   EDIT_REQUIREMENTS='command:c:str'
   DEBUG_OPTIONS='command:c:str'
+  LOCATIONS_OPTIONS='list:l:bool del:d:str'
 }
 
 global_debug() {
   if [[ ! -z "$ARG_COMMAND" ]]
   then
-    for f in $TASK_MASTER_HOME/state/$ARG_COMMAND.vars*
+    for f in $STATE_DIR/$ARG_COMMAND.vars*
     do
       echo ==================== $f ======================
       cat $f
     done
   else
-    for f in $TASK_MASTER_HOME/state/*.vars*
+    for f in $TASK_MASTER_HOME/state/***.vars*
     do
       echo ==================== $f ======================
       cat $f
@@ -73,5 +74,41 @@ global_check-defs() {
     . $TASKS_FILE
   else
     echo "Can't check defs without a local tasks file"
+  fi
+}
+
+global_clean() {
+  echo "Cleaning state files from tasks files not in $LOCATIONS_FILE"
+  for file in $TASK_MASTER_HOME/state/*
+  do
+    if [[ -d "$file" ]]
+    then
+      if [[ -z "$(awk "/^UUID_${file##*/}=.*/{print} 0" $LOCATIONS_FILE)" ]]
+      then
+        echo "Removing $file..."
+        rm -rf "$file"
+      fi
+    fi
+  done
+  echo "Removing empty files from state directory..."
+  rm $(find $TASK_MASTER_HOME/state/* -type f -empty) 2> /dev/null
+  echo "Removing nonexistant locations from locations file..."
+  for file in $(sed 's/.*=\(.*\)/\1/' $LOCATIONS_FILE)
+  do
+    if [[ ! -d $file ]]
+    then
+      grep -v $file $LOCATIONS_FILE > $LOCATIONS_FILE.tmp
+      mv $LOCATIONS_FILE.tmp $LOCATIONS_FILE
+    fi
+  done
+}
+
+global_locations() {
+  if [[ ! -z "$ARG_LIST" ]]
+  then
+    cat $LOCATIONS_FILE
+  elif [[ ! -z "$ARG_DEL" ]]
+  then
+    awk "/^$ARG_DEL=.*/{next} 1" -i inplace $LOCATIONS_FILE
   fi
 }

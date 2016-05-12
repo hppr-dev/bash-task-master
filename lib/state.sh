@@ -48,10 +48,7 @@ clean_up_state() {
 }
 
 set_return_directory() {
-  if [[ -f $STATE_FILE ]]
-  then
-    persist_var "TASK_RETURN_DIR" "$1"
-  fi
+  persist_var "TASK_RETURN_DIR" $1
 }
 
 load_state() {
