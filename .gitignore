@@ -1,3 +1,5 @@
-state/*.hold
-state/*.export
-state/*.vars
+state/**/*.hold
+state/**/*.export
+state/**/*.vars
+**/*.swp
+backup
