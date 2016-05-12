@@ -4,6 +4,7 @@ readonly -f record_start
 readonly -f record_stop
 readonly -f record_trash
 readonly -f record_restart
+readonly -f record_extract_text_from_tasks
 readonly -f persist_var
 readonly -f remove_var
 readonly -f export_var
@@ -20,6 +21,8 @@ readonly -f global_set
 readonly -f global_unset
 readonly -f global_edit
 readonly -f global_check-defs
+readonly -f global_clean
+readonly -f global_locations
 readonly -f arguments_spawn
 readonly -f spawn_help
 readonly -f spawn_start
@@ -32,7 +35,9 @@ readonly -f parse_args_for_task
 
 readonly -f task_help
 readonly -f task_list
+readonly -f arguments_init
 readonly -f task_init
+readonly -f task_goto
 readonly -f task_record
 readonly -f task_spawn
 readonly -f task_global
