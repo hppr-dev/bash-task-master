@@ -105,9 +105,7 @@ parse_args_for_task() {
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
-      echo requirements $requirements
       local spec=$(sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
-      echo spec $spec
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]]
       then
@@ -119,7 +117,7 @@ parse_args_for_task() {
     if [[ "$ARGUMENT" =~ ^--[a-z]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]]
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
       then
         export ARG_${TRANSLATE_ARG^^}='1'
       else
