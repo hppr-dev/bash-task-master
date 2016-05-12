@@ -1,10 +1,14 @@
 validate_args_for_task() {
   # Define available types
   declare -A verif
-  local avail_types='str|int|bool'
-  local verif[str]='.*'
-  local verif[int]='[0-9]*'
-  local verif[bool]='[01]'
+  local avail_types='str|int|bool|nowhite|upper|lower|single'
+  local verif[str]='^.*$'
+  local verif[int]='^[0-9]*$'
+  local verif[bool]='^[01]$'
+  local verif[nowhite]='^[^[:space:]]+$'
+  local verif[upper]='^[A-Z]+$'
+  local verif[lower]='^[a-z]+$'
+  local verif[single]='^.$'
 
   # Check if argument specifications exist
   type arguments_$TASK_COMMAND &> /dev/null 
@@ -35,7 +39,7 @@ validate_args_for_task() {
             return 1
           fi
           # Make sure that the argument is the right type
-          if [[ ! "${!valname}" =~ ^${verif[$atype]}$ ]]
+          if [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
             echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
             return 1
@@ -51,7 +55,7 @@ validate_args_for_task() {
           local name=${option%%:*}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
-          if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ^${verif[$atype]}$ ]]
+          if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
             echo "Argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
             return 1
