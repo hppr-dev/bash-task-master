@@ -4,7 +4,7 @@ validate_args_for_task() {
   local avail_types='str|int|bool|nowhite|upper|lower|single'
   local verif[str]='^.*$'
   local verif[int]='^[0-9]*$'
-  local verif[bool]='^[01]$'
+  local verif[bool]='^T$'
   local verif[nowhite]='^[^[:space:]]+$'
   local verif[upper]='^[A-Z]+$'
   local verif[lower]='^[a-z]+$'
@@ -113,17 +113,18 @@ parse_args_for_task() {
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]]
       then
-        echo "Unknown argument: $ARGUMENT"
+        echo "Unrecognized short argument: $ARGUMENT"
         return 1
       fi
       ARGUMENT="--${long_arg,,}"
     fi
+    local spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[[:space:]]' )
     if [[ "$ARGUMENT" =~ ^--[a-z]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
       if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
       then
-        export ARG_${TRANSLATE_ARG^^}='1'
+        export ARG_${TRANSLATE_ARG^^}='T'
       else
         shift
         export ARG_${TRANSLATE_ARG^^}="$1"

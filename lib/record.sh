@@ -88,7 +88,7 @@ record_stop(){
     if [[ "$NAME" == "unnamed" ]] && [[ ! -z "$RECORD_NAME" ]]
     then
       NAME=$RECORD_NAME
-      mv $RECORDING_FILE $TASKS_DIR/.rec_$NAME
+      mv $RECORDING_FILE $TASKS_DIR/.rec_$NAME &> /dev/null
       RECORDING_FILE=$TASKS_DIR/.rec_$NAME
     fi
 
@@ -108,16 +108,13 @@ record_stop(){
       echo "Writing record to $RECORD_TASKS_FILE : "
       local insert_text="  cd $RECORD_START
 $(tail -n +2 $RECORDING_FILE | sed 's/^/  /')"
-      if [[ ! -z "$ARG_SUB" ]]
-      then
-        # Write subcommand
-        local insert_text="
+      # Write subcommand
+      local insert_text="
   #Recorded subcommand
   if [[ \$TASK_SUBCOMMAND == \"$ARG_SUB\" ]]
   then
 $(sed 's/^/  /' <<< "$insert_text")
   fi"
-      fi
       awk -f $TASK_AWK_DIR/command.awk -v name="$NAME" -v code="$insert_text" -i inplace $TASKS_FILE
 
       local task_ref=${ARG_SUB^^}
