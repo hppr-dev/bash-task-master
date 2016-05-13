@@ -1,5 +1,5 @@
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit|clean|locations'
+  SUBCOMMANDS='debug|set|unset|edit|clean|locations|uuid'
 
   SET_DESCRIPTION="Set a variable for a command"
   SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
@@ -15,6 +15,9 @@ arguments_global() {
 
   LOCATIONS_DESCRIPTION="Manage locations"
   LOCATIONS_OPTIONS='list:l:bool del:d:str add:a:str'
+
+  UUID_DESCRIPTION="Check UUIDs"
+  UUID_OPTIONS='uuid:u:str update:U:bool check:c:bool'
 }
 
 arguments_spawn(){

@@ -110,3 +110,73 @@ global_locations() {
     fi
   fi
 }
+
+global_uuid(){
+  if [[ -z "$ARG_UUID" ]]
+  then
+    ARG_UUID=$LOCAL_TASKS_UUID
+  fi
+
+  local uuid_ok='OK.'
+  local location_name=UUID_$ARG_UUID
+  local location_statement=$(grep -e $location_name $LOCATIONS_FILE)
+  # Verify the following:
+  
+  # UUID is defined
+  if [[ -z "$location_statement" ]] 
+  then
+    echo "UUID $ARG_UUID not defined"
+    uuid_ok="NOT OK. Run 'task global uuid -U 'to fix."
+    if [[ ! -z "$ARG_UPDATE" ]] && [[ "$ARG_UUID" == "$LOCAL_TASKS_UUID" ]]
+    then
+      if [[ ! -z "$(grep -E "^UUID_.*=$TASKS_DIR$" $LOCATIONS_FILE)" ]]
+      then
+        echo "Found previous location in location.vars, Updating..."
+        grep -vE "^UUID_.*=$TASKS_DIR$" $LOCATIONS_FILE > $LOCATIONS_FILE.tmp
+        location_statement="$location_name=$TASKS_DIR"
+        echo "$location_statement" >> $LOCATIONS_FILE.tmp
+        mv $LOCATIONS_FILE.tmp $LOCATIONS_FILE
+        uuid_ok="OK. You may need to run 'task global clean' to remove orphaned state directories"
+      else
+        echo "Adding location to in location.vars..."
+        location_statement="$location_name=$TASKS_DIR"
+        echo "$location_statement" >> $LOCATIONS_FILE
+        uuid_ok="OK. You may need to run 'task global clean' to remove orphaned state directories"
+      fi
+    elif [[ ! -z "$ARG_UPDATE" ]]
+    then
+      echo "Can't update $ARG_UUID because the uuid is does not define the local scope."
+      echo "Try running 'task global uuid -U' from where the tasks.sh defines LOCAL_TASKS_UUID."
+    fi
+  fi
+
+  eval "$location_statement"
+  # Verify state directory exists
+  if [[ -f "${!location_name}/tasks.sh" ]] && [[ ! -d "$TASK_MASTER_HOME/state/$ARG_UUID" ]]
+  then
+    echo "State directory doesn't exist"
+    uuid_ok="NOT OK. Run 'task global uuid -U 'to fix."
+    if [[ ! -z "$ARG_UPDATE" ]]
+    then
+      echo "Creating $TASK_MASTER_HOME/state/$ARG_UUID/"
+      mkdir $TASK_MASTER_HOME/state/$ARG_UUID
+      uuid_ok='OK.'
+    fi
+  fi
+
+  # UUID_$ARG_UUID in location.vars matches where it is defined in the task file
+  if [[ -f "${!location_name}/tasks.sh" ]] && [[ -z "$(grep ${!location_name}/tasks.sh -e "LOCAL_TASKS_UUID=$ARG_UUID")" ]]
+  then
+    echo "$ARG_UUID does not match tasks file location"
+    uuid_ok="NOT OK. Run 'task global uuid -U 'to fix."
+    if [[ ! -z "$ARG_UPDATE" ]]
+    then
+      echo "Updating location in location.vars..."
+      awk -i inplace "/^UUID_.*=${!location_name}$/{next} 1" $LOCATIONS_FILE
+      echo "$location_name=${!location_name}" >> $LOCATIONS_FILE
+      uuid_ok='OK.'
+    fi
+  fi
+
+  echo "UUID is $uuid_ok"
+}

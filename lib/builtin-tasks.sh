@@ -252,15 +252,15 @@ task_global() {
   elif [[ $TASK_SUBCOMMAND == "edit" ]]
   then
     global_edit
-  elif [[ $TASK_SUBCOMMAND == "check-defs" ]]
-  then
-    global_check-defs
   elif [[ $TASK_SUBCOMMAND == "clean" ]]
   then
     global_clean
   elif [[ $TASK_SUBCOMMAND == "locations" ]]
   then
     global_locations
+  elif [[ $TASK_SUBCOMMAND == "uuid" ]]
+  then
+    global_uuid
   fi
 }
 
