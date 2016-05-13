@@ -1,4 +1,7 @@
 LOCAL_TASKS_UUID=l0
+source record-tests.sh
+source argument-tests.sh
+
 task_edit() {
   vim /home/swalker/.task-master/tests/tasks.sh
 }
@@ -19,92 +22,19 @@ task_time() {
   echo "Total time: $total_time"
   echo "Average time: $( echo $total_time/$ARG_NUM | bc -l |xargs printf "%1.5f" )"
 }
-task_test() {
 
-  #Recorded subcommand
-  if [[ $TASK_SUBCOMMAND == "record" ]]
-  then
-    cd /home/swalker/.task-master/tests
-    mkdir tester
-    cd tester/
-    task init -n tester
-    echo "Testing no subcommands"
-    task record start -n tester
-    create_recording "hello world"
-    task record stop
-    task tester
-    test_recording "hello world"
-    echo
-    echo
-
-    echo "Testing subcommands"
-    task record start -n tester -s dingus
-    create_recording "dingus"
-    task record stop
-    task tester dingus
-    test_recording "dingus"
-    echo
-    echo
-
-    echo "Testing subcommands with requirements"
-    clear_output
-    task record start -n tester -s fingus -r 'num:n:int'
-    create_recording "fingus"
-    task record stop
-    task tester fingus -n asdf
-    test_recording ""
-    task tester fingus -n 123
-    test_recording "fingus"
-    echo
-    echo
-
-    echo "Testing subcommands with requirements and options"
-    clear_output
-    task record start -n tester -s burger -r 'num:n:int' -o 'verbose:v:bool'
-    create_recording "burger"
-    task record stop
-    task tester burger
-    test_recording ""
-    task tester burger -n asdf
-    test_recording ""
-    task tester burger -n 1234 -v nope
-    test_recording ""
-    task tester burger -n -v 123
-    test_recording ""
-    task tester burger -n 123 -v
-    test_recording "burger"
-    clear_output
-    task tester burger -vn 123
-    test_recording "burger"
-    clear_output
-    task tester burger --num 123 -v
-    test_recording "burger"
-    echo
-    echo
-
-    cd ..
-    rm -r tester
-    task global clean
-  fi
-}
 arguments_test() {
-  SUBCOMMANDS="record|"
+  SUBCOMMANDS="record|args"
+  ARGS_OPTIONS="all:a:bool sub:s:bool unknown:u:bool command:c:bool short:S:bool"
 }
 
-clear_output() {
-  echo > tester.tmp
-}
-
-create_recording() {
-  echo "task record start -n tester" >> .rec_tester
-  echo "echo '$1' > tester.tmp" >> .rec_tester
-}
-
-test_recording() {
-  if [[ -f tester.tmp ]] && [[ "$(cat tester.tmp)" == "$1" ]]
+task_test() {
+  if [[ $TASK_SUBCOMMAND == "record" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
   then
-    echo "TEST SUCCESS +++++++++++++++++++++++++++++++++++++++++++"
-  else
-    echo "TEST FAILED --------------------------------------------"
+    test_record
+  elif [[ $TASK_SUBCOMMAND == "args" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
+  then
+    test_arguments
   fi
 }
+
