@@ -3,9 +3,48 @@ task_help() {
   then
     type arguments_$TASK_SUBCOMMAND &> /dev/null
     if [[ "$?" == "0" ]]
-    then
-      echo "Command specification is as follows:"
-      type arguments_$TASK_SUBCOMMAND | tail -n +2
+    then 
+      echo
+      arguments_$TASK_SUBCOMMAND
+      for sub in ${SUBCOMMANDS//\|/ }
+      do 
+        echo "Command: task $TASK_SUBCOMMAND $sub"
+        sub=${sub//-/_}
+        reqname=${sub^^}_REQUIREMENTS
+        optname=${sub^^}_OPTIONS
+        descname=${sub^^}_DESCRIPTION
+        if [[ ! -z "${!descname}" ]]
+        then
+          echo "  ${!descname}"
+        else
+          echo "  No description available"
+        fi
+        if [[ ! -z "${!reqname}" ]]
+        then
+          echo "  Required:"
+          for req in ${!reqname}
+          do
+            arg_spec=${req%:*}
+            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
+          done
+        fi
+        if [[ ! -z "${!optname}" ]]
+        then
+          echo "  Optional:"
+          for opt in ${!optname}
+          do
+            arg_spec=${opt%:*}
+            if [[ "${opt##*:}" == "bool" ]]
+            then
+              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
+            else
+              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
+            fi
+          done
+        fi
+        echo
+      done
+      
     else
       echo "No arguments are defined"
     fi
