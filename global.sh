@@ -1,3 +1,7 @@
+source $TASK_MASTER_HOME/lib/global-lib.sh
+source $TASK_MASTER_HOME/lib/process.sh
+source $TASK_MASTER_HOME/lib/record.sh
+
 task_help() {
   if [[ ! -z "$TASK_SUBCOMMAND" ]]
   then

@@ -1,4 +1,3 @@
-readonly -f record_help
 readonly -f arguments_record
 readonly -f record_start
 readonly -f record_stop
