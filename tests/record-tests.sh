@@ -75,7 +75,11 @@ test_recording() {
   if [[ -f tester.tmp ]] && [[ "$(cat tester.tmp)" == "$1" ]]
   then
     echo "TEST SUCCESS +++++++++++++++++++++++++++++++++++++++++++"
+    echo
+    TESTS_PASSED=$(expr $TESTS_PASSED + 1 )
   else
     echo "TEST FAILED --------------------------------------------"
+    echo
+    TESTS_FAILED=$(expr $TESTS_FAILED + 1 )
   fi
 }

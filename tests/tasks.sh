@@ -24,17 +24,35 @@ task_time() {
 }
 
 arguments_test() {
-  SUBCOMMANDS="record|args"
+  SUBCOMMANDS="record|args|all|spawn|goto"
   ARGS_OPTIONS="all:a:bool sub:s:bool unknown:u:bool command:c:bool short:S:bool"
 }
 
 task_test() {
+  TESTS_PASSED=0
+  TESTS_FAILED=0
   if [[ $TASK_SUBCOMMAND == "record" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
   then
     test_record
-  elif [[ $TASK_SUBCOMMAND == "args" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
+  fi
+  if [[ $TASK_SUBCOMMAND == "args" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
   then
     test_arguments
   fi
+  if [[ $TASK_SUBCOMMAND == "spawn" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
+  then
+    echo "TODO: Test spawn"
+  fi
+  if [[ $TASK_SUBCOMMAND == "goto" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
+  then
+    echo "TODO: Test goto"
+  fi
+
+  echo "====== TEST RESULTS ========="
+  echo
+  echo "  TESTS PASSED : $TESTS_PASSED"
+  echo "  TESTS FAILED : $TESTS_FAILED"
+  echo 
+  echo "============================="
 }
 

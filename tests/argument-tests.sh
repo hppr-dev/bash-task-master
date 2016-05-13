@@ -7,8 +7,6 @@ arguments_argument_validate(){
 
 test_arguments() {
   touch args-valid
-  TESTS_FAILED=0
-  TESTS_PASSED=0
   if [[ -z "$ARG_COMMAND$ARG_SUB$ARG_UNKNOWN$ARG_SHORT$ARG_ALL" ]]
   then
     ARG_ALL='1'
@@ -102,12 +100,6 @@ test_arguments() {
     assert_not_validated
   fi
 
-  echo "====== TEST RESULTS ========="
-  echo
-  echo "  TESTS PASSED : $TESTS_PASSED"
-  echo "  TESTS FAILED : $TESTS_FAILED"
-  echo 
-  echo "============================="
   rm args-valid
 
 }
