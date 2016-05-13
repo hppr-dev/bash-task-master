@@ -20,7 +20,7 @@ task(){
 
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
-  local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib-functions.sh
+  local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib/global-function-defs.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$TASKS_DIR/tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
@@ -43,6 +43,7 @@ task(){
 
 
   local TASK_COMMAND=$1
+  local TASK_SUBCOMMAND=""
 
   # Load Local Task UUID
   local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null

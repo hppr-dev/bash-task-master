@@ -1,5 +1,5 @@
 arguments_argument_validate(){
-  SUBCOMMANDS='get|'
+  SUBCOMMANDS='get||'
   ARGUMENT_VALIDATE_OPTIONS='show:s:bool'
   GET_REQUIREMENTS='key:k:nowhite value:v:upper'
   GET_OPTIONS='all:a:bool regex:r:str num:n:int char-start:C:single undo_level:u:lower'
@@ -17,6 +17,9 @@ test_arguments() {
     echo ============================no args command
     task argument_validate
     assert_validated
+    echo ============================comand option unknown subcommand
+    task argument_validate ding
+    assert_not_validated
     echo ============================comand option negative
     task argument_validate --show ding
     assert_not_validated

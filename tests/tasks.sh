@@ -1,10 +1,6 @@
 LOCAL_TASKS_UUID=l0
-source record-tests.sh
-source argument-tests.sh
-
-task_edit() {
-  vim /home/swalker/.task-master/tests/tasks.sh
-}
+source $TASKS_DIR/record-tests.sh
+source $TASKS_DIR/argument-tests.sh
 
 arguments_time() {
   SUBCOMMANDS=""
@@ -33,10 +29,12 @@ task_test() {
   TESTS_FAILED=0
   if [[ $TASK_SUBCOMMAND == "record" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
   then
+    echo testing record
     test_record
   fi
   if [[ $TASK_SUBCOMMAND == "args" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
   then
+    echo testing argumentd
     test_arguments
   fi
   if [[ $TASK_SUBCOMMAND == "spawn" ]] || [[ $TASK_SUBCOMMAND == "all" ]]
@@ -55,4 +53,3 @@ task_test() {
   echo 
   echo "============================="
 }
-

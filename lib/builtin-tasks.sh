@@ -161,12 +161,7 @@ task_init() {
   then
     LOCAL_TASKS_UUID="$ARG_NAME"
   fi
-  cat > $ARG_DIR/tasks.sh << EOF
-LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID
-task_edit() {
-  vim $ARG_DIR/tasks.sh
-}
-EOF
+  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $ARG_DIR/tasks.sh
   echo "Creating state directory..."
   mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
   echo "Saving tasks file location to $LOCATIONS_FILE"
@@ -270,4 +265,30 @@ task_export() {
   type task_$ARG_COMMAND | tail -n +2 >> $ARG_OUT
   echo "task_$ARG_COMMAND" >> $ARG_OUT
   chmod +x $ARG_OUT
+}
+
+task_edit() {
+  local validated=1
+  cp $TASKS_FILE $TASKS_FILE.tmp
+  while [[ "$validated" != "0" ]]
+  do
+    vim $TASKS_FILE
+    bash -n $TASKS_FILE
+    if [[ "$?" != "0" ]]
+    then
+      validated=1
+      echo "Could not validate $TASKS_FILE."
+      echo "Changes will be reverted if you choose not to edit again."
+      read -p "Edit again (yes or no)?[yes]" ans
+      if [[ "$ans" == "no" ]]
+      then
+        mv $TASKS_FILE.tmp $TASKS_FILE
+        validated=0
+      fi
+    else
+      echo "Changes validated."
+      validated=0
+      rm $TASKS_FILE.tmp
+    fi
+  done
 }

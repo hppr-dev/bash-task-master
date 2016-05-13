@@ -9,11 +9,13 @@ validate_args_for_task() {
   local verif[upper]='^[A-Z]+$'
   local verif[lower]='^[a-z]+$'
   local verif[single]="^.{1}$"
+  local SUBCOMMANDS=""
 
   # Check if argument specifications exist
   type arguments_$TASK_COMMAND &> /dev/null 
   if [[ "$?" == "0" ]]
   then
+    arguments_$TASK_COMMAND
     # check if subcommand exists or if there are no subcommands
     if [[ $TASK_SUBCOMMAND =~ ^($SUBCOMMANDS)$ ]] || [[ -z "$SUBCOMMANDS" ]]
     then
