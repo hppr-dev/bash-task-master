@@ -1,18 +1,3 @@
-arguments_record() {
-  SUBCOMMANDS='start|stop|restart|trash'
-
-  START_DESCRIPTION="Start recording a named task and subtask with the given requirements and options"
-  START_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
-
-  STOP_DESCRIPTION="Stop recording. Stop arguments will override start arguments if given"
-  STOP_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
-
-  RESTART_DESCRIPTION="Restart current recording, discards current progress and starts from the beginning"
-
-  TRASH_DESCRIPTION="Dicard the current recording."
-  TRASH_OPTIONS='force:f:bool'
-}
-
 record_start(){
   if [[ "$RUNNING_GLOBAL" == "1" ]]
   then

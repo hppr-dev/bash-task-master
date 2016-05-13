@@ -22,14 +22,6 @@ global_help() {
   echo "$HELP_STRING"
 }
 
-arguments_global() {
-  SUBCOMMANDS='help|debug|set|unset|edit|check-defs|clean|locations'
-  SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
-  UNSET_REQUIREMENTS='key:k:str command:c:str'
-  EDIT_REQUIREMENTS='command:c:str'
-  DEBUG_OPTIONS='command:c:str'
-  LOCATIONS_OPTIONS='list:l:bool del:d:str add:a:str'
-}
 
 global_debug() {
   if [[ ! -z "$ARG_COMMAND" ]]

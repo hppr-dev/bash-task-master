@@ -1,12 +1,3 @@
-arguments_spawn(){
-  SUBCOMMANDS='start|stop|kill|list|output|clean'
-  START_REQUIREMENTS='proc:p:str'
-  STOP_REQUIREMENTS='num:n:int'
-  OUTPUT_REQUIREMENTS='num:n:int'
-  START_OPTIONS='out:n:str'
-  OUTPUT_OPTIONS='follow:n:bool'
-}
-
 spawn_help() {
   HELP_STRING="usage: task spawn (start|stop|kill|stop|list|output|clean)
 

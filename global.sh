@@ -1,6 +1,7 @@
 source $TASK_MASTER_HOME/lib/global-lib.sh
 source $TASK_MASTER_HOME/lib/process.sh
 source $TASK_MASTER_HOME/lib/record.sh
+source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
 task_help() {
   if [[ ! -z "$TASK_SUBCOMMAND" ]]
@@ -119,9 +120,6 @@ You may also record tasks on command by using 'task record'. run 'task record he
   echo "$HELP_STRING"
 }
 
-arguments_list() {
-  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool"
-}
 
 task_list() {
   if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL" ]]
@@ -146,10 +144,6 @@ task_list() {
   fi
 }
 
-arguments_init() {
-  SUBCOMMANDS=""
-  INIT_OPTIONS="dir:d:str name:n:str clean:c:bool"
-}
 
 task_init() {
   if [[ -z "$ARG_DIR" ]]
@@ -268,10 +262,6 @@ task_global() {
   then
     global_locations
   fi
-}
-
-arguments_export() {
-  EXPORT_REQUIREMENTS="command:c:str out:o:str"
 }
 
 task_export() {
