@@ -81,17 +81,31 @@ You may also record tasks on command by using 'task record'. run 'task record he
   echo "$HELP_STRING"
 }
 
+arguments_list() {
+  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool"
+}
+
 task_list() {
-  echo "AVailable global tasks:"
-  echo
-  declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_/     /' | tr '\n' ' '
-  echo
-  echo
-  echo "AVailable local tasks:"
-  echo
-  declare -F  | grep -e "declare -f task_" | sed 's/declare -f task_/     /' | tr '\n' ' '
-  echo
-  echo
+  if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL" ]]
+  then
+    ARG_ALL='T'
+  fi
+  if [[ ! -z "$ARG_GLOBAL$ARG_ALL" ]]
+  then
+    echo "AVailable global tasks:"
+    echo
+    declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_/     /' | tr '\n' ' '
+    echo
+    echo
+  fi
+  if [[ ! -z "$ARG_LOCAL$ARG_ALL" ]]
+  then
+    echo "AVailable local tasks:"
+    echo
+    declare -F  | grep -e "declare -f task_" | sed 's/declare -f task_/     /' | tr '\n' ' '
+    echo
+    echo
+  fi
 }
 
 arguments_init() {
