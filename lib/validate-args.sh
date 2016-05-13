@@ -4,11 +4,11 @@ validate_args_for_task() {
   local avail_types='str|int|bool|nowhite|upper|lower|single'
   local verif[str]='^.*$'
   local verif[int]='^[0-9]*$'
-  local verif[bool]='^T$'
+  local verif[bool]='^1$'
   local verif[nowhite]='^[^[:space:]]+$'
   local verif[upper]='^[A-Z]+$'
   local verif[lower]='^[a-z]+$'
-  local verif[single]='^.$'
+  local verif[single]="^.{1}$"
 
   # Check if argument specifications exist
   type arguments_$TASK_COMMAND &> /dev/null 
@@ -41,7 +41,7 @@ validate_args_for_task() {
           # Make sure that the argument is the right type
           if [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
-            echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
+            echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}"
             return 1
           fi
         done
@@ -53,11 +53,12 @@ validate_args_for_task() {
         for option in ${!optvar}
         do
           local name=${option%%:*}
+          name=${name//-/_}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
           if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
-            echo "Argument does not follow verification requirements: $atype:::${verif[$atype]}\$"
+            echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}"
             return 1
           fi
         done
@@ -109,9 +110,9 @@ parse_args_for_task() {
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
-      local spec=$(sed "s/[A-Za-z_]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
+      local spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
       local long_arg="${spec%%:*}"
-      if [[ -z "$long_arg" ]]
+      if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[A-Za-z]:[a-z]+$ ]]
       then
         echo "Unrecognized short argument: $ARGUMENT"
         return 1
@@ -119,12 +120,13 @@ parse_args_for_task() {
       ARGUMENT="--${long_arg,,}"
     fi
     local spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[[:space:]]' )
-    if [[ "$ARGUMENT" =~ ^--[a-z]+$ ]]
+    if [[ "$ARGUMENT" =~ ^--[a-z_-]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
+      TRANSLATE_ARG=${TRANSLATE_ARG//-/_}
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z_-]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
       then
-        export ARG_${TRANSLATE_ARG^^}='T'
+        export ARG_${TRANSLATE_ARG^^}="1"
       else
         shift
         export ARG_${TRANSLATE_ARG^^}="$1"
