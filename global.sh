@@ -10,6 +10,44 @@ task_help() {
     then 
       echo
       arguments_$TASK_SUBCOMMAND
+      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ -z "$SUBCOMMANDS" ]]
+      then
+        echo "Command: task $TASK_SUBCOMMAND"
+        TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
+        reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
+        optname=${TASK_SUBCOMMAND^^}_OPTIONS
+        descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
+        if [[ ! -z "${!descname}" ]]
+        then
+          echo "  ${!descname}"
+        else
+          echo "  No description available"
+        fi
+        if [[ ! -z "${!reqname}" ]]
+        then
+          echo "  Required:"
+          for req in ${!reqname}
+          do
+            arg_spec=${req%:*}
+            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
+          done
+        fi
+        if [[ ! -z "${!optname}" ]]
+        then
+          echo "  Optional:"
+          for opt in ${!optname}
+          do
+            arg_spec=${opt%:*}
+            if [[ "${opt##*:}" == "bool" ]]
+            then
+              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
+            else
+              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
+            fi
+          done
+        fi
+        echo
+      fi
       for sub in ${SUBCOMMANDS//\|/ }
       do 
         echo "Command: task $TASK_SUBCOMMAND $sub"
