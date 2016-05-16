@@ -178,5 +178,13 @@ global_uuid(){
     fi
   fi
 
-  echo "UUID is $uuid_ok"
+  if [[ ! -f "${!location_name}/tasks.sh" ]]
+  then
+    echo "Tasks file does not exist."
+    echo "If ${!location_name} is a tasks directory then it is NOT OK. Use 'task global locations' task to fix"
+    echo "If this is a bookmark location, it is OK"
+    uuid_ok="POSSIBLY OK. See above"
+  fi
+
+  echo "UUID $ARG_UUID is $uuid_ok"
 }
