@@ -1,5 +1,6 @@
 state/**/*.hold
 state/**/*.export
 state/**/*.vars
+state/**
 **/*.swp
 backup

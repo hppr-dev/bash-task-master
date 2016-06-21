@@ -62,6 +62,7 @@ task_venv(){
       export_var "PATH" "$PATH"
       export_var "PS1" "$PS1"
       persist_var "VENV_ACTIVE" "T"
+      set_trap "cd $RUNNING_DIR; task venv disable ;"
     else
       echo "Virtual environment $ARG_NAME doesn't not exist or a virtual environment is already active"
     fi
@@ -74,6 +75,7 @@ task_venv(){
       release_var "PATH"
       release_var "PS1"
       remove_var "VENV_ACTIVE"
+      unset_trap
     else
       echo "Virtual environment not active"
     fi

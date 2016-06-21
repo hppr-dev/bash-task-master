@@ -11,13 +11,13 @@ task_help() {
     then 
       echo
       arguments_$TASK_SUBCOMMAND
-      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ -z "$SUBCOMMANDS" ]]
+      reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
+      optname=${TASK_SUBCOMMAND^^}_OPTIONS
+      descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
+      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
       then
         echo "Command: task $TASK_SUBCOMMAND"
         TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
-        reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
-        optname=${TASK_SUBCOMMAND^^}_OPTIONS
-        descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
         if [[ ! -z "${!descname}" ]]
         then
           echo "  ${!descname}"

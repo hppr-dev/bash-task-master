@@ -1,0 +1,42 @@
+Running env:diff task...
+Using /home/swalker/.rvm/gems/ruby-1.9.3-p551
+Environment Additions
+> GEM_HOME=/home/swalker/.rvm/gems/ruby-1.9.3-p551
+> IRBRC=/home/swalker/.rvm/rubies/ruby-1.9.3-p551/.irbrc
+> MY_RUBY_HOME=/home/swalker/.rvm/rubies/ruby-1.9.3-p551
+> PATH=/home/swalker/.rvm/gems/ruby-1.9.3-p551/bin:/home/swalker/.rvm/gems/ruby-1.9.3-p551@global/bin:/home/swalker/.rvm/rubies/ruby-1.9.3-p551/bin:/home/swalker/.rvm/bin:/home/swalker/.nvm/versions/io.js/v3.3.1/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/swalker/.forge/bin:/bin:/home/swalker/mobile/android-sdk-linux/tools:/home/swalker/mobile/android-sdk-linux/platform-tools:/home/swalker/.local/bin:/home/swalker/bin:/home/swalker/.shell-scripts:/home/swalker/.forge/bin:/bin:/home/swalker/mobile/android-sdk-linux/tools:/home/swalker/mobile/android-sdk-linux/platform-tools
+> rvm_ruby_string=ruby-1.9.3-p551
+> GEM_PATH=/home/swalker/.rvm/gems/ruby-1.9.3-p551:/home/swalker/.rvm/gems/ruby-1.9.3-p551@global
+> rvm_delete_flag=0
+> RUBY_VERSION=ruby-1.9.3-p551
+Set Additions
+> BASH_REMATCH=()
+> GEM_HOME=/home/swalker/.rvm/gems/ruby-1.9.3-p551
+> GEM_PATH=/home/swalker/.rvm/gems/ruby-1.9.3-p551:/home/swalker/.rvm/gems/ruby-1.9.3-p551@global
+> IRBRC=/home/swalker/.rvm/rubies/ruby-1.9.3-p551/.irbrc
+> MY_RUBY_HOME=/home/swalker/.rvm/rubies/ruby-1.9.3-p551
+> PATH=/home/swalker/.rvm/gems/ruby-1.9.3-p551/bin:/home/swalker/.rvm/gems/ruby-1.9.3-p551@global/bin:/home/swalker/.rvm/rubies/ruby-1.9.3-p551/bin:/home/swalker/.rvm/bin:/home/swalker/.nvm/versions/io.js/v3.3.1/bin:/usr/lib64/qt-3.3/bin:/usr/local/bin:/usr/local/sbin:/usr/bin:/usr/sbin:/home/swalker/.forge/bin:/bin:/home/swalker/mobile/android-sdk-linux/tools:/home/swalker/mobile/android-sdk-linux/platform-tools:/home/swalker/.local/bin:/home/swalker/bin:/home/swalker/.shell-scripts:/home/swalker/.forge/bin:/bin:/home/swalker/mobile/android-sdk-linux/tools:/home/swalker/mobile/android-sdk-linux/platform-tools
+> RUBY_VERSION=ruby-1.9.3-p551
+> expanded_alias_name=ruby-1.9.3-p551
+> rvm_delete_flag=0
+> rvm_env_string=ruby-1.9.3-p551
+> rvm_ruby_global_gems_path=/home/swalker/.rvm/gems/ruby-1.9.3-p551@global
+> rvm_ruby_string=ruby-1.9.3-p551
+> string=p551
+> strings=([0]="ruby" [1]="1.9.3" [2]="p551")
+> }
+> _maglev_gemstone () 
+> { 
+>     case "$1" in 
+>         start)
+>             export MAGLEV_HOME="$rvm_ruby_home";
+>             export GEMSTONE_GLOBAL_DIR=$MAGLEV_HOME;
+>             if [[ -x "$MAGLEV_HOME/gemstone/bin/gslist" ]]; then
+>                 if "$MAGLEV_HOME/gemstone/bin/gslist" -clv > /dev/null 2>&1; then
+>                     true;
+>                 else
+>                     "$rvm_ruby_home/bin/maglev" start;
+>                 fi;
+>             fi
+>         ;;
+>     esac

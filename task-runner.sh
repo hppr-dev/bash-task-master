@@ -109,6 +109,12 @@ task(){
       local retdir=${TASK_RETURN_DIR//\'}
       cd ${retdir//\"}
     fi
+    grep -e "TASK_TERM_TRAP" $STATE_FILE > /dev/null
+    if [[ "$?" == "0" ]]
+    then
+      eval $(grep -e "TASK_TERM_TRAP" $STATE_FILE)
+      trap "$TASK_TERM_TRAP" EXIT
+    fi
     grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
     if [[ "$?" == "0" ]]
     then

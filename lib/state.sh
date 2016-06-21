@@ -40,6 +40,14 @@ release_var() {
   fi
 }
 
+set_trap() {
+  persist_var TASK_TERM_TRAP "$1"
+}
+
+unset_trap() {
+  remove_var TASK_TERM_TRAP
+}
+
 clean_up_state() {
   if [[ -f $STATE_FILE ]]
   then
