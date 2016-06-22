@@ -266,7 +266,6 @@ task_export() {
   export_main_func
   echo "$arg_parse" >> $ARG_OUT
   echo "$code" >> $ARG_OUT
-  echo "task_$ARG_COMMAND" >> $ARG_OUT
   chmod +x $ARG_OUT
 }
 

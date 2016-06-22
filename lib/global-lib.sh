@@ -199,7 +199,7 @@ do
     arguments_$ARG_COMMAND
     reqname=${ARG_COMMAND^^}_REQUIREMENTS
     optname=${ARG_COMMAND^^}_OPTIONS
-    if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
+    if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] 
     then
       if [[ ! -z "${!reqname}" ]]
       then
@@ -273,19 +273,28 @@ done
 
 export_main_func() {
   echo "NOTE: Export will only search for function definitions one deep"
-  code="$(type task_$ARG_COMMAND | tail -n +2 2> /dev/null)" 
-  main_code="$code
-#Utility functions"
-  for i in $(echo "$code" | awk '{print $i}')
+  code="$(type task_$ARG_COMMAND | tail -n +2)" 
+  main_code=""
+  while read -r line
   do
-    utility_code="$(type "${i//;/}" 2> /dev/null | tail -n +2)" &> /dev/null
-    if [[ ! -z "$utility_code" ]] && [[ "$code" != "$utility_code" ]]
+    i=$(echo "$line" | awk '{print $1}')
+    utility_code="$(type "${i//;/}" 2> /dev/null | tail -n +4 | head -n -1)" &> /dev/null
+    if [[ ! -z "$utility_code" ]] && [[ ! "task_$ARG_COMMAND ()*" =~ "$line" ]]
     then
       main_code="$main_code
 $utility_code"
+    elif [[ "task_$ARG_COMMAND ()*" =~ "$line" ]]
+    then
+      main_code="$main_code
+exported_task ()"
+    else
+      main_code="$main_code
+$line"
     fi
-  done
-  code="$main_code"
+  done <<< "$code"
+  # Read in exported code
+  eval "$main_code"
+  code="$(type exported_task | tail -n +4 | head -n -1 | sed 's/^    //')"
 }
 
 update_arg_parse() {
