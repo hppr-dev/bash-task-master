@@ -188,3 +188,120 @@ global_uuid(){
 
   echo "UUID $ARG_UUID is $uuid_ok"
 }
+
+export_generate_args() {
+  arg_parse="while [[ \$# -ge 1 ]]
+do
+  case \$1 in"
+  type arguments_$ARG_COMMAND &> /dev/null
+  if [[ "$?" == "0" ]]
+  then 
+    arguments_$ARG_COMMAND
+    reqname=${ARG_COMMAND^^}_REQUIREMENTS
+    optname=${ARG_COMMAND^^}_OPTIONS
+    if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
+    then
+      if [[ ! -z "${!reqname}" ]]
+      then
+        for req in ${!reqname}
+        do
+          arg_spec=${req%:*}
+          arg_name=${arg_spec%:*}
+          long_arg="--${arg_name}"
+          short_arg="-${arg_spec#*:}"
+          arg_type=${req##*:}
+          update_arg_parse
+        done
+      fi
+      if [[ ! -z "${!optname}" ]]
+      then
+        for opt in ${!optname}
+        do
+          arg_spec=${opt%:*}
+          arg_name=${arg_spec%:*}
+          long_arg="--${arg_name}"
+          short_arg="-${arg_spec#*:}"
+          arg_type=${opt##*:}
+          update_arg_parse
+        done
+      fi
+      echo
+    fi
+    for sub in ${SUBCOMMANDS//\|/ }
+    do 
+      sub=${sub//-/_}
+      reqname=${sub^^}_REQUIREMENTS
+      optname=${sub^^}_OPTIONS
+      if [[ ! -z "${!reqname}" ]]
+      then
+        for req in ${!reqname}
+        do
+          arg_spec=${req%:*}
+          arg_name=${arg_spec%:*}
+          long_arg="--${arg_name}"
+          short_arg="-${arg_spec#*:}"
+          arg_type=${req##*:}
+          update_arg_parse
+        done
+      fi
+      if [[ ! -z "${!optname}" ]]
+      then
+        for opt in ${!optname}
+        do
+          arg_spec=${opt%:*}
+          arg_name=${arg_spec%:*}
+          long_arg="--${arg_name}"
+          short_arg="-${arg_spec#*:}"
+          arg_type=${opt##*:}
+          update_arg_parse
+        done
+      fi
+    done
+    arg_parse="$arg_parse
+  *)
+    TASK_SUBCOMMAND=\$1
+    shift
+    ;;
+  esac
+done
+"
+  else
+    echo "No arguments are defined"
+    arg_parse=""
+  fi
+}
+
+export_main_func() {
+  echo "NOTE: Export will only search for function definitions one deep"
+  code="$(type task_$ARG_COMMAND | tail -n +2 2> /dev/null)" 
+  main_code="$code
+#Utility functions"
+  for i in $(echo "$code" | awk '{print $i}')
+  do
+    utility_code="$(type "${i//;/}" 2> /dev/null | tail -n +2)" &> /dev/null
+    if [[ ! -z "$utility_code" ]] && [[ "$code" != "$utility_code" ]]
+    then
+      main_code="$main_code
+$utility_code"
+    fi
+  done
+  code="$main_code"
+}
+
+update_arg_parse() {
+  if [[ "$arg_type" == "bool" ]]
+  then
+    arg_parse="$arg_parse
+  $short_arg|$long_arg)
+    ARG_${arg_name^^}=T
+    shift
+    ;;"
+  else
+    arg_parse="$arg_parse
+  $short_arg|$long_arg)
+    ARG_${arg_name^^}=\$2
+    shift
+    shift
+    ;;"
+  fi
+}
