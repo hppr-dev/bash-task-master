@@ -89,8 +89,8 @@ To validate command line arguments and set short arguments simply create an argu
   arguments_build() {
     SUBCOMMANDS="help|frontend|backend|all"
     FRONTEND_REQUIREMENTS="OUT:o:str IN:i:str"
-    BACKEND_REQUIREMENTS="PID:P:int"
     FRONTEND_OPTIONS="VERBOSE:v:bool LINT:L:bool DIR:d:str"
+    BACKEND_REQUIREMENTS="PID:P:int"
     BACKEND_OPTIONS="VERBOSE:v:bool BUILD-FIRST:B:bool"
   }
 
@@ -138,6 +138,28 @@ AVailable types are as follows:
 
 * A single character may be confused as a boolean at validation time.
 If a value for a single character argument is left out, it will be set to "T"
+
+Showing and Displaying Help
+===========================
+
+Given that a task and it's arguments have been fully specified in a ` arguments_TASK_NAME ` function, running ` task help TASK_NAME ` will show you the available options and requirements.
+A description can be added to be more descriptive when this help is being displayed.
+For example, from the last section, you could add:
+
+```
+
+  arguments_build() {
+    SUBCOMMANDS="help|frontend|backend|all"
+    FRONTEND_DESCRIPTION="Build the frontend system. --out is the thing and --in is the other thing"
+    FRONTEND_REQUIREMENTS="OUT:o:str IN:i:str"
+    FRONTEND_OPTIONS="VERBOSE:v:bool LINT:L:bool DIR:d:str"
+    BACKEND_DESCRIPTION="Build the backend system."
+    BACKEND_REQUIREMENTS="PID:P:int"
+    BACKEND_OPTIONS="VERBOSE:v:bool BUILD-FIRST:B:bool"
+  }
+
+```
+
 
 Saving State Between Runs
 ===========================
@@ -267,3 +289,4 @@ Each tasks file should include it's UUID (AKA name) in the LOCAL_TASKS_UUID vari
 Using `task init --name UUID` will set this up correctly.
 If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
 This value is used to specify where to place state variables.
+
