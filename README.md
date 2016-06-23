@@ -126,14 +126,15 @@ Note that short arguments can be combined to one combined argument, e.g -vBP, bu
 
 AVailable types are as follows:
 
-  Type         | Identifier | Description
-  String       | str        | A string of characters, can pretty much be anything.
-  Integer      | int        | An integer
-  Boolean      | bool       | An argument that is either T if preset or an empty string if not*
-  Word         | nowhite    | A string with no whitespaces
-  Uppercase    | upper      | An uppercase string
-  Lowercase    | lower      | A lowercase string
-  Single Char  | single     | A single character*
+|  Type         | Identifier | Description |
+|  ----         | ---------- | ----------- |
+|  String       | str        | A string of characters, can pretty much be anything. |
+|  Integer      | int        | An integer |
+|  Boolean      | bool       | An argument that is either T if preset or an empty string if not* |
+|  Word         | nowhite    | A string with no whitespaces |
+|  Uppercase    | upper      | An uppercase string |
+|  Lowercase    | lower      | A lowercase string |
+|  Single Char  | single     | A single character* |
 
 * A single character may be confused as a boolean at validation time.
 If a value for a single character argument is left out, it will be set to "T"
