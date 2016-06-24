@@ -290,3 +290,14 @@ Using `task init --name UUID` will set this up correctly.
 If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
 This value is used to specify where to place state variables.
 
+
+Dependencies
+============================
+
+ - GNU Awk 4.1.3
+ - GNU sed 4.2.2
+ - GNU bash 4.3.42
+ - VIM 7.4
+
+Bash Task Master was tested using these versions. It is likely that it works on other versions as well. 
+awk and sed must be able to take '-i inplace' (gawk > 4.1.0).
