@@ -256,11 +256,16 @@ do
           update_arg_parse
         done
       fi
+    arg_parse="$arg_parse
+  ${sub^^}|${sub,,})
+    TASK_SUBCOMMAND=\$1
+    shift
+    ;;"
     done
     arg_parse="$arg_parse
   *)
-    TASK_SUBCOMMAND=\$1
-    shift
+    echo Unrecognized argument: \$1
+    exit 1
     ;;
   esac
 done
