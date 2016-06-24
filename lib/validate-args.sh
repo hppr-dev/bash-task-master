@@ -21,15 +21,12 @@ validate_args_for_task() {
     then
       # handle subcommandless tasks
       local sub=${TASK_SUBCOMMAND^^}
-      if [[ -z "$TASK_SUBCOMMAND" ]]
-      then
-        sub=${TASK_COMMAND^^}
-      fi
       # Check required arguments
-      local reqvar="${sub}_REQUIREMENTS"
-      if [[ ! -z "${!reqvar}" ]]
+      local reqvar_com="${TASK_COMMAND^^}_REQUIREMENTS"
+      local reqvar_sub="${sub}_REQUIREMENTS"
+      if [[ ! -z "${!reqvar_sub}" ]] || [[ ! -z "${!reqvar_com}" ]]
       then
-        for requirement in ${!reqvar}
+        for requirement in ${!reqvar_sub} ${!reqvar_com}
         do
           local name=${requirement%%:*}
           local atype=${requirement##*:}

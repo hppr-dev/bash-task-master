@@ -5,6 +5,11 @@ arguments_argument_validate(){
   GET_OPTIONS='all:a:bool regex:r:str num:n:int char-start:C:single undo_level:u:lower'
 }
 
+arguments_required_command(){
+  SUBCOMMANDS='get||'
+  REQUIRED_COMMAND_REQUIREMENTS='less:l:str'
+}
+
 test_arguments() {
   touch args-valid
   if [[ -z "$ARG_COMMAND$ARG_SUB$ARG_UNKNOWN$ARG_SHORT$ARG_ALL" ]]
@@ -25,6 +30,18 @@ test_arguments() {
     assert_not_validated
     echo ============================comand option positive
     task argument_validate --show
+    assert_validated
+    echo ============================comand missing required
+    task required_command
+    assert_not_validated
+    echo ============================subcomand missing required command
+    task required_command get
+    assert_not_validated
+    echo ============================comand required
+    task required_command --less
+    assert_validated
+    echo ============================subcommand required command
+    task required_command get --less
     assert_validated
   fi
 
@@ -109,6 +126,10 @@ test_arguments() {
 
 
 task_argument_validate() {
+  echo "Validated" > args-valid
+}
+
+task_required_command() {
   echo "Validated" > args-valid
 }
 
