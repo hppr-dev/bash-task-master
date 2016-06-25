@@ -2,23 +2,21 @@
 Bash Task Master
 ===================
 
-Manage tasks in bash by enhancing POBS (Plain Old Bash Scripting).
+Bash task master enhances bash by providing a way to centralize scripts in a single location
 
-The bash task master provides the functionality to automate almost any command line process in a breeze.
+Features:
 
-Benifits over just POBS:
+  - Centralized -- Tasks can be run in any folder under your home directory without adding them to your path
 
-  - Centralized -- Tasks can be run in any folder under your home directory without adding them to the path
+  - Validated Input -- Validate input without needing to write the bulky script
+
+  - Scoped -- Depending on where it is being run, different tasks are loaded
 
   - Isolated -- Each task is run in a restricted subshell, meaning your environment variables aren't affected (unless you want them to be)
 
-  - State Preserved -- Tasks can preserve their state between runs and interact
+  - Preserved State -- Tasks can preserve state between subsequent runs
 
-  - Input Validated -- Validate input without needing to write script
-
-  - Reusable -- Reuse tasks within tasks to make complex tasks more simple
-
-  - Scoped -- Depending on where it is being run, different tasks can be loaded
+  - Reusable -- Reuse tasks and functions within tasks to make complex tasks more simple
 
 
 Quick Start
@@ -229,7 +227,13 @@ use task list to list the running processes and task stop to stop them
 Exporting Tasks to Scripts
 ==========================
 
-Sometimes you need a POBS. Use `task export --command mycommand --out mycommand.sh` to create a bash script with the contents of mycommand.
+Use `task export --command mycommand --out mycommand.sh` to create a bash script that takes the same arguments and does the same thing as the mycommand task.
+
+Some caveats:
+
+  - Requirements and options are parsed the same way in the exported script. Input is not validated and missing requirements are not required.
+
+  - Only one level of function nesting is supported. Functions immediately inside of the task are expanded to include their contents, but no further.
 
 Recording Input
 ==================
