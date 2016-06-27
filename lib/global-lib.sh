@@ -262,9 +262,18 @@ do
     shift
     ;;"
     done
+    task help $ARG_COMMAND > $ARG_COMMAND.help
+    arg_parse="$arg_parse
+  -h|--help)
+    echo \"$(sed "s/task $ARG_COMMAND/$ARG_OUT/" $ARG_COMMAND.help | tail -n +2)\"
+    exit 0
+    ;;
+"
+    rm $ARG_COMMAND.help
     arg_parse="$arg_parse
   *)
     echo Unrecognized argument: \$1
+    ./\$(basename \"\$0\") --help
     exit 1
     ;;
   esac
