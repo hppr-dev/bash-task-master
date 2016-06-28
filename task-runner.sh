@@ -54,10 +54,17 @@ task(){
   local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
   local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
 
+
   #Run requested task in subshell
   (
+    if [[ -z "$RUN_NUMBER" ]]
+    then
+      RUN_NUMBER=1
+    else
+      RUN_NUMBER=2
+    fi
     # load global tasks file only in originating shell
-    if [[ "$BASH_SUBSHELL" == "1" ]]
+    if [[ "$RUN_NUMBER" == "1" ]]
     then
       . $TASK_MASTER_HOME/lib/state.sh
       . $TASK_MASTER_HOME/lib/validate-args.sh
