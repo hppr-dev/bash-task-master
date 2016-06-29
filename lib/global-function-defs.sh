@@ -4,7 +4,6 @@ readonly -f task_init
 readonly -f task_edit
 readonly -f task_goto
 readonly -f task_record
-readonly -f task_spawn
 readonly -f task_global
 readonly -f task_export
 readonly -f task_edit
@@ -31,12 +30,6 @@ readonly -f global_check-defs
 readonly -f global_clean
 readonly -f global_locations
 readonly -f global_uuid
-readonly -f spawn_help
-readonly -f spawn_start
-readonly -f spawn_stop
-readonly -f spawn_list
-readonly -f spawn_output
-readonly -f spawn_clean
 readonly -f arguments_global
 readonly -f arguments_spawn
 readonly -f arguments_record

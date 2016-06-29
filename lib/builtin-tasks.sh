@@ -1,5 +1,5 @@
 source $TASK_MASTER_HOME/lib/global-lib.sh
-source $TASK_MASTER_HOME/lib/process.sh
+#source $TASK_MASTER_HOME/lib/process.sh
 source $TASK_MASTER_HOME/lib/record.sh
 source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
@@ -204,31 +204,6 @@ task_record() {
     record_help
   fi
   
-}
-
-task_spawn() {
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
-  then 
-    spawn_help
-  elif [ $TASK_SUBCOMMAND == "start" ]
-  then
-    spawn_start
-  elif [ $TASK_SUBCOMMAND == "stop" ] || [ $TASK_SUBCOMMAND == "kill" ]
-  then
-    spawn_stop
-  elif [ $TASK_SUBCOMMAND == "list" ]
-  then
-    spawn_list
-  elif [ $TASK_SUBCOMMAND == "output" ]
-  then
-    spawn_output
-  elif [ $TASK_SUBCOMMAND == "clean" ]
-  then
-    spawn_clean
-  else
-    echo "Unknown subcommand: $TASK_SUBCOMMAND"
-    spawn_help
-  fi
 }
 
 task_global() {

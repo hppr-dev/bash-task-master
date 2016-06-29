@@ -25,6 +25,31 @@ spawn_help() {
   echo "HELP_STRING"
 }
 
+task_spawn() {
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  then 
+    spawn_help
+  elif [ $TASK_SUBCOMMAND == "start" ]
+  then
+    spawn_start
+  elif [ $TASK_SUBCOMMAND == "stop" ] || [ $TASK_SUBCOMMAND == "kill" ]
+  then
+    spawn_stop
+  elif [ $TASK_SUBCOMMAND == "list" ]
+  then
+    spawn_list
+  elif [ $TASK_SUBCOMMAND == "output" ]
+  then
+    spawn_output
+  elif [ $TASK_SUBCOMMAND == "clean" ]
+  then
+    spawn_clean
+  else
+    echo "Unknown subcommand: $TASK_SUBCOMMAND"
+    spawn_help
+  fi
+}
+
 spawn_start() {
   if [[ -z "$ARG_PROC" ]]
   then
