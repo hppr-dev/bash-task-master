@@ -312,6 +312,7 @@ $line"
 }
 
 update_arg_parse() {
+  arg_name=${arg_name//-/_}
   if [[ "$arg_type" == "bool" ]]
   then
     arg_parse="$arg_parse
