@@ -70,15 +70,17 @@ task(){
       . $TASK_MASTER_HOME/lib/validate-args.sh
       # Load global
       . $GLOBAL_TASKS_FILE
-      global_check-defs
     fi
-
     load_state
-
-    #Load local tasks
-    if [[ "$RUNNING_GLOBAL" != "1" ]]
+    #Load local tasks if the desired task isn't loaded
+    if [[ "$TASK_COMMAND" == "list" ]] || ( [[ "$(type -t task_$TASK_COMMAND)" != "function" ]] && [[ "$RUNNING_GLOBAL" != "1" ]] )
     then
       . $TASKS_FILE
+      global_check-defs
+    fi
+    if [[ "$TASK_COMMAND" == "list" ]]
+    then
+      ARG_FORMAT=bash
     fi
 
     #Parse and validate arguments

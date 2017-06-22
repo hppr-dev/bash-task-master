@@ -1,7 +1,44 @@
+parse_args_for_task() {
+  if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
+  then
+    bash_parse $@
+  elif [[ "$ARG_FORMAT" == "yaml" ]]
+  then
+    echo "$ARGUMENTS" > $STATE_DIR/args.yaml
+    yaml_parse_and_validate $@
+    echo $TASK_SUBCOMMAND
+  else
+    echo Could not find desired argument format: $ARG_FORMAT
+    exit 1
+  fi
+}
+
 validate_args_for_task() {
+  if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
+  then
+    bash_validate $@
+  elif [[ "$ARG_FORMAT" == "yaml" ]]
+  then
+    return
+  else
+    echo Could not find desired argument format: $ARG_FORMAT
+    exit 1
+  fi
+}
+
+yaml_parse_and_validate() {
+  vars="$($TASK_MASTER_HOME/lib/yaml_driver.py $STATE_DIR/args.yaml "$@")"
+  if [[ "$?" != 0 ]]
+  then
+    exit 1
+  fi
+  eval "$vars"
+}
+
+bash_validate() {
   # Define available types
   declare -A verif
-  local avail_types='str|int|bool|nowhite|upper|lower|single'
+  local avail_types='str|int|bool|nowhite|upper|lower|single|ip'
   local verif[str]='^.*$'
   local verif[int]='^[0-9]*$'
   local verif[bool]='^1$'
@@ -9,6 +46,7 @@ validate_args_for_task() {
   local verif[upper]='^[A-Z]+$'
   local verif[lower]='^[a-z]+$'
   local verif[single]="^.{1}$"
+  local verif[ip]="^[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}\.[0-9]{1,3}$"
   local SUBCOMMANDS=""
 
   # Check if argument specifications exist
@@ -72,7 +110,7 @@ validate_args_for_task() {
 
 }
 
-parse_args_for_task() {
+bash_parse() {
   # All arguments after the command will be parsed into environment variables
   # load argument specification
   type arguments_$TASK_COMMAND &> /dev/null 

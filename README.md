@@ -294,6 +294,44 @@ Using `task init --name UUID` will set this up correctly.
 If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
 This value is used to specify where to place state variables.
 
+Yaml Argument Format
+============================
+
+The yaml format can be used by setting `ARG_FORMAT=yaml` in your tasks.sh file and then including a yaml string under a ARGUMENTS variable like so:
+
+```
+ARGUMENTS="
+---
+  - my-command:
+      description: command to do things
+      subcomands: this,[his|hat]
+      optional:
+        - build:
+            short: b
+            type: bool
+            description: set to build the thing
+        - clean: c,bool,set to clean the thing
+      this:
+        required:
+          - name: n,str,name of the thing
+        optional:
+          - ssh:
+            short: s
+            type: bool
+            description: ssh to the thing
+"
+```
+A few things to note:
+
+There are two possible formats for arguments:
+
+    - long format: short, type and description are specified as fields (as in the build argument above)
+    - short format: short,type,description are implied as a string (as in the clean argument above)
+
+The subcommands field may contain regexes or the exact subcommand string.
+
+YAML format allows for descriptions on specific arguments, which the bash format does not.
+
 
 Dependencies
 ============================
