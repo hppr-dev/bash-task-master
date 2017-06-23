@@ -92,7 +92,7 @@ class Task(object):
             subcommand = arguments.pop(0)
             if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
                 fail("Subcommand %s does not exist" % (subcommand))
-            exports.append('TASK_SUBCOMMAND=%s' % (subcommand))
+            exports.append('TASK_SUBCOMMAND="%s"' % (subcommand))
         computed_requirements = self.get_requirements(subcommand)
         computed_options = self.get_options(subcommand)
         required_args = []
@@ -199,7 +199,7 @@ class Argument(object):
         return self.validate(arguments)
 
     def validate(self, argument):
-        exports.append('ARG_%s=%s' % (self.long_arg[2:].upper(), argument))
+        exports.append('ARG_%s="%s"' % (self.long_arg[2:].upper(), argument))
         return valid_types[self.arg_type](argument)
   
     def __equals__(self, arg):

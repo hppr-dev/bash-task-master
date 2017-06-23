@@ -1,11 +1,11 @@
 parse_args_for_task() {
   if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
   then
-    bash_parse $@
+    bash_parse "$@"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
     echo "$ARGUMENTS" > $STATE_DIR/args.yaml
-    yaml_parse_and_validate $@
+    yaml_parse_and_validate "$@"
   else
     echo Could not find desired argument format: $ARG_FORMAT
     exit 1
@@ -34,7 +34,7 @@ parse_help() {
 validate_args_for_task() {
   if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
   then
-    bash_validate $@
+    bash_validate "$@"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
     return
