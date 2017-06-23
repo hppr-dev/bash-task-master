@@ -12,6 +12,25 @@ parse_args_for_task() {
   fi
 }
 
+parse_help() {
+  #Load the tasks file now instead of at the begining to be able to use local format
+  if [[ "$(type -t task_$TASK_SUBCOMMAND)" != "function" ]]
+  then
+    . $TASKS_FILE
+  fi
+  if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
+  then
+    bash_help
+  elif [[ "$ARG_FORMAT" == "yaml" ]]
+  then
+    yaml_help $TASK_SUBCOMMAND
+  else
+    echo Could not find desired argument format: $ARG_FORMAT
+    exit 1
+  fi
+}
+  
+
 validate_args_for_task() {
   if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
   then
@@ -33,6 +52,11 @@ yaml_parse_and_validate() {
   fi
   eval "$vars"
 }
+
+yaml_help() {
+ $TASK_MASTER_HOME/lib/yaml_driver.py $STATE_DIR/args.yaml help $TASK_SUBCOMMAND
+}
+
 
 bash_validate() {
   # Define available types
@@ -183,4 +207,97 @@ bash_parse() {
   then
     parse_args_for_task "GARBAGE" $ADDED_ARGS
   fi
+}
+
+bash_help() {
+  if [[ ! -z "$TASK_SUBCOMMAND" ]]
+  then
+    type arguments_$TASK_SUBCOMMAND &> /dev/null
+    if [[ "$?" == "0" ]]
+    then 
+      echo
+      arguments_$TASK_SUBCOMMAND
+      reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
+      optname=${TASK_SUBCOMMAND^^}_OPTIONS
+      descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
+      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
+      then
+        echo "Command: task $TASK_SUBCOMMAND"
+        TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
+        if [[ ! -z "${!descname}" ]]
+        then
+          echo "  ${!descname}"
+        else
+          echo "  No description available"
+        fi
+        if [[ ! -z "${!reqname}" ]]
+        then
+          echo "  Required:"
+          for req in ${!reqname}
+          do
+            arg_spec=${req%:*}
+            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
+          done
+        fi
+        if [[ ! -z "${!optname}" ]]
+        then
+          echo "  Optional:"
+          for opt in ${!optname}
+          do
+            arg_spec=${opt%:*}
+            if [[ "${opt##*:}" == "bool" ]]
+            then
+              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
+            else
+              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
+            fi
+          done
+        fi
+        echo
+      fi
+      for sub in ${SUBCOMMANDS//\|/ }
+      do 
+        echo "Command: task $TASK_SUBCOMMAND $sub"
+        sub=${sub//-/_}
+        reqname=${sub^^}_REQUIREMENTS
+        optname=${sub^^}_OPTIONS
+        descname=${sub^^}_DESCRIPTION
+        if [[ ! -z "${!descname}" ]]
+        then
+          echo "  ${!descname}"
+        else
+          echo "  No description available"
+        fi
+        if [[ ! -z "${!reqname}" ]]
+        then
+          echo "  Required:"
+          for req in ${!reqname}
+          do
+            arg_spec=${req%:*}
+            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
+          done
+        fi
+        if [[ ! -z "${!optname}" ]]
+        then
+          echo "  Optional:"
+          for opt in ${!optname}
+          do
+            arg_spec=${opt%:*}
+            if [[ "${opt##*:}" == "bool" ]]
+            then
+              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
+            else
+              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
+            fi
+          done
+        fi
+        echo
+      done
+      
+    else
+      echo "No arguments are defined"
+    fi
+    return 0
+  fi
+  return 1
 }

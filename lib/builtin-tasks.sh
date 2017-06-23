@@ -4,96 +4,10 @@ source $TASK_MASTER_HOME/lib/record.sh
 source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
 task_help() {
-  if [[ ! -z "$TASK_SUBCOMMAND" ]]
+  parse_help
+  if [[ "$?" == "1" ]]
   then
-    type arguments_$TASK_SUBCOMMAND &> /dev/null
-    if [[ "$?" == "0" ]]
-    then 
-      echo
-      arguments_$TASK_SUBCOMMAND
-      reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
-      optname=${TASK_SUBCOMMAND^^}_OPTIONS
-      descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
-      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
-      then
-        echo "Command: task $TASK_SUBCOMMAND"
-        TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
-        if [[ ! -z "${!descname}" ]]
-        then
-          echo "  ${!descname}"
-        else
-          echo "  No description available"
-        fi
-        if [[ ! -z "${!reqname}" ]]
-        then
-          echo "  Required:"
-          for req in ${!reqname}
-          do
-            arg_spec=${req%:*}
-            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
-          done
-        fi
-        if [[ ! -z "${!optname}" ]]
-        then
-          echo "  Optional:"
-          for opt in ${!optname}
-          do
-            arg_spec=${opt%:*}
-            if [[ "${opt##*:}" == "bool" ]]
-            then
-              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
-            else
-              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
-            fi
-          done
-        fi
-        echo
-      fi
-      for sub in ${SUBCOMMANDS//\|/ }
-      do 
-        echo "Command: task $TASK_SUBCOMMAND $sub"
-        sub=${sub//-/_}
-        reqname=${sub^^}_REQUIREMENTS
-        optname=${sub^^}_OPTIONS
-        descname=${sub^^}_DESCRIPTION
-        if [[ ! -z "${!descname}" ]]
-        then
-          echo "  ${!descname}"
-        else
-          echo "  No description available"
-        fi
-        if [[ ! -z "${!reqname}" ]]
-        then
-          echo "  Required:"
-          for req in ${!reqname}
-          do
-            arg_spec=${req%:*}
-            echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
-          done
-        fi
-        if [[ ! -z "${!optname}" ]]
-        then
-          echo "  Optional:"
-          for opt in ${!optname}
-          do
-            arg_spec=${opt%:*}
-            if [[ "${opt##*:}" == "bool" ]]
-            then
-              echo "    --${arg_spec%:*}, -${arg_spec#*:}"
-            else
-              echo "    --${arg_spec%:*}, -${arg_spec#*:} ${opt##*:}"
-            fi
-          done
-        fi
-        echo
-      done
-      
-    else
-      echo "No arguments are defined"
-    fi
-    return
-  fi
-  HELP_STRING="usage: task subcommand [arguments]
+    HELP_STRING="usage: task subcommand [arguments]
 
 Task Master 0.1: Bash Task Management Utility
 
@@ -117,7 +31,8 @@ For instance, running 'task get --addr 1324 --local' will set \$ARG_ADDR='1324' 
 You may also record tasks on command by using 'task record'. run 'task record help' for more details
 "
 
-  echo "$HELP_STRING"
+    echo "$HELP_STRING"
+  fi
 }
 
 

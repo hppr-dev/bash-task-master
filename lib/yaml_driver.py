@@ -44,10 +44,17 @@ class TaskList(object):
             fail('Task not found: %s' % (arguments[0]))
         return task.parse(splay_args(arguments[1:]))
 
+    def help_str(self, task):
+        task_obj = next((t for t in self.tasks if t.name == task), None)
+        if task_obj == None:
+            return 'Task %s not found' % (task)
+        return task_obj.help_str()
+
 
 class Task(object):
     def __init__(self, name, task_dict):
         self.name = name
+        task_dict = dict() if task_dict == None else task_dict
         self.description = task_dict.get('description')
         self.subcommands = task_dict.get('subcommands')
         if self.subcommands != None:
@@ -77,8 +84,8 @@ class Task(object):
     def parse(self, arguments):
         subcommand = ''
         if len(arguments) == 0:
-            if not 'None' in self.subcommands:
-                fail('Missing subcommand, add None to subcommands to allow')
+            if not 'None' in self.subcommands and self.subcommands != ['']:
+                fail('Missing subcommand, add None to subcommands to allow calling without a subcommand')
             else:
                 subcommand = ''
         if len(arguments) > 0 and '-' != arguments[0][0]:
@@ -107,6 +114,29 @@ class Task(object):
         computed_options.parse(optional_args)
         computed_requirements.parse(required_args)
         return True
+
+    def help_str(self):
+        helpstr = 'task %s [%s]:\n' % (self.name, '|'.join(self.subcommands))
+        helpstr += self.__arg_str__('root')
+        for sub in self.subcommands:
+            addition = self.__arg_str__(sub)
+            if addition != '':
+                helpstr += 'task %s %s:\n%s' % (self.name, sub, addition)
+        return helpstr
+
+    def __arg_str__(self, sub):
+        reqs = self.requirements.get(sub)
+        opts = self.options.get(sub)
+        helpstr = ''
+        if reqs and not reqs.empty():
+            helpstr += 'Requirements:\n'
+            for arg in reqs:
+                helpstr += '\t' + arg.help_str()
+        if opts and not opts.empty():
+            helpstr += 'Options:\n'
+            for arg in self.options.get(sub, []):
+                helpstr += '\t' + arg.help_str()
+        return helpstr
 
 class ArgumentList(object):
     def __init__(self, arg_dict, required=False):
@@ -148,16 +178,22 @@ class ArgumentList(object):
             if len(missing_args) != 0:
                 fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
         return True
+
+    def __iter__(self):
+        return self.arguments.__iter__()
+
+    def empty(self):
+        return self.arguments == []
         
 
 class Argument(object):
-    def __init__(self, long_arg, short_arg=None, arg_type='str', description=None):
+    def __init__(self, long_arg, short_arg='', arg_type='str', description=''):
         if not arg_type in valid_types.keys():
             fail("Argument type %s not supported" % (arg_type))
         self.long_arg = "--" + long_arg.strip()
         self.short_arg = "-" + short_arg.strip()
-        self.arg_type = arg_type
-        self.description = description
+        self.arg_type = arg_type.strip()
+        self.description = description.strip()
 
     def parse(self, arguments=1):
         return self.validate(arguments)
@@ -169,6 +205,9 @@ class Argument(object):
     def __equals__(self, arg):
         return self.long_arg == args or self.short_args
 
+    def help_str(self):
+        return '%s (%s),%s (%s)\n\t\t%s\n' % (self.long_arg, self.arg_type, self.short_arg, self.arg_type, self.description)
+
 args_file = sys.argv[1]
 task_args = sys.argv[2:]
 
@@ -179,7 +218,11 @@ with open(sys.argv[1], 'r') as f:
         fail(str(exc))
 
 
-if not spec.parse(task_args):
+if 'help' == task_args[0]:
+    task_args.remove('help')
+    print spec.help_str(task_args[0])
+elif not spec.parse(task_args):
     fail('Arguments not validated')
-for var in exports:
-    print var
+else:
+    for var in exports:
+        print var
