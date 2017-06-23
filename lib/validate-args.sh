@@ -6,7 +6,6 @@ parse_args_for_task() {
   then
     echo "$ARGUMENTS" > $STATE_DIR/args.yaml
     yaml_parse_and_validate $@
-    echo $TASK_SUBCOMMAND
   else
     echo Could not find desired argument format: $ARG_FORMAT
     exit 1

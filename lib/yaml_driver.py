@@ -58,32 +58,52 @@ class Task(object):
             self.subcommands = self.subcommands.split(',')
         else:
             self.subcommands = ['']
-        self.options = ArgumentList(task_dict.get('optional'))
-        self.requirements = ArgumentList(task_dict.get('required'), required=True)
+        self.options = {'root' : ArgumentList(task_dict.get('optional'))}
+        self.requirements = {'root': ArgumentList(task_dict.get('required'), required=True)}
+        for sub in self.subcommands:
+            sub_dict = task_dict.get(sub)
+            if sub_dict != None:
+                self.options[sub] = ArgumentList(sub_dict.get('optional'))
+                self.requirements[sub] = ArgumentList(sub_dict.get('requirements'), required=True)
+
+    def get_options(self, subcommand):
+        sub_options = self.options.get(subcommand)
+        if sub_options != None:
+            return self.options['root'] + sub_options
+        return self.options['root']
+
+    def get_requirements(self, subcommand):
+        sub_requirements = self.requirements.get(subcommand)
+        if sub_requirements != None:
+            return self.requirements['root'] + sub_requirements
+        return self.requirements['root']
 
     def parse(self, arguments):
+        subcommand = ''
         if '-' != arguments[0][0]:
             subcommand = arguments.pop(0)
             if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
                 fail("Subcommand %s does not exist" % (subcommand))
             exports.append('TASK_SUBCOMMAND=%s' % (subcommand))
+        computed_requirements = self.get_requirements(subcommand)
+        computed_options = self.get_options(subcommand)
         required_args = []
         optional_args = []
         for i in range(len(arguments)):
             if arguments[i][0] != '-':
                 continue
-            if arguments[i] in self.requirements.get_available_arguments():
+            if arguments[i] in computed_requirements.get_available_arguments():
                 required_args.append(arguments[i])
-                if i < len(arguments) and arguments[i+1][0] != '-':
+                if i+1 < len(arguments) and arguments[i+1][0] != '-':
                     required_args.append(arguments[i+1])
-            elif arguments[i] in self.options.get_available_arguments():
+            elif arguments[i] in computed_options.get_available_arguments():
                 optional_args.append(arguments[i])
-                if i < len(arguments) and arguments[i+1][0] != '-':
+                if i+1 < len(arguments) and arguments[i+1][0] != '-':
                     optional_args.append(arguments[i+1])
             else:
                 fail('Argument %s not recognized' % (arguments[i])) 
             
-        return self.options.parse(optional_args) and self.requirements.parse(required_args)
+        return computed_options.parse(optional_args) and computed_requirements.parse(required_args)
 
 class ArgumentList(object):
     def __init__(self, arg_dict, required=False):
@@ -99,6 +119,10 @@ class ArgumentList(object):
     def get_available_arguments(self):
         return [ a.long_arg for a in self.arguments ] + [a.short_arg for a in self.arguments]
 
+    def __add__(self, other):
+        self.arguments += other.arguments
+        return self 
+
     def parse(self, arguments):
         validated = True
         for i in range(len(arguments)):
@@ -107,7 +131,7 @@ class ArgumentList(object):
                 continue
             arg_obj = next((a for a in self.arguments if arg == a.long_arg or arg == a.short_arg), None)
             if arg_obj == None:
-                fail('Could not find argument %s in yaml description\n' % (arg))
+                fail('Could not find argument %s in yaml description' % (arg))
             if arg_obj.arg_type == 'bool':
                 validated &= arg_obj.parse(arg)
             else:
@@ -118,14 +142,14 @@ class ArgumentList(object):
             included_args = set([ n for n in arguments if '-' != n[0] ])
             missing_args = set(self.arguments) - included_args
             if len(missing_args) != 0:
-                fail("Missing required arg(s) %s\n " % (str(missing_args)))
+                fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
         return validated
         
 
 class Argument(object):
     def __init__(self, long_arg, short_arg=None, arg_type='str', description=None):
         if not arg_type in valid_types.keys():
-            fail("Argument type %s not supported\n" % (arg_type))
+            fail("Argument type %s not supported" % (arg_type))
         self.long_arg = "--" + long_arg.strip()
         self.short_arg = "-" + short_arg.strip()
         self.arg_type = arg_type
@@ -148,7 +172,7 @@ with open(sys.argv[1], 'r') as f:
     try:
         spec = TaskList(yaml.load(f))
     except yaml.YAMLError as exc:
-        fail(str(exc)+'\n')
+        fail(str(exc))
 
 
 if not spec.parse(task_args):
