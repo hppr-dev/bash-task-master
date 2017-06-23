@@ -34,10 +34,6 @@ def fail(msg):
     sys.stderr.flush()
     sys.exit(1)
 
-def out(obj):
-    sys.stderr.write(str(obj) + '\n')
-    sys.stderr.flush()
-
 class TaskList(object):
     def __init__(self, spec_dict):
         self.tasks = [Task(task, spec_dict[task]) for task in spec_dict.keys()]
@@ -45,7 +41,7 @@ class TaskList(object):
     def parse(self, arguments):
         task = next((t for t in self.tasks if t.name == arguments[0]), None)
         if task == None:
-            return False 
+            fail('Task not found: %s' % (arguments[0]))
         return task.parse(splay_args(arguments[1:]))
 
 
@@ -80,7 +76,12 @@ class Task(object):
 
     def parse(self, arguments):
         subcommand = ''
-        if '-' != arguments[0][0]:
+        if len(arguments) == 0:
+            if not 'None' in self.subcommands:
+                fail('Missing subcommand, add None to subcommands to allow')
+            else:
+                subcommand = ''
+        if len(arguments) > 0 and '-' != arguments[0][0]:
             subcommand = arguments.pop(0)
             if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
                 fail("Subcommand %s does not exist" % (subcommand))
@@ -102,8 +103,10 @@ class Task(object):
                     optional_args.append(arguments[i+1])
             else:
                 fail('Argument %s not recognized' % (arguments[i])) 
-            
-        return computed_options.parse(optional_args) and computed_requirements.parse(required_args)
+
+        computed_options.parse(optional_args)
+        computed_requirements.parse(required_args)
+        return True
 
 class ArgumentList(object):
     def __init__(self, arg_dict, required=False):
@@ -124,7 +127,6 @@ class ArgumentList(object):
         return self 
 
     def parse(self, arguments):
-        validated = True
         for i in range(len(arguments)):
             arg =  arguments[i]
             if '-' !=  arg[0]:
@@ -133,17 +135,19 @@ class ArgumentList(object):
             if arg_obj == None:
                 fail('Could not find argument %s in yaml description' % (arg))
             if arg_obj.arg_type == 'bool':
-                validated &= arg_obj.parse(arg)
+                if not arg_obj.parse():
+                    fail('Could not validate %s' % (arg))
             else:
                 if i+1 >= len(arguments):
                     fail('Expected a value with %s and got none' % (arg))
-                validated &= arg_obj.parse(arguments[i+1])
+                if not arg_obj.parse(arguments[i+1]):
+                    fail('Could not validate %s' % (arg))
         if self.required:
             included_args = set([ n for n in arguments if '-' != n[0] ])
             missing_args = set(self.arguments) - included_args
             if len(missing_args) != 0:
                 fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
-        return validated
+        return True
         
 
 class Argument(object):
@@ -155,7 +159,7 @@ class Argument(object):
         self.arg_type = arg_type
         self.description = description
 
-    def parse(self, arguments=[]):
+    def parse(self, arguments=1):
         return self.validate(arguments)
 
     def validate(self, argument):
