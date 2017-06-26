@@ -24,6 +24,7 @@ task(){
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$TASKS_DIR/tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+  local ARG_FORMAT=bash
 
 
   # Find tasks.sh file
