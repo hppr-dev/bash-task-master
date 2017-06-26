@@ -138,4 +138,11 @@ task(){
   fi
 }
 
+_TaskTabCompletion(){
+    local tasks=$(task list | grep -v Available)
+    local cur=${COMP_WORDS[COMP_CWORD]}  
+    COMPREPLY=$( compgen -W "$tasks" -- $cur )
+    return 0
+}
 
+complete -F _TaskTabCompletion -f task -o default
