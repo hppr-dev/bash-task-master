@@ -4,7 +4,12 @@ parse_args_for_task() {
     bash_parse "$@"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
-    echo "$ARGUMENTS" > $STATE_DIR/args.yaml
+    if [[ -f "$ARGUMENTS" ]]
+    then
+      cp $ARGUMENTS $STATE_DIR/args.yaml
+    else
+      echo "$ARGUMENTS" > $STATE_DIR/args.yaml
+    fi
     yaml_parse_and_validate "$@"
   else
     echo Could not find desired argument format: $ARG_FORMAT

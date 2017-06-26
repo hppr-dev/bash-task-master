@@ -30,18 +30,27 @@ def splay_args(arg_list):
     return ret_list
 
 def fail(msg):
-    sys.stderr.write(msg +'\n')
+    sys.stderr.write('ERROR: ' + str(msg) +'\n')
     sys.stderr.flush()
     sys.exit(1)
 
+def warn(msg):
+    sys.stderr.write('WARN: ' + str(msg) +'\n')
+    sys.stderr.flush()
+
 class TaskList(object):
     def __init__(self, spec_dict):
-        self.tasks = [Task(task, spec_dict[task]) for task in spec_dict.keys()]
+        if spec_dict:
+            self.tasks = [Task(task, spec_dict[task]) for task in spec_dict.keys()]
+        else:
+            self.tasks = []
 
     def parse(self, arguments):
         task = next((t for t in self.tasks if t.name == arguments[0]), None)
-        if task == None:
-            fail('Task not found: %s' % (arguments[0]))
+        if not task:
+            warn('Task not found: %s' % (arguments[0]))
+            exports.append('TASK_SUBCOMMAND="%s"' % (arguments[0]))
+            return True
         return task.parse(splay_args(arguments[1:]))
 
     def help_str(self, task):
@@ -55,7 +64,7 @@ class Task(object):
     def __init__(self, name, task_dict):
         self.name = name
         task_dict = dict() if task_dict == None else task_dict
-        self.description = task_dict.get('description')
+        self.description = task_dict.get('description') or 'No description'
         self.subcommands = task_dict.get('subcommands')
         if self.subcommands != None:
             self.subcommands = self.subcommands.split(',')
@@ -116,12 +125,15 @@ class Task(object):
         return True
 
     def help_str(self):
-        helpstr = 'task %s [%s]:\n' % (self.name, '|'.join(self.subcommands))
+        helpstr = 'task %s [ %s ]:\n' % (self.name, '|'.join(self.subcommands))
+        helpstr += ' ' + ( self.description or 'No description') + '\n' if self.description else ''
         helpstr += self.__arg_str__('root')
         for sub in self.subcommands:
             addition = self.__arg_str__(sub)
             if addition != '':
-                helpstr += 'task %s %s:\n%s' % (self.name, sub, addition)
+                helpstr += 'task %s %s:\n' % (self.name, sub)
+                helpstr += '  ' + ( self.description or 'No description' )  + '\n' 
+                helpstr += addition + '\n'
         return helpstr
 
     def __arg_str__(self, sub):
@@ -129,13 +141,13 @@ class Task(object):
         opts = self.options.get(sub)
         helpstr = ''
         if reqs and not reqs.empty():
-            helpstr += 'Requirements:\n'
+            helpstr += '  Requirements:\n'
             for arg in reqs:
-                helpstr += '\t' + arg.help_str()
+                helpstr += '\t  ' + arg.help_str()
         if opts and not opts.empty():
-            helpstr += 'Options:\n'
+            helpstr += '  Options:\n'
             for arg in self.options.get(sub, []):
-                helpstr += '\t' + arg.help_str()
+                helpstr += '\t  ' + arg.help_str()
         return helpstr
 
 class ArgumentList(object):
@@ -145,7 +157,7 @@ class ArgumentList(object):
         self.arg_dict = arg_dict if arg_dict != None else dict()
         for long_arg, values in self.arg_dict.items():
             if type(values) == dict:
-                self.arguments.append(Argument(long_arg, values.get('short'), values.get('type'), values.get('description')))
+                self.arguments.append(Argument(long_arg, values.get('short'), values.get('type'), (values.get('description') or 'No description')))
             else:
                 self.arguments.append(Argument(long_arg, *values.split(',')))
 
@@ -187,7 +199,7 @@ class ArgumentList(object):
         
 
 class Argument(object):
-    def __init__(self, long_arg, short_arg='', arg_type='str', description=''):
+    def __init__(self, long_arg, short_arg='', arg_type='str', description='No description'):
         if not arg_type in valid_types.keys():
             fail("Argument type %s not supported" % (arg_type))
         self.long_arg = "--" + long_arg.strip()
@@ -206,7 +218,7 @@ class Argument(object):
         return self.long_arg == args or self.short_args
 
     def help_str(self):
-        return '%s (%s),%s (%s)\n\t\t%s\n' % (self.long_arg, self.arg_type, self.short_arg, self.arg_type, self.description)
+        return '%s (%s), %s (%s)\t%s\n' % (self.long_arg, self.arg_type, self.short_arg, self.arg_type, self.description)
 
 args_file = sys.argv[1]
 task_args = sys.argv[2:]
