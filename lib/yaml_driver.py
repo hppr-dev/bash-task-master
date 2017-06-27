@@ -76,7 +76,7 @@ class Task(object):
             sub_dict = task_dict.get(sub)
             if sub_dict != None:
                 self.options[sub] = ArgumentList(sub_dict.get('optional'))
-                self.requirements[sub] = ArgumentList(sub_dict.get('requirements'), required=True)
+                self.requirements[sub] = ArgumentList(sub_dict.get('required'), required=True)
 
     def get_options(self, subcommand):
         sub_options = self.options.get(subcommand)
@@ -91,17 +91,18 @@ class Task(object):
         return self.requirements['root']
 
     def parse(self, arguments):
-        subcommand = ''
         if len(arguments) == 0:
             if not 'None' in self.subcommands and self.subcommands != ['']:
-                fail('Missing subcommand, add None to subcommands to allow calling without a subcommand')
+                fail('Missing subcommand, add "none" to subcommands to allow calling without a subcommand')
             else:
-                subcommand = ''
-        if len(arguments) > 0 and '-' != arguments[0][0]:
+                subcommand = 'none'
+        if arguments[0][0] == '-':
+            subcommand = 'none'
+        else:
             subcommand = arguments.pop(0)
-            if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
-                fail("Subcommand %s does not exist" % (subcommand))
             exports.append('TASK_SUBCOMMAND="%s"' % (subcommand))
+        if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
+            fail("Subcommand %s does not exist" % (subcommand))
         computed_requirements = self.get_requirements(subcommand)
         computed_options = self.get_options(subcommand)
         required_args = []
@@ -185,8 +186,7 @@ class ArgumentList(object):
                 if not arg_obj.parse(arguments[i+1]):
                     fail('Could not validate %s' % (arg))
         if self.required:
-            included_args = set([ n for n in arguments if '-' != n[0] ])
-            missing_args = set(self.arguments) - included_args
+            missing_args = [ arg for arg in self.arguments if not arg.in_list(arguments) ]
             if len(missing_args) != 0:
                 fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
         return True
@@ -215,7 +215,10 @@ class Argument(object):
         return valid_types[self.arg_type](argument)
   
     def __equals__(self, arg):
-        return self.long_arg == args or self.short_args
+        return self.long_arg == args or self.short_arg
+
+    def in_list(self, args):
+        return self.long_arg in args or self.short_arg in args
 
     def help_str(self):
         return '%s (%s), %s (%s)\t%s\n' % (self.long_arg, self.arg_type, self.short_arg, self.arg_type, self.description)

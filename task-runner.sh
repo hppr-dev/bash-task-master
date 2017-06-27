@@ -39,7 +39,7 @@ task(){
   if [[ "$TASKS_DIR" == "$HOME" ]]
   then
     TASKS_FILE=$GLOBAL_TASKS_FILE
-    local RUNNING_GLOBAL=1
+    local RUNNING_GLOBAL="1"
   fi
 
 
@@ -74,10 +74,9 @@ task(){
     fi
     load_state
     #Load local tasks if the desired task isn't loaded
-    if [[ "$TASK_COMMAND" == "list" ]] || ( [[ "$(type -t task_$TASK_COMMAND)" != "function" ]] && [[ "$RUNNING_GLOBAL" != "1" ]] )
+    if ([[ "$TASK_COMMAND" == "list" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
     then
       . $TASKS_FILE
-      global_check-defs
     fi
     if [[ "$TASK_COMMAND" == "list" ]]
     then
@@ -139,10 +138,16 @@ task(){
 }
 
 _TaskTabCompletion(){
-    local tasks=$(task list | grep -v Available)
+    local tasks=$(task list | grep -v Available | grep -v Running)
     local cur=${COMP_WORDS[COMP_CWORD]}  
-    COMPREPLY=$( compgen -W "$tasks" -- $cur )
-    return 0
+    local word=${COMP_WORDS[$COMP_CWORD-1]}
+    local aliases="$(alias | grep task | sed "s/alias \(.*\)='task'/\1/")"
+    if [[ "$word" == "task" ]] || [[ "$word" == "help" ]] || [[ "$aliases" == *"$word"* ]]
+    then
+      COMPREPLY=($( compgen -W "$tasks" -- "$cur" ))
+    else
+      COMPREPLY=($( compgen -f -d -- "$cur" ))
+    fi
 }
 
-complete -F _TaskTabCompletion -f task -o default
+complete -D -F _TaskTabCompletion task -o bashdefault -o default
