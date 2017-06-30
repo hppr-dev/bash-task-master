@@ -59,83 +59,20 @@ class TaskList(object):
             return 'Task %s not found' % (task)
         return task_obj.help_str()
 
+class Command(object):
 
-class Task(object):
-    def __init__(self, name, task_dict):
+    def __init__(self, name, data_dict):
         self.name = name
-        task_dict = dict() if task_dict == None else task_dict
-        self.description = task_dict.get('description') or 'No description'
-        self.subcommands = task_dict.get('subcommands')
-        if self.subcommands != None:
-            self.subcommands = self.subcommands.split(',')
-        else:
-            self.subcommands = ['']
-        self.options = {'root' : ArgumentList(task_dict.get('optional'))}
-        self.requirements = {'root': ArgumentList(task_dict.get('required'), required=True)}
-        for sub in self.subcommands:
-            sub_dict = task_dict.get(sub)
-            if sub_dict != None:
-                self.options[sub] = ArgumentList(sub_dict.get('optional'))
-                self.requirements[sub] = ArgumentList(sub_dict.get('required'), required=True)
+        data_dict = dict() if data_dict == None else data_dict
+        self.description = data_dict.get('description') or 'No description'
+        self.options = ArgumentList(data_dict.get('optional'))
+        self.requirements = ArgumentList(data_dict.get('required'), required=True)
+        self.aliases = data_dict.get('aliases', '').split(',')
 
-    def get_options(self, subcommand):
-        sub_options = self.options.get(subcommand)
-        if sub_options != None:
-            return self.options['root'] + sub_options
-        return self.options['root']
-
-    def get_requirements(self, subcommand):
-        sub_requirements = self.requirements.get(subcommand)
-        if sub_requirements != None:
-            return self.requirements['root'] + sub_requirements
-        return self.requirements['root']
-
-    def parse(self, arguments):
-        if len(arguments) == 0:
-            if not 'None' in self.subcommands and self.subcommands != ['']:
-                fail('Missing subcommand, add "none" to subcommands to allow calling without a subcommand')
-            else:
-                subcommand = 'none'
-        if arguments[0][0] == '-':
-            subcommand = 'none'
-        else:
-            subcommand = arguments.pop(0)
-            exports.append('TASK_SUBCOMMAND="%s"' % (subcommand))
-        if not any(map(lambda x: is_a_match(x)(subcommand), self.subcommands)):
-            fail("Subcommand %s does not exist" % (subcommand))
-        computed_requirements = self.get_requirements(subcommand)
-        computed_options = self.get_options(subcommand)
-        required_args = []
-        optional_args = []
-        for i in range(len(arguments)):
-            if arguments[i][0] != '-':
-                continue
-            if arguments[i] in computed_requirements.get_available_arguments():
-                required_args.append(arguments[i])
-                if i+1 < len(arguments) and arguments[i+1][0] != '-':
-                    required_args.append(arguments[i+1])
-            elif arguments[i] in computed_options.get_available_arguments():
-                optional_args.append(arguments[i])
-                if i+1 < len(arguments) and arguments[i+1][0] != '-':
-                    optional_args.append(arguments[i+1])
-            else:
-                fail('Argument %s not recognized' % (arguments[i])) 
-
-        computed_options.parse(optional_args)
-        computed_requirements.parse(required_args)
-        return True
-
-    def help_str(self):
-        helpstr = 'task %s [ %s ]:\n' % (self.name, '|'.join(self.subcommands))
-        helpstr += ' ' + ( self.description or 'No description') + '\n' if self.description else ''
-        helpstr += self.__arg_str__('root')
-        for sub in self.subcommands:
-            addition = self.__arg_str__(sub)
-            if addition != '':
-                helpstr += 'task %s %s:\n' % (self.name, sub)
-                helpstr += '  ' + ( self.description or 'No description' )  + '\n' 
-                helpstr += addition + '\n'
-        return helpstr
+    def __eq__(self, other):
+        if type(other) == str:
+            return  other == self.name or (self.aliases != [''] and other in self.aliases)
+        return self.name == other.name
 
     def __arg_str__(self, sub):
         reqs = self.requirements.get(sub)
@@ -150,6 +87,71 @@ class Task(object):
             for arg in self.options.get(sub, []):
                 helpstr += '\t  ' + arg.help_str()
         return helpstr
+
+    def compute_requirements(self):
+        return self.requirements
+
+    def compute_options(self):
+        return self.options
+    
+    def parse(self, arguments):
+        computed_requirements = self.compute_requirements()
+        computed_options = self.compute_options()
+        optional_args, required_args = [],[]
+        for i in range(len(arguments)):
+            if arguments[i][0] != '-':
+                continue
+            if arguments[i] in computed_requirements.get_available_arguments():
+                required_args.append(arguments[i])
+                if i+1 < len(arguments) and arguments[i+1][0] != '-':
+                    required_args.append(arguments[i+1])
+            elif arguments[i] in computed_options.get_available_arguments():
+                optional_args.append(arguments[i])
+                if i+1 < len(arguments) and arguments[i+1][0] != '-':
+                    optional_args.append(arguments[i+1])
+            else:
+                fail('Argument %s not recognized' % (arguments[i])) 
+        computed_options.parse(optional_args)
+        computed_requirements.parse(required_args)
+        return True
+
+    def __repr__(self):
+        return self.name
+
+
+class Task(Command):
+    def __init__(self, name, task_dict):
+        super(Task, self).__init__(name, task_dict)
+        if task_dict.get('subcommands') != None:
+            self.subcommands = dict([(sub, Command(sub, task_dict.get(sub))) for sub in task_dict.get('subcommands','').split(',')])
+        else:
+            self.subcommands = dict([(sub, Command(sub, task_dict[sub])) for sub in task_dict.keys()])
+
+    def compute_requirements(self):
+        return self.requirements if self.sub_obj == '' else self.requirements + self.sub_obj.requirements
+
+    def compute_options(self):
+        return self.options if self.sub_obj == '' else self.options + self.sub_obj.options
+
+    def parse(self, arguments):
+        if len(arguments) == 0:
+            if not 'None' in self.subcommands and self.subcommands != []:
+                fail('Missing subcommand, add "none" to subcommands to allow calling without a subcommand')
+            else:
+                subcommand = 'none'
+        if arguments[0][0] == '-':
+            subcommand = 'none'
+        else:
+            subcommand = arguments.pop(0)
+        self.sub_obj = next((sub for sub in self.subcommands.values() if subcommand == sub), Command('', {}))
+        exports.append('TASK_SUBCOMMAND="%s"' % (self.sub_obj.name))
+        if self.sub_obj == '':
+            fail("Subcommand %s does not exist" % (subcommand))
+        super(Task, self).parse(arguments)
+        return True
+
+    def help_str(self):
+        helpstr = 'task %s [ %s ]:\n' % (self.name, '|'.join(self.subcommands.keys()))
 
 class ArgumentList(object):
     def __init__(self, arg_dict, required=False):

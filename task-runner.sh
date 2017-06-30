@@ -145,9 +145,7 @@ _TaskTabCompletion(){
     if [[ "$word" == "task" ]] || [[ "$word" == "help" ]] || [[ "$aliases" == *"$word"* ]]
     then
       COMPREPLY=($( compgen -W "$tasks" -- "$cur" ))
-    else
-      COMPREPLY=($( compgen -f -d -- "$cur" ))
     fi
 }
 
-complete -D -F _TaskTabCompletion task -o bashdefault -o default
+complete -F _TaskTabCompletion -o bashdefault -o default task
