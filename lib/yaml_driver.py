@@ -71,7 +71,10 @@ class Command(object):
 
     def __eq__(self, other):
         if type(other) == str:
-            return  other == self.name or (self.aliases != [''] and other in self.aliases)
+            if is_a_match(self.name)(other):
+                self.name = other
+                return True
+            return  self.aliases != [''] and other in self.aliases
         return self.name == other.name
 
     def __arg_str__(self, sub):
@@ -123,9 +126,10 @@ class Task(Command):
     def __init__(self, name, task_dict):
         super(Task, self).__init__(name, task_dict)
         if task_dict.get('subcommands') != None:
-            self.subcommands = dict([(sub, Command(sub, task_dict.get(sub))) for sub in task_dict.get('subcommands','').split(',')])
+            self.subcommands = dict([(sub, Command(sub, task_dict.get(sub, dict()))) for sub in task_dict.get('subcommands','').split(',')])
         else:
-            self.subcommands = dict([(sub, Command(sub, task_dict[sub])) for sub in task_dict.keys()])
+            subcommands = set(task_dict.keys()) - set(['optional', 'required', 'description'])
+            self.subcommands = dict([(sub, Command(sub, task_dict[sub])) for sub in subcommands])
 
     def compute_requirements(self):
         return self.requirements if self.sub_obj == '' else self.requirements + self.sub_obj.requirements
@@ -144,7 +148,8 @@ class Task(Command):
         else:
             subcommand = arguments.pop(0)
         self.sub_obj = next((sub for sub in self.subcommands.values() if subcommand == sub), Command('', {}))
-        exports.append('TASK_SUBCOMMAND="%s"' % (self.sub_obj.name))
+        if subcommand != 'none':
+            exports.append('TASK_SUBCOMMAND="%s"' % (self.sub_obj.name))
         if self.sub_obj == '':
             fail("Subcommand %s does not exist" % (subcommand))
         super(Task, self).parse(arguments)
