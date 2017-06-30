@@ -230,21 +230,22 @@ class Argument(object):
     def help_str(self):
         return '%s (%s), %s (%s)\t%s\n' % (self.long_arg, self.arg_type, self.short_arg, self.arg_type, self.description)
 
-args_file = sys.argv[1]
-task_args = sys.argv[2:]
+if __name__ == "__main__":
+    args_file = sys.argv[1]
+    task_args = sys.argv[2:]
 
-with open(sys.argv[1], 'r') as f:
-    try:
-        spec = TaskList(yaml.load(f))
-    except yaml.YAMLError as exc:
-        fail(str(exc))
+    with open(sys.argv[1], 'r') as f:
+        try:
+            spec = TaskList(yaml.load(f))
+        except yaml.YAMLError as exc:
+            fail(str(exc))
 
 
-if 'help' == task_args[0]:
-    task_args.remove('help')
-    print spec.help_str(task_args[0])
-elif not spec.parse(task_args):
-    fail('Arguments not validated')
-else:
-    for var in exports:
-        print var
+    if 'help' == task_args[0]:
+        task_args.remove('help')
+        print spec.help_str(task_args[0])
+    elif not spec.parse(task_args):
+        fail('Arguments not validated')
+    else:
+        for var in exports:
+            print var
