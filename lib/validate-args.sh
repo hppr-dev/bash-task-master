@@ -4,7 +4,10 @@ parse_args_for_task() {
     bash_parse "$@"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
-    if [[ -f "$ARGUMENTS" ]]
+    if [[ -f "$TASKS_DIR/$ARGUMENTS" ]]
+    then
+      cp $TASKS_DIR/$ARGUMENTS $STATE_DIR/args.yaml
+    elif [[ -f "$ARGUMENTS" ]]
     then
       cp $ARGUMENTS $STATE_DIR/args.yaml
     else
