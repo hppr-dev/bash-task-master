@@ -1,17 +1,23 @@
 parse_args_for_task() {
+  _tmverbose_echo "Parsing arguments: $@"
   if [[ -z "$ARG_FORMAT" ]] || [[ "$ARG_FORMAT" == "bash" ]]
   then
     bash_parse "$@"
+    _tmverbose_echo "Parsed arguments as bash"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
+    _tmverbose_echo "Parsing arguments as yaml"
     if [[ -f "$TASKS_DIR/$ARGUMENTS" ]]
     then
       cp $TASKS_DIR/$ARGUMENTS $STATE_DIR/args.yaml
+      _tmverbose_echo "ARGUMENTS variable is a path ($TASKS_DIR/$ARGUMENTS), copied to $STATE_DIR/args.yaml"
     elif [[ -f "$ARGUMENTS" ]]
     then
       cp $ARGUMENTS $STATE_DIR/args.yaml
+      _tmverbose_echo "ARGUMENTS variable is a path ($ARGUMENTS), copied to $STATE_DIR/args.yaml"
     else
       echo "$ARGUMENTS" > $STATE_DIR/args.yaml
+      _tmverbose_echo "ARGUMENTS variable is a string, Created $STATE_DIR/args.yaml from arguments string"
     fi
     yaml_parse_and_validate "$@"
   else
@@ -45,6 +51,7 @@ validate_args_for_task() {
     bash_validate "$@"
   elif [[ "$ARG_FORMAT" == "yaml" ]]
   then
+    _tmverbose_echo "Skipping yaml validation step (validation should be in yaml wrapper)"
     return
   else
     echo Could not find desired argument format: $ARG_FORMAT
@@ -53,15 +60,18 @@ validate_args_for_task() {
 }
 
 yaml_parse_and_validate() {
+  _tmverbose_echo "Parsing and validating with 'yaml_driver.py $STATE_DIR/args.yaml $@'"
   vars="$($TASK_MASTER_HOME/lib/yaml_driver.py $STATE_DIR/args.yaml "$@")"
   if [[ "$?" != 0 ]]
   then
+    _tmverbose_echo "yaml parsing and Validation failed"
     exit 1
   fi
   eval "$vars"
 }
 
 yaml_help() {
+ _tmverbose_echo "Running yaml help: 'yaml_driver $STATE_DIR/args.yaml help $TASK_SUBCOMMAND'"
  $TASK_MASTER_HOME/lib/yaml_driver.py $STATE_DIR/args.yaml help $TASK_SUBCOMMAND
 }
 

@@ -183,19 +183,19 @@ class ArgumentList(object):
                 continue
             arg_obj = next((a for a in self.arguments if arg == a.long_arg or arg == a.short_arg), None)
             if arg_obj == None:
-                fail('Could not find argument %s in yaml description' % (arg))
+                return fail('Could not find argument %s in yaml description' % (arg))
             if arg_obj.arg_type == 'bool':
                 if not arg_obj.parse():
-                    fail('Could not validate %s' % (arg))
+                    return fail('Could not validate %s' % (arg))
             else:
                 if i+1 >= len(arguments):
-                    fail('Expected a value with %s and got none' % (arg))
+                    return fail('Expected a value with %s and got none' % (arg))
                 if not arg_obj.parse(arguments[i+1]):
-                    fail('Could not validate %s' % (arg))
+                    return fail('Could not validate %s' % (arg))
         if self.required:
             missing_args = [ arg for arg in self.arguments if not arg.in_list(arguments) ]
             if len(missing_args) != 0:
-                fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
+                return fail("Missing required arg(s) %s " % (str([a.long_arg for a in missing_args])))
         return True
 
     def __iter__(self):
@@ -208,7 +208,7 @@ class ArgumentList(object):
 class Argument(object):
     def __init__(self, long_arg, short_arg='', arg_type='str', description='No description'):
         if not arg_type in valid_types.keys():
-            fail("Argument type %s not supported" % (arg_type))
+             fail("Argument type %s not supported" % (arg_type))
         self.long_arg = "--" + long_arg.strip()
         self.short_arg = "-" + short_arg.strip()
         self.arg_type = arg_type.strip()
