@@ -332,6 +332,35 @@ The subcommands field may contain regexes or the exact subcommand string.
 
 YAML format allows for descriptions on specific arguments, which the bash format does not.
 
+Creating your own parsing and validation drivers
+=================================================
+
+UNIMPLEMENTED
+
+Parsing and validation drivers are called from the lib/validate-args.sh script.
+The following commands are required to be implemented by the driver:
+
+```
+
+CUSTOM_DRIVER arguments_file parse $ARGUMENTS
+CUSTOM_DRIVER arguments_file validate $ARGUMENTS
+CUSTOM_DRIVER arguments_file help $TASK_SUBCOMMAND
+
+```
+
+The first argument should be a file that holds the argument specification.
+The second argument should be parse, validate, or help.
+For parse and validate the rest of the arguments are the arguments that are being parsed or validated.
+For help, the subcommand that is being queried is the last argument.
+
+To enable the custom driver, add a value to the drivers dictionary in the validate-args.sh script in the form:
+
+```
+VP_DRIVERS[FORMAT_NAME]="driver_command"
+```
+
+Then to use the new format, set the ARG_FORMAT in your task file to the FORMAT_NAME above.
+```
 
 Dependencies
 ============================
