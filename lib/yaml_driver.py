@@ -75,11 +75,11 @@ class Command(object):
                 self.name = other
                 return True
             return  self.aliases != [''] and other in self.aliases
-        return self.name == other.name
+        return other != None and self.name == other.name
 
-    def __arg_str__(self, sub):
-        reqs = self.requirements.get(sub)
-        opts = self.options.get(sub)
+    def arg_str(self):
+        reqs = self.requirements
+        opts = self.options
         helpstr = ''
         if reqs and not reqs.empty():
             helpstr += '  Requirements:\n'
@@ -87,7 +87,7 @@ class Command(object):
                 helpstr += '\t  ' + arg.help_str()
         if opts and not opts.empty():
             helpstr += '  Options:\n'
-            for arg in self.options.get(sub, []):
+            for arg in self.options:
                 helpstr += '\t  ' + arg.help_str()
         return helpstr
 
@@ -156,7 +156,10 @@ class Task(Command):
         return True
 
     def help_str(self):
-        helpstr = 'task %s [ %s ]:\n' % (self.name, '|'.join(self.subcommands.keys()))
+        helpstr = 'task %s : %s\n%s' % (self.name, self.description, self.arg_str())
+        for sub_name, sub_obj in self.subcommands.items():
+            helpstr += '\n  task %s %s : %s\n  %s' % (self.name, sub_name, sub_obj.description, sub_obj.arg_str())
+        return helpstr
 
 class ArgumentList(object):
     def __init__(self, arg_dict, required=False):
@@ -243,7 +246,10 @@ if __name__ == "__main__":
 
     if 'help' == task_args[0]:
         task_args.remove('help')
-        print spec.help_str(task_args[0])
+        if len(task_args) != 0:
+          print spec.help_str(task_args[0])
+        else:
+            exit(1)
     elif not spec.parse(task_args):
         fail('Arguments not validated')
     else:
