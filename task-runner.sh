@@ -36,7 +36,7 @@ task(){
 
 
   # Find tasks.sh file within the directory structure
-  while [[ ! -f $TASKS_FILE ]] && [[ "$TASKS_DIR" != "$HOME" ]]
+  while [[ ! -f $TASKS_FILE ]] && [[ "$TASKS_DIR" != "$HOME" ]] && [[ "$TASKS_DIR" != "/" ]]
   do 
     cd ..
     TASKS_DIR=`pwd`
@@ -47,7 +47,7 @@ task(){
 
   cd $RUNNING_DIR
 
-  if [[ "$TASKS_DIR" == "$HOME" ]]
+  if [[ "$TASKS_DIR" == "$HOME" ]] || [[ "$TASKS_DIR" == "/" ]]
   then
     TASKS_FILE=$GLOBAL_TASKS_FILE
     local RUNNING_GLOBAL="1"
