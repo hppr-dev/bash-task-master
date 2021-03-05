@@ -64,7 +64,7 @@ arguments_list() {
 
 arguments_init() {
   INIT_DESCRIPTION="Create a new local tasks location"
-  INIT_OPTIONS="dir:d:str name:n:str clean:c:bool"
+  INIT_OPTIONS="dir:d:str name:n:str"
 }
 
 arguments_export() {
