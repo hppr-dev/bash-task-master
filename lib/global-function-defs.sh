@@ -1,6 +1,7 @@
 readonly -f task_help
 readonly -f task_list
 readonly -f task_init
+readonly -f task_bookmark
 readonly -f task_edit
 readonly -f task_goto
 readonly -f task_record

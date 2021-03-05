@@ -69,6 +69,11 @@ arguments_init() {
   INIT_OPTIONS="dir:d:str name:n:str"
 }
 
+arguments_bookmark() {
+  BOOKMARK_DESCRIPTION="Add a bookmark to the current location."
+  BOOKMARK_OPTIONS="dir:d:str name:n:str"
+}
+
 arguments_export() {
   EXPORT_DESCRIPTION="Export a task to a runnable bash script"
   EXPORT_REQUIREMENTS="command:c:str out:o:str"

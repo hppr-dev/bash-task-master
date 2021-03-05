@@ -164,8 +164,22 @@ task_init() {
   echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $ARG_DIR/tasks.sh
   echo "Creating state directory..."
   mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
-  echo "Saving tasks file location to $LOCATIONS_FILE"
+  echo "Saving tasks file location to $LOCATIONS_FILE as $ARG_NAME"
   echo "UUID_$LOCAL_TASKS_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+}
+
+task_bookmark() {
+  if [[ -z "$ARG_DIR" ]]
+  then
+    ARG_DIR=$RUNNING_DIR
+  fi
+  if [[ -z "$ARG_NAME" ]]
+  then
+    ARG_NAME=$(basename "$(readlink -f "$ARG_DIR")")
+  fi
+  local LOCAL_UUID=$ARG_NAME
+  echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
+  echo "UUID_$LOCAL_UUID=$ARG_DIR" >> $LOCATIONS_FILE
 }
 
 task_goto() {
