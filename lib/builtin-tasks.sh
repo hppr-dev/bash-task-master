@@ -1,6 +1,6 @@
 source $TASK_MASTER_HOME/lib/global-lib.sh
 #source $TASK_MASTER_HOME/lib/process.sh
-source $TASK_MASTER_HOME/lib/record.sh
+#source $TASK_MASTER_HOME/lib/record.sh
 source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
 task_help() {
@@ -194,30 +194,6 @@ task_goto() {
   fi
   set_return_directory ${!location}
   clean_up_state
-}
-
-task_record() {
-
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
-  then 
-    record_help
-  elif [ $TASK_SUBCOMMAND == "start" ]
-  then
-    record_start
-  elif [ $TASK_SUBCOMMAND == "stop" ]
-  then
-    record_stop
-  elif [ $TASK_SUBCOMMAND == "restart" ]
-  then
-    record_restart
-  elif [ $TASK_SUBCOMMAND == "trash" ]
-  then
-    record_trash
-  else
-    echo "Unknown subcommand: $TASK_SUBCOMMAND"
-    record_help
-  fi
-  
 }
 
 task_global() {
