@@ -150,17 +150,17 @@ task_init() {
   then
     ARG_DIR=$RUNNING_DIR
   fi
+  if [[ -z "$ARG_NAME" ]]
+  then
+    ARG_NAME=$(basename "$(readlink -f "$ARG_DIR")")
+  fi
+  local LOCAL_TASKS_UUID=$ARG_NAME
   if [[ -f "$ARG_DIR/tasks.sh" ]]
   then
     echo "Tasks file already exists can't init $ARG_DIR"
     return 1
   fi
   echo "Initializing tasks.sh file in $ARG_DIR..."
-  local LOCAL_TASKS_UUID="l$(cat $LOCATIONS_FILE | wc -l)"
-  if [[ $ARG_NAME ]]
-  then
-    LOCAL_TASKS_UUID="$ARG_NAME"
-  fi
   echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $ARG_DIR/tasks.sh
   echo "Creating state directory..."
   mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
