@@ -1,4 +1,5 @@
 #!/bin/bash
+GIT_DIR=$(dirname "$0")
 ALREADY_INSTALLED="Task Master already installed"
 if [[ ! -z "$TASK_MASTER_HOME" ]]
 then
@@ -18,6 +19,11 @@ then
   exit 1
 fi
 
+if [[ -d "$HOME/.task-master" ]]
+then
+  echo "Task master home $HOME/.task-master already exists. Either task master is already installed or there is a dependency conflict"
+  exit 1
+fi
 
 grep $HOME/.bashrc -e "export TASK_MASTER_HOME=$HOME/.task-master" > /dev/null
 if [[ "$?" == "0" ]]
@@ -36,6 +42,8 @@ fi
 echo >> ~/.bashrc
 echo "export TASK_MASTER_HOME=$HOME/.task-master" >> ~/.bashrc
 echo "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" >> ~/.bashrc
+
+mv $GIT_DIR $HOME/.task-master
 
 echo "Task Master successfully installed"
 echo "You may have to start a new bash session to apply changes"
