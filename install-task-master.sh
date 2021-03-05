@@ -1,5 +1,5 @@
 #!/bin/bash
-GIT_DIR=$(dirname "$0")
+GIT_DIR=$(dirname "$(readlink -f "$0")")
 ALREADY_INSTALLED="Task Master already installed"
 if [[ ! -z "$TASK_MASTER_HOME" ]]
 then
@@ -43,6 +43,7 @@ echo >> ~/.bashrc
 echo "export TASK_MASTER_HOME=$HOME/.task-master" >> ~/.bashrc
 echo "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" >> ~/.bashrc
 
+cd ..
 mv $GIT_DIR $HOME/.task-master
 
 echo "Task Master successfully installed"
