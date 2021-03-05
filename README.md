@@ -2,7 +2,7 @@
 Bash Task Master
 ===================
 
-Bash task master enhances bash by providing a way to centralize scripts in a single location
+Bash task master enhances bash by providing a way to centralize scripts for a single location with argument validation.
 
 Features:
 
@@ -43,29 +43,6 @@ Bookmarks can also be created without a tasks file initialized by using `task bo
 For example, while developing bash-task-master I would frequently need to go back to the .task-master home directory.
 I setup a bookmark by running `task bookmark --name tmhome` and any time I need to go back I run `task goto tmhome`.
 
-
-Recording a new task with the record module
-==============================================
-
-A recording module is available to easily record commands and put them into the local tasks file.
-To enable the recording module, change the name of `modules/record-module.sh.disabled` to `modules/record-module.sh`
-
-Start by recording a task:
-
-```
-  $ task record start --name hello-world
-  Starting recording
-  $ echo 'Hello World!!'
-  Hello World!!
-  $ task record stop
-  Storing recording to tasks.sh
-```
-
-Now run your new script:
-```
-  $ task hello-world
-  Hello World!!
-```
 
 Manually writing tasks
 ===========================
@@ -282,22 +259,6 @@ For example the following creates a task to change the value of PS1 to "(tester)
   }
 ```
 
-Process Management
-==================
-
-This is an experimental feature. More development and testing is needed.
-
-The spawn module is available to create background processes.
-Change the name of the `modules/spawn-module.sh.disabled` to `modules/spawn-module.sh` to enable it.
-
-You may spawn background processes by running:
-
-```
-  $task spawn --proc "tailf /var/log/messages"
-```
-
-use task spawn list to list the running processes and task spawn stop to stop them
-
 Exporting Tasks to Scripts
 ==========================
 
@@ -359,6 +320,79 @@ Using `task init --name UUID` will set this up correctly.
 If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
 This value is used to specify where to place state variables.
 
+Modules
+===============
+
+Modules are task files that are applied at the global level.
+All modules that match `modules/*-modules.sh` are loaded with task master.
+To disable a module, simply add `.disabled` to the module file.
+
+Python Virtual Environment module
+===================================
+
+The venv module centralizes the creation of virtual environments created with virtualenv.
+This makes it so that the path of your project no longer requires a venv directory in it and the virtual environment can be activated anywhere.
+The virtual environment is instead created and managed in the task master state directories.
+
+Initialize a virtualenv:
+
+```
+task venv init --name myvenv
+```
+
+Enable/activate a virtualenv:
+
+```
+task venv enable --name myvenv
+```
+
+Disable the active virtualenv:
+
+```
+task venv disable
+```
+
+Note that if you have initialized a task.sh file in a parent directory, the name argument can be ommitted and the tasks location name will be used.
+For example, you have `/home/lelo/my-project/tasks.sh` with the name myproj, the venv task will automatically create/select the myproj venv when running `task venv init` or `task venv enable`.
+
+Process management with the spawn module
+===========================================
+
+This is an experimental feature. More development and testing is needed.
+
+The spawn module is available to create background processes.
+Change the name of the `modules/spawn-module.sh.disabled` to `modules/spawn-module.sh` to enable it.
+
+You may spawn background processes by running:
+
+```
+  $task spawn --proc "tailf /var/log/messages"
+```
+
+use task spawn list to list the running processes and task spawn stop to stop them
+
+Recording a new task with the record module
+==============================================
+
+A recording module is available to easily record commands and put them into the local tasks file.
+To enable the recording module, change the name of `modules/record-module.sh.disabled` to `modules/record-module.sh`
+
+Start by recording a task:
+
+```
+  $ task record start --name hello-world
+  Starting recording
+  $ echo 'Hello World!!'
+  Hello World!!
+  $ task record stop
+  Storing recording to tasks.sh
+```
+
+Now run your new script:
+```
+  $ task hello-world
+  Hello World!!
+```
 
 Dependencies
 ============================
