@@ -18,6 +18,8 @@ arguments_global() {
 
   UUID_DESCRIPTION="Check UUIDs"
   UUID_OPTIONS='uuid:u:str update:U:bool check:c:bool'
+
+  CLEAN_DESCRIPTION="Clean up stale location and state files."
 }
 
 arguments_spawn(){
