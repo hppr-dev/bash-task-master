@@ -42,6 +42,7 @@ fi
 echo >> ~/.bashrc
 echo "export TASK_MASTER_HOME=$HOME/.task-master" >> ~/.bashrc
 echo "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" >> ~/.bashrc
+echo 'alias t=task' >> ~/.bashrc
 
 cd ..
 mv $GIT_DIR $HOME/.task-master

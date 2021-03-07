@@ -18,6 +18,7 @@ Features:
 
   - Reusable -- Reuse tasks and functions within tasks to make complex tasks more simple
 
+Bash task master is a bash shortcut system that includes an argument parser.
 
 Quick Start
 =================
@@ -30,6 +31,44 @@ Change directories to the root of your project directory and run:
 ```
 
 This will create a tasks.sh file in your current directory.
+
+Example Workflow
+===================
+
+```
+
+  t goto pyproject             # Jump to pyproject directory
+  t venv enable                # Activate the virtual env
+  vim project.py               # Make changes to my project
+  t test --only project.py     # Test my changes
+  t docker deploy -v 1.2       # Deploy my changes to a docker image tagged 1.2
+  t docker shell               # Open the shell to the docker container
+
+  # Uhoh looks like the build failed for my other project
+
+  t venv disable               # Disable the virtual environment
+  t goto other                 # Jump to the other directory
+  t test                       # run tests to show what I messed up
+  vim other.rb                 # Fix the error
+
+  # Now that that's fixed I want to start a new go project
+
+  mkdir ~/goproj ; cd ~/goproj # Create the directory and move to it
+  t init -n goproj             # Create a new tasks file
+  t gonv init -v 1.15          # Initialize a go 1.15 environment
+  t gonv enable                # Enable the go environment
+  t edit                       # Edit the tasks file to add some useful tasks
+
+```
+
+Note t is an alias to task.
+I prefer to use t becuase it saves keystrokes.
+
+Editing task files
+======================
+
+Running `task edit` will open up the current task.sh file for editing.
+This provides an extra layer of security as it checks the validity of the tasks file after writing.
 
 Bookmarking
 ================
