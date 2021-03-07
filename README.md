@@ -309,26 +309,6 @@ Some caveats:
 
   - Only one level of function nesting is supported. Functions immediately inside of the task are expanded to include their contents, but no further.
 
-Recording Input
-==================
-
-An easy way to write a task is by using the record command:
-
-```
-  task record start --name my-task
-  task record restart
-  task record trash
-  task record stop
-```
-
-Just start a recording by using `task record start --name taskname` and do what you want to do then `task record stop` to write it to your tasks file.
---name can be specified either at the start or stop.
-The command automatically records where you start and navigate to so that the context of your commands is the same everytime.
-
-Only one recording may be started for a given tasks file.
-That being said, it is possible to record 2 tasks at once, as long as the recordings are going to separate tasks.sh files.
-
-
 Cleaning Up and Debugging
 ==========================
 
@@ -356,7 +336,7 @@ This has the benifit of isolating which state variables are used when running ta
 
 Each tasks file should include it's UUID (AKA name) in the LOCAL_TASKS_UUID variable at the top of every tasks file.
 Using `task init --name UUID` will set this up correctly.
-If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
+If left unspecified, the UUID will default to the directory name (i.e. /home/me/proj would default to proj).
 This value is used to specify where to place state variables.
 
 Modules
