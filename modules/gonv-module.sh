@@ -82,8 +82,8 @@ gonv_enable() {
   hold_var "PATH"
   hold_var "GOPATH"
   export_var "PS1" "(go-$ARG_NAME)-$PS1"
-  export_var "PATH" "$PATH:$ENV_DIR/go/bin"
   export_var "GOPATH" "$ENV_DIR/modules"
+  export_var "PATH" "$PATH:$ENV_DIR/go/bin:$ENV_DIR/modules/bin"
   persist_var "GONV_ACTIVE" "T" 
   set_trap "cd $RUNNING_DIR; task gonv disable ;"
 }
