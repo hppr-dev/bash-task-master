@@ -16,23 +16,28 @@
 ##########################################################################################################
 task(){
   # Save directory that you are running it from
-  local RUNNING_DIR=`pwd`
+  local RUNNING_DIR=$(pwd)
 
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
   local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib/global-function-defs.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$TASKS_DIR/tasks.sh
+  local HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
-
   # Find tasks.sh file
-  while [[ ! -f $TASKS_FILE ]] && [[ "$TASKS_DIR" != "$HOME" ]]
+  while [[ ! -f "$TASKS_FILE" ]] && [[ ! -a "$HIDDEN_TASKS_FILE" ]] && [[ "$TASKS_DIR" != "$HOME" ]]
   do 
     cd ..
-    TASKS_DIR=`pwd`
+    TASKS_DIR=$(pwd)
     TASKS_FILE=$TASKS_DIR/tasks.sh
+    HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   done
+  if [[ ! -f "$TASKS_FILE" ]]
+  then
+    TASKS_FILE=$HIDDEN_TASKS_FILE
+  fi
   cd $RUNNING_DIR
 
   if [[ "$TASKS_DIR" == "$HOME" ]]

@@ -160,8 +160,13 @@ task_init() {
     echo "Tasks file already exists can't init $ARG_DIR"
     return 1
   fi
+  NEW_TASKS_FILE=$ARG_DIR/tasks.sh
+  if [[ -n "$ARG_HIDDEN" ]]
+  then
+    NEW_TASKS_FILE=$ARG_DIR/.tasks.sh
+  fi
   echo "Initializing tasks.sh file in $ARG_DIR..."
-  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $ARG_DIR/tasks.sh
+  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $NEW_TASKS_FILE
   echo "Creating state directory..."
   mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
   echo "Saving tasks file location to $LOCATIONS_FILE as $ARG_NAME"
