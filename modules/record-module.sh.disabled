@@ -1,3 +1,18 @@
+arguments_record() {
+  SUBCOMMANDS='start|stop|restart|trash'
+
+  START_DESCRIPTION="Start recording a named task and subtask with the given requirements and options"
+  START_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
+
+  STOP_DESCRIPTION="Stop recording. Stop arguments will override start arguments if given"
+  STOP_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
+
+  RESTART_DESCRIPTION="Restart current recording, discards current progress and starts from the beginning"
+
+  TRASH_DESCRIPTION="Dicard the current recording."
+  TRASH_OPTIONS='force:f:bool'
+}
+
 record_start(){
   if [[ "$RUNNING_GLOBAL" == "1" ]]
   then
@@ -176,3 +191,35 @@ record_extract_text_from_tasks(){
   text=$(awk "/^$1.*/ {f=1} /^}$/ {f=0;next} f" $TASKS_FILE)
   after_text=$(awk "/^$1.*/ {f=1} /^}$/ {s=f} f&&s" $TASKS_FILE)
 }
+
+task_record() {
+
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  then 
+    record_help
+  elif [ $TASK_SUBCOMMAND == "start" ]
+  then
+    record_start
+  elif [ $TASK_SUBCOMMAND == "stop" ]
+  then
+    record_stop
+  elif [ $TASK_SUBCOMMAND == "restart" ]
+  then
+    record_restart
+  elif [ $TASK_SUBCOMMAND == "trash" ]
+  then
+    record_trash
+  else
+    echo "Unknown subcommand: $TASK_SUBCOMMAND"
+    record_help
+  fi
+  
+}
+
+readonly -f arguments_record
+readonly -f record_start
+readonly -f record_stop
+readonly -f record_trash
+readonly -f record_restart
+readonly -f record_extract_text_from_tasks
+readonly -f task_record

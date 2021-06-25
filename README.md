@@ -2,7 +2,7 @@
 Bash Task Master
 ===================
 
-Bash task master enhances bash by providing a way to centralize scripts in a single location
+Bash task master enhances bash by providing a way to centralize scripts for a single location with argument validation.
 
 Features:
 
@@ -18,6 +18,7 @@ Features:
 
   - Reusable -- Reuse tasks and functions within tasks to make complex tasks more simple
 
+Bash task master is a bash shortcut system that includes an argument parser.
 
 Quick Start
 =================
@@ -31,22 +32,83 @@ Change directories to the root of your project directory and run:
 
 This will create a tasks.sh file in your current directory.
 
-Start by recording a task:
+Example Workflow
+===================
 
 ```
-  $task record start --name hello-world
-  Starting recording
-  $echo 'Hello World!!'
-  Hello World!!
-  $task record stop
-  Storing recording to tasks.sh
+
+  t goto pyproject             # Jump to pyproject directory
+  t venv enable                # Activate the virtual env
+  vim project.py               # Make changes to my project
+  t test --only project.py     # Test my changes
+  t docker deploy -v 1.2       # Deploy my changes to a docker image tagged 1.2
+  t docker shell               # Open the shell to the docker container
+
+  # Uhoh looks like the build failed for my other project
+
+  t venv disable               # Disable the virtual environment
+  t goto other                 # Jump to the other directory
+  t test                       # run tests to show what I messed up
+  vim other.rb                 # Fix the error
+
+  # Now that that's fixed I want to start a new go project
+
+  mkdir ~/goproj ; cd ~/goproj # Create the directory and move to it
+  t init -n goproj             # Create a new tasks file
+  t gonv init -v 1.15          # Initialize a go 1.15 environment
+  t gonv enable                # Enable the go environment
+  t edit                       # Edit the tasks file to add some useful tasks
+
 ```
 
-Now run your new script:
+Note t is an alias to task.
+I prefer to use t becuase it saves keystrokes.
+
+Editing task files
+======================
+
+Running `task edit` will open up the current task.sh file for editing.
+This provides an extra layer of security as it checks the validity of the tasks file after writing.
+
+Bookmarking
+================
+bash-task-master provides an easy way to move around your system.
+Bookmarks can be used to denote places where you'd like to return to frequently.
+A bookmark is automatically created when you init a task file.
+Use `task goto BOOKMARK_NAME` to change directories to your bookmark.
+For instance, from the quick start example run `task goto hello_world` to go to the directory where you ran `task init`.
+
+Bookmarks can also be created without a tasks file initialized by using `task bookmark --name BOOKMARK_NAME`
+For example, while developing bash-task-master I would frequently need to go back to the .task-master home directory.
+I setup a bookmark by running `task bookmark --name tmhome` and any time I need to go back I run `task goto tmhome`.
+
+
+Manually writing tasks
+===========================
+
+Manually writing tasks to local tasks.sh files is the prefered and recommended way to create tasks.
+
+Two bash functions are used to define and describe the task:
+
+  - the task definition -- what runs when you run `task TASK_NAME`
+  - the task argument specification -- defines what subcommands and arguments are able to be used
+
+When used in combination, this greatly simplifies writing and validating bash functions with arguments.
+It also provides an easy way to create help strings, for when your memory fails you.
+
+Writing Tasks
+===========================
+
+Tasks are written as bash functions with the `task_` prefix.
+The following task would be named hello and it would print "foo bar" when run:
+
 ```
-  $task hello-world
-  Hello World!!
+task_hello() {
+  echo foo bar
+}
 ```
+
+After placing this in your tasks.sh file, run `task list` and you should see the hello task in the listed local tasks.
 
 Using Command Line Arguments
 ============================
@@ -77,8 +139,8 @@ You may run:
 Arguments without specified values are set to `'1'`.
 
 
-Validating Command Line Arguments
-================================
+Writing Command Line Argument Specifications
+=============================================
 
 To validate command line arguments and set short arguments simply create an arguments specification like so:
 
@@ -86,7 +148,7 @@ To validate command line arguments and set short arguments simply create an argu
 
   arguments_build() {
     SUBCOMMANDS="help|frontend|backend|all"
-    FRONTEND_REQUIREMENTS="OUT:o:str IN:i:str"
+    FRONTEND_REQUIREMENTS="out:o:str in:i:str"
     FRONTEND_OPTIONS="VERBOSE:v:bool LINT:L:bool DIR:d:str"
     BACKEND_REQUIREMENTS="PID:P:int"
     BACKEND_OPTIONS="VERBOSE:v:bool BUILD-FIRST:B:bool"
@@ -94,45 +156,68 @@ To validate command line arguments and set short arguments simply create an argu
 
 ```
 
-Which would allow all of the following to run:
+Arguments specifications can include all (or none) of the following:
+
+  - SUBCOMMANDS - a `|` delimited list of subcommands (frontend would be the subcommand in `task build frontend` from the example above)
+  - <subcommand_name>_DESCRIPTION - help string for given subcommand
+  - <subcommand_name>_REQUIREMENTS - required arguments for the given subcommand
+  - <subcommand_name>_OPTIONS - arguments for the given subcommand
+  - <command_name>_DESCRIPTION - help string for the command
+  - <command_name>_REQUIREMENTS - required arguments for the command
+  - <command_name>_OPTIONS - optional arguments for the command
+
+
+REQUIREMENTS and OPTIONS are written as lists of space delimited argument specifications that are of the form: long-arg:short-arg:arg-type.
+The long-arg of the argument specifies the flag to be used with `--` and also denotes the portion of the `ARG_` variable in the tasks.
+The short-arg is the flag to be used with `-` (single dash).
+The arg-type specifies what type the argument is. See below for available types.
+For example, the specification `num:n:int` could be called with `--num 12`, `-n 12` and `$ARG_NUM` would hold the argument value.
+
+
+Returning to the above example, all of the following would be valid calls the build task.
 
 ```
 
-  $task build frontend --out outdir --in infile
-  $task build frontend --out outdir --in infile --lint --verbose
-  $task build frontend -o outdir -i infile -L -v
-  $task build all
-  $task build backend --pid 123
-  $task build backend -P 123
-  $task build backend -vBP 123
-  $task build frontend -Lo outdir -vi infile
+  $ task build frontend --out outdir --in infile
+  $ task build frontend --out outdir --in infile --lint --verbose
+  $ task build frontend -o outdir -i infile -L -v
+  $ task build all
+  $ task build backend --pid 123
+  $ task build backend -P 123
+  $ task build backend -vBP 123
+  $ task build frontend -Lo outdir -vi infile
 
 ```
 
-But none of the following to run:
+But none of the following would succeed:
 
 ```
 
-  $task build frontend 
-  $task build frontend --in infile --lint --verbose
-  $task build backend --pid 12 --verbose garbage
-  $task build backend -P 12 -v garbage
+  $ task build frontend 
+  $ task build frontend --in infile --lint --verbose
+  $ task build backend --pid 12 --verbose garbage
+  $ task build backend -P 12 -v garbage
 
 ```
 
-Note that short arguments can be combined to one combined argument, e.g -vBP, but only the last can be a non bool.
+Supported Argument Types
+==============================
 
-AVailable types are as follows:
+Available types are as follows:
 
 |  Type         | Identifier | Description |
 |  ----         | ---------- | ----------- |
 |  String       | str        | A string of characters, can pretty much be anything. |
 |  Integer      | int        | An integer |
-|  Boolean      | bool       | An argument that is either T if preset or an empty string if not* |
+|  Boolean      | bool       | An argument that is either T if present or an empty string if not* |
 |  Word         | nowhite    | A string with no whitespaces |
 |  Uppercase    | upper      | An uppercase string |
 |  Lowercase    | lower      | A lowercase string |
 |  Single Char  | single     | A single character* |
+
+All types, except for bool, require that a value is given.
+With bool arguments, the argument being present automatically sets the ARG_VAR.
+Note that short arguments can be combined to one combined argument, e.g -vBP, but only the last can be a non bool.
 
 * A single character may be confused as a boolean at validation time.
 If a value for a single character argument is left out, it will be set to "T"
@@ -213,17 +298,6 @@ For example the following creates a task to change the value of PS1 to "(tester)
   }
 ```
 
-Process Management
-==================
-
-You may spawn background processes by running:
-
-```
-  $task spawn --proc "tailf /var/log/messages"
-```
-
-use task list to list the running processes and task stop to stop them
-
 Exporting Tasks to Scripts
 ==========================
 
@@ -234,35 +308,6 @@ Some caveats:
   - Requirements and options are parsed the same way in the exported script. Input is not validated and missing requirements are not required.
 
   - Only one level of function nesting is supported. Functions immediately inside of the task are expanded to include their contents, but no further.
-
-Recording Input
-==================
-
-An easy way to write a task is by using the record command:
-
-```
-  task record start --name my-task
-  task record restart
-  task record trash
-  task record stop
-```
-
-Just start a recording by using `task record start --name taskname` and do what you want to do then `task record stop` to write it to your tasks file.
---name can be specified either at the start or stop.
-The command automatically records where you start and navigate to so that the context of your commands is the same everytime.
-
-Only one recording may be started for a given tasks file.
-That being said, it is possible to record 2 tasks at once, as long as the recordings are going to separate tasks.sh files.
-
-
-Jumping Between Locations
-===========================
-
-When you create a task file the file location is saved in $TASK_MASTER_HOME/state/locations.vars .
-This is so that you may jump from local tasks locations quickly.
-Say earlier you created a tasks file by running the command `task init --name work`.
-You may return to this location from anywhere in your directory tree by typing `task goto work`
-Locations can be listed by running `task global locations`, which will show your locations file.
 
 Cleaning Up and Debugging
 ==========================
@@ -291,7 +336,7 @@ This has the benifit of isolating which state variables are used when running ta
 
 Each tasks file should include it's UUID (AKA name) in the LOCAL_TASKS_UUID variable at the top of every tasks file.
 Using `task init --name UUID` will set this up correctly.
-If left unspecified, the UUID will be generated based on the number of locations in the locations.vars file.
+If left unspecified, the UUID will default to the directory name (i.e. /home/me/proj would default to proj).
 This value is used to specify where to place state variables.
 
 Yaml Argument Format
@@ -360,6 +405,79 @@ VP_DRIVERS[FORMAT_NAME]="driver_command"
 ```
 
 Then to use the new format, set the ARG_FORMAT in your task file to the FORMAT_NAME above.
+=======
+Modules
+===============
+
+Modules are task files that are applied at the global level.
+All modules that match `modules/*-modules.sh` are loaded with task master.
+To disable a module, simply add `.disabled` to the module file.
+
+Python Virtual Environment module
+===================================
+
+The venv module centralizes the creation of virtual environments created with virtualenv.
+This makes it so that the path of your project no longer requires a venv directory in it and the virtual environment can be activated anywhere.
+The virtual environment is instead created and managed in the task master state directories.
+
+Initialize a virtualenv:
+
+```
+task venv init --name myvenv
+```
+
+Enable/activate a virtualenv:
+
+```
+task venv enable --name myvenv
+```
+
+Disable the active virtualenv:
+
+```
+task venv disable
+```
+
+Note that if you have initialized a task.sh file in a parent directory, the name argument can be ommitted and the tasks location name will be used.
+For example, you have `/home/lelo/my-project/tasks.sh` with the name myproj, the venv task will automatically create/select the myproj venv when running `task venv init` or `task venv enable`.
+
+Process management with the spawn module
+===========================================
+
+This is an experimental feature. More development and testing is needed.
+
+The spawn module is available to create background processes.
+Change the name of the `modules/spawn-module.sh.disabled` to `modules/spawn-module.sh` to enable it.
+
+You may spawn background processes by running:
+
+```
+  $task spawn --proc "tailf /var/log/messages"
+```
+
+use task spawn list to list the running processes and task spawn stop to stop them
+
+Recording a new task with the record module
+==============================================
+
+A recording module is available to easily record commands and put them into the local tasks file.
+To enable the recording module, change the name of `modules/record-module.sh.disabled` to `modules/record-module.sh`
+
+Start by recording a task:
+
+```
+  $ task record start --name hello-world
+  Starting recording
+  $ echo 'Hello World!!'
+  Hello World!!
+  $ task record stop
+  Storing recording to tasks.sh
+```
+
+Now run your new script:
+```
+  $ task hello-world
+  Hello World!!
 ```
 
 Dependencies

@@ -18,43 +18,8 @@ arguments_global() {
 
   UUID_DESCRIPTION="Check UUIDs"
   UUID_OPTIONS='uuid:u:str update:U:bool check:c:bool'
-}
 
-arguments_spawn(){
-  SUBCOMMANDS='start|stop|kill|list|output|clean'
-
-  START_DESCRIPTION='Start a background process'
-  START_REQUIREMENTS='proc:p:str'
-  START_OPTIONS='out:n:str'
-
-  STOP_DESCRIPTION='Stop a backgroup process'
-  STOP_REQUIREMENTS='num:n:int'
-  KILL_DESCRIPTION=$STOP_DESCRIPTION
-  KILL_REQUIREMENTS=$STOP_DESCRIPTION
-
-  OUTPUT_DESCRIPTION='Show the output of a backgrounded process'
-  OUTPUT_REQUIREMENTS='num:n:int'
-  OUTPUT_OPTIONS='follow:f:bool'
-
-  LIST_DESCRIPTION='List backgrounded processes'
-
-  CLEAN_DESCRIPTION='Stop all backgrounded processes'
-  
-}
-
-arguments_record() {
-  SUBCOMMANDS='start|stop|restart|trash'
-
-  START_DESCRIPTION="Start recording a named task and subtask with the given requirements and options"
-  START_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
-
-  STOP_DESCRIPTION="Stop recording. Stop arguments will override start arguments if given"
-  STOP_OPTIONS='name:n:str sub:s:str reqs:r:str opts:o:str'
-
-  RESTART_DESCRIPTION="Restart current recording, discards current progress and starts from the beginning"
-
-  TRASH_DESCRIPTION="Dicard the current recording."
-  TRASH_OPTIONS='force:f:bool'
+  CLEAN_DESCRIPTION="Clean up stale location and state files."
 }
 
 arguments_list() {
@@ -64,7 +29,12 @@ arguments_list() {
 
 arguments_init() {
   INIT_DESCRIPTION="Create a new local tasks location"
-  INIT_OPTIONS="dir:d:str name:n:str clean:c:bool"
+  INIT_OPTIONS="dir:d:str name:n:str hidden:h:bool"
+}
+
+arguments_bookmark() {
+  BOOKMARK_DESCRIPTION="Add a bookmark to the current location."
+  BOOKMARK_OPTIONS="dir:d:str name:n:str"
 }
 
 arguments_export() {

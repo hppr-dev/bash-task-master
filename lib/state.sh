@@ -17,7 +17,7 @@ remove_var() {
 # export a variable to the outside session
 export_var(){
   remove_file_value $1 $STATE_FILE.export
-  echo "$1=\"$2\"" >> $STATE_FILE.export
+  echo "export $1=\"$2\"" >> $STATE_FILE.export
 }
 
 # hold the current value of a variable

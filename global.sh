@@ -1,2 +1,5 @@
 source $TASK_MASTER_HOME/lib/builtin-tasks.sh
-source $TASK_MASTER_HOME/modules/venv-module.sh
+for module in $TASK_MASTER_HOME/modules/*-module.sh
+do
+  source $module
+done

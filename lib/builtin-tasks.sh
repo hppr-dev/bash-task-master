@@ -1,6 +1,6 @@
 source $TASK_MASTER_HOME/lib/global-lib.sh
 #source $TASK_MASTER_HOME/lib/process.sh
-source $TASK_MASTER_HOME/lib/record.sh
+#source $TASK_MASTER_HOME/lib/record.sh
 source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
 task_help() {
@@ -65,22 +65,41 @@ task_init() {
   then
     ARG_DIR=$RUNNING_DIR
   fi
+  if [[ -z "$ARG_NAME" ]]
+  then
+    ARG_NAME=$(basename "$(readlink -f "$ARG_DIR")")
+  fi
+  local LOCAL_TASKS_UUID=$ARG_NAME
   if [[ -f "$ARG_DIR/tasks.sh" ]]
   then
     echo "Tasks file already exists can't init $ARG_DIR"
     return 1
   fi
-  echo "Initializing tasks.sh file in $ARG_DIR..."
-  local LOCAL_TASKS_UUID="l$(cat $LOCATIONS_FILE | wc -l)"
-  if [[ $ARG_NAME ]]
+  NEW_TASKS_FILE=$ARG_DIR/tasks.sh
+  if [[ -n "$ARG_HIDDEN" ]]
   then
-    LOCAL_TASKS_UUID="$ARG_NAME"
+    NEW_TASKS_FILE=$ARG_DIR/.tasks.sh
   fi
-  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $ARG_DIR/tasks.sh
+  echo "Initializing tasks.sh file in $ARG_DIR..."
+  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $NEW_TASKS_FILE
   echo "Creating state directory..."
   mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
-  echo "Saving tasks file location to $LOCATIONS_FILE"
+  echo "Saving tasks file location to $LOCATIONS_FILE as $ARG_NAME"
   echo "UUID_$LOCAL_TASKS_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+}
+
+task_bookmark() {
+  if [[ -z "$ARG_DIR" ]]
+  then
+    ARG_DIR=$RUNNING_DIR
+  fi
+  if [[ -z "$ARG_NAME" ]]
+  then
+    ARG_NAME=$(basename "$(readlink -f "$ARG_DIR")")
+  fi
+  local LOCAL_UUID=$ARG_NAME
+  echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
+  echo "UUID_$LOCAL_UUID=$ARG_DIR" >> $LOCATIONS_FILE
 }
 
 task_goto() {
@@ -95,30 +114,6 @@ task_goto() {
   fi
   set_return_directory ${!location}
   clean_up_state
-}
-
-task_record() {
-
-  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
-  then 
-    record_help
-  elif [ $TASK_SUBCOMMAND == "start" ]
-  then
-    record_start
-  elif [ $TASK_SUBCOMMAND == "stop" ]
-  then
-    record_stop
-  elif [ $TASK_SUBCOMMAND == "restart" ]
-  then
-    record_restart
-  elif [ $TASK_SUBCOMMAND == "trash" ]
-  then
-    record_trash
-  else
-    echo "Unknown subcommand: $TASK_SUBCOMMAND"
-    record_help
-  fi
-  
 }
 
 task_global() {
