@@ -1,3 +1,55 @@
+arguments_global() {
+  SUBCOMMANDS='debug|set|unset|edit|clean|locations|uuid'
+
+  SET_DESCRIPTION="Set a variable for a command"
+  SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
+
+  UNSET_DESCRIPTION="Unset a variable for a command"
+  UNSET_REQUIREMENTS='key:k:str command:c:str'
+
+  EDIT_DESCRIPTION="Edit a command's variables"
+  EDIT_REQUIREMENTS='command:c:str'
+
+  DEBUG_DESCRIPTION="Show variables for a command"
+  DEBUG_OPTIONS='command:c:str'
+
+  LOCATIONS_DESCRIPTION="Manage locations"
+  LOCATIONS_OPTIONS='list:l:bool del:d:str add:a:str'
+
+  UUID_DESCRIPTION="Check UUIDs"
+  UUID_OPTIONS='uuid:u:str update:U:bool check:c:bool'
+
+  CLEAN_DESCRIPTION="Clean up stale location and state files."
+}
+
+task_global() {
+  if [[ ! -z "$ARG_HELP" ]] || [[ $TASK_SUBCOMMAND == "help" ]]
+  then 
+    global_help
+  elif [[ $TASK_SUBCOMMAND == "debug" ]]
+  then
+    global_debug
+  elif [[ $TASK_SUBCOMMAND == "set" ]]
+  then
+    global_set
+  elif [[ $TASK_SUBCOMMAND == "unset" ]]
+  then
+    global_unset
+  elif [[ $TASK_SUBCOMMAND == "edit" ]]
+  then
+    global_edit
+  elif [[ $TASK_SUBCOMMAND == "clean" ]]
+  then
+    global_clean
+  elif [[ $TASK_SUBCOMMAND == "locations" ]]
+  then
+    global_locations
+  elif [[ $TASK_SUBCOMMAND == "uuid" ]]
+  then
+    global_uuid
+  fi
+}
+
 global_help() {
   HELP_STRING="Usage: task global (debug|set|unset)
   Used to manipulate/display internal variables
@@ -189,143 +241,13 @@ global_uuid(){
   echo "UUID $ARG_UUID is $uuid_ok"
 }
 
-export_generate_args() {
-  arg_parse="while [[ \$# -ge 1 ]]
-do
-  case \$1 in"
-  type arguments_$ARG_COMMAND &> /dev/null
-  if [[ "$?" == "0" ]]
-  then 
-    arguments_$ARG_COMMAND
-    reqname=${ARG_COMMAND^^}_REQUIREMENTS
-    optname=${ARG_COMMAND^^}_OPTIONS
-    if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] 
-    then
-      if [[ ! -z "${!reqname}" ]]
-      then
-        for req in ${!reqname}
-        do
-          arg_spec=${req%:*}
-          arg_name=${arg_spec%:*}
-          long_arg="--${arg_name}"
-          short_arg="-${arg_spec#*:}"
-          arg_type=${req##*:}
-          update_arg_parse
-        done
-      fi
-      if [[ ! -z "${!optname}" ]]
-      then
-        for opt in ${!optname}
-        do
-          arg_spec=${opt%:*}
-          arg_name=${arg_spec%:*}
-          long_arg="--${arg_name}"
-          short_arg="-${arg_spec#*:}"
-          arg_type=${opt##*:}
-          update_arg_parse
-        done
-      fi
-      echo
-    fi
-    for sub in ${SUBCOMMANDS//\|/ }
-    do 
-      sub=${sub//-/_}
-      reqname=${sub^^}_REQUIREMENTS
-      optname=${sub^^}_OPTIONS
-      if [[ ! -z "${!reqname}" ]]
-      then
-        for req in ${!reqname}
-        do
-          arg_spec=${req%:*}
-          arg_name=${arg_spec%:*}
-          long_arg="--${arg_name}"
-          short_arg="-${arg_spec#*:}"
-          arg_type=${req##*:}
-          update_arg_parse
-        done
-      fi
-      if [[ ! -z "${!optname}" ]]
-      then
-        for opt in ${!optname}
-        do
-          arg_spec=${opt%:*}
-          arg_name=${arg_spec%:*}
-          long_arg="--${arg_name}"
-          short_arg="-${arg_spec#*:}"
-          arg_type=${opt##*:}
-          update_arg_parse
-        done
-      fi
-    arg_parse="$arg_parse
-  ${sub^^}|${sub,,})
-    TASK_SUBCOMMAND=\$1
-    shift
-    ;;"
-    done
-    task help $ARG_COMMAND > $ARG_COMMAND.help
-    arg_parse="$arg_parse
-  -h|--help)
-    echo \"$(sed "s/task $ARG_COMMAND/$ARG_OUT/" $ARG_COMMAND.help | tail -n +2)\"
-    exit 0
-    ;;
-"
-    rm $ARG_COMMAND.help
-    arg_parse="$arg_parse
-  *)
-    echo Unrecognized argument: \$1
-    ./\$(basename \"\$0\") --help
-    exit 1
-    ;;
-  esac
-done
-"
-  else
-    echo "No arguments are defined"
-    arg_parse=""
-  fi
-}
-
-export_main_func() {
-  echo "NOTE: Export will only search for function definitions one deep"
-  code="$(type task_$ARG_COMMAND | tail -n +2)" 
-  main_code=""
-  while read -r line
-  do
-    i=$(echo "$line" | awk '{print $1}')
-    utility_code="$(type "${i//;/}" 2> /dev/null | tail -n +4 | head -n -1)" &> /dev/null
-    if [[ ! -z "$utility_code" ]] && [[ ! "task_$ARG_COMMAND ()*" =~ "$line" ]]
-    then
-      main_code="$main_code
-$utility_code"
-    elif [[ "task_$ARG_COMMAND ()*" =~ "$line" ]]
-    then
-      main_code="$main_code
-exported_task ()"
-    else
-      main_code="$main_code
-$line"
-    fi
-  done <<< "$code"
-  # Read in exported code
-  eval "$main_code"
-  code="$(type exported_task | tail -n +4 | head -n -1 | sed 's/^    //')"
-}
-
-update_arg_parse() {
-  arg_name=${arg_name//-/_}
-  if [[ "$arg_type" == "bool" ]]
-  then
-    arg_parse="$arg_parse
-  $short_arg|$long_arg)
-    ARG_${arg_name^^}=T
-    shift
-    ;;"
-  else
-    arg_parse="$arg_parse
-  $short_arg|$long_arg)
-    ARG_${arg_name^^}=\$2
-    shift
-    shift
-    ;;"
-  fi
-}
+readonly -f task_global
+readonly -f global_help
+readonly -f global_debug
+readonly -f global_set
+readonly -f global_unset
+readonly -f global_edit
+readonly -f global_check-defs
+readonly -f global_clean
+readonly -f global_locations
+readonly -f global_uuid

@@ -319,3 +319,13 @@ bash_help() {
   fi
   return 1
 }
+
+
+readonly -f parse_args_for_task
+readonly -f parse_help
+readonly -f validate_args_for_task
+readonly -f yaml_parse_and_validate
+readonly -f yaml_help
+readonly -f bash_validate
+readonly -f bash_parse
+readonly -f bash_help

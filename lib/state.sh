@@ -73,3 +73,16 @@ remove_file_value() {
     mv $2.tmp $2
   fi
 }
+
+
+readonly -f persist_var
+readonly -f remove_var
+readonly -f export_var
+readonly -f hold_var
+readonly -f release_var
+readonly -f set_trap
+readonly -f unset_trap
+readonly -f clean_up_state
+readonly -f set_return_directory
+readonly -f load_state
+readonly -f remove_file_value

@@ -194,3 +194,4 @@ _TaskTabCompletion(){
 }
 
 complete -F _TaskTabCompletion -o bashdefault -o default task
+complete -F _TaskTabCompletion -o bashdefault -o default t
