@@ -441,45 +441,6 @@ task venv disable
 Note that if you have initialized a task.sh file in a parent directory, the name argument can be ommitted and the tasks location name will be used.
 For example, you have `/home/lelo/my-project/tasks.sh` with the name myproj, the venv task will automatically create/select the myproj venv when running `task venv init` or `task venv enable`.
 
-Process management with the spawn module
-===========================================
-
-This is an experimental feature. More development and testing is needed.
-
-The spawn module is available to create background processes.
-Change the name of the `modules/spawn-module.sh.disabled` to `modules/spawn-module.sh` to enable it.
-
-You may spawn background processes by running:
-
-```
-  $task spawn --proc "tailf /var/log/messages"
-```
-
-use task spawn list to list the running processes and task spawn stop to stop them
-
-Recording a new task with the record module
-==============================================
-
-A recording module is available to easily record commands and put them into the local tasks file.
-To enable the recording module, change the name of `modules/record-module.sh.disabled` to `modules/record-module.sh`
-
-Start by recording a task:
-
-```
-  $ task record start --name hello-world
-  Starting recording
-  $ echo 'Hello World!!'
-  Hello World!!
-  $ task record stop
-  Storing recording to tasks.sh
-```
-
-Now run your new script:
-```
-  $ task hello-world
-  Hello World!!
-```
-
 Dependencies
 ============================
 
