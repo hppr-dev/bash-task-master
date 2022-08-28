@@ -97,7 +97,7 @@ task(){
     load_state
 
     #Load local tasks if the desired task isn't loaded
-    if ([[ "$TASK_COMMAND" == "list" ]] || [["$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
+    if ([[ "$TASK_COMMAND" == "list" ]] || [[ "$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
     then
       _tmverbose_echo "Sourcing tasks file"
       . $TASKS_FILE

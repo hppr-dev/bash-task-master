@@ -1,6 +1,4 @@
 source $TASK_MASTER_HOME/lib/global-lib.sh
-#source $TASK_MASTER_HOME/lib/process.sh
-#source $TASK_MASTER_HOME/lib/record.sh
 source $TASK_MASTER_HOME/lib/lib-arguments.sh
 
 task_help() {
@@ -185,3 +183,5 @@ task_edit() {
     fi
   done
 }
+
+source $TASK_MASTER_HOME/lib/global-function-defs.sh
