@@ -23,6 +23,9 @@ task(){
     shift
   fi
 
+  # Load task drivers
+  . $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
+
   # Save directory that you are running it from
   local RUNNING_DIR=$(pwd)
 
@@ -30,29 +33,36 @@ task(){
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
   local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib/global-function-defs.sh
   local TASKS_DIR=$RUNNING_DIR
-  local TASKS_FILE=$TASKS_DIR/tasks.sh
+  local TASKS_FILE=$HOME
+  local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
-  local ARG_FORMAT=bash
 
-  # Find tasks.sh file
-  while [[ ! -f "$TASKS_FILE" ]] && [[ ! -a "$HIDDEN_TASKS_FILE" ]] && [[ "$TASKS_DIR" != "$HOME" ]]
-  do 
-    cd ..
+  local FN=""
+  local TASKS_FILE_FOUND=""
+
+  # Find tasks file
+  while [[ "$TASKS_DIR" != "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]]
+  do
     TASKS_DIR=$(pwd)
-    TASKS_FILE=$TASKS_DIR/tasks.sh
-    HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
+    cd ..
+    for FN in "${!TASK_DRIVERS[@]}"
+    do
+      if [[ -f "$TASKS_DIR/$FN" ]]
+      then
+        TASKS_FILE=$TASKS_DIR/$FN
+	TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+	TASKS_FILE_FOUND="T"
+	break
+      fi
+    done
   done
 
   _tmverbose_echo "Tasks file: $TASKS_FILE in $TASKS_DIR"
 
-  if [[ ! -f "$TASKS_FILE" ]]
-  then
-    TASKS_FILE=$HIDDEN_TASKS_FILE
-  fi
   cd $RUNNING_DIR
 
-  if [[ "$TASKS_DIR" == "$HOME" ]] || [[ "$TASKS_DIR" == "/" ]]
+  if [[ -z "$TASKS_FILE_FOUND" ]]
   then
     TASKS_FILE=$GLOBAL_TASKS_FILE
     local RUNNING_GLOBAL="1"
@@ -90,7 +100,6 @@ task(){
       _tmverbose_echo "Loading internal functions"
 
       . $TASK_MASTER_HOME/lib/state.sh
-      . $TASK_MASTER_HOME/lib/validate-args.sh
       . $GLOBAL_TASKS_FILE
     fi
 
@@ -108,16 +117,20 @@ task(){
       ARG_FORMAT=bash
     fi
 
+    _tmverbose_echo "Loading $TASK_DRIVER as task driver"
+    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
+    . $TASK_DRIVER
+
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
-    parse_args_for_task "$@"
+    $PARSE_ARGS "$@"
     if [[ "$?" == "1" ]]
     then
       _tmverbose_echo "Parsing of task args returned 1, exiting..."
       return 
     fi
 
-    validate_args_for_task
+    $VALIDATE_ARGS
     if [[ "$?" == "1" ]]
     then
       _tmverbose_echo "Validation of task args returned 1, exiting..."
@@ -125,11 +138,11 @@ task(){
     fi
 
     local TASK_NAME=task_$TASK_COMMAND
-    type $TASK_NAME &> /dev/null
+    $HAS_TASK "$TASK_NAME"
     if [[ "$?" == "0" ]]
     then
       echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-      $TASK_NAME
+      $EXECUTE_TASK "$TASK_NAME"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list

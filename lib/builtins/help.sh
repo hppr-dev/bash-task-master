@@ -1,5 +1,5 @@
 task_help() {
-  parse_help
+  $DRIVER_HELP_TASK
   if [[ "$?" == "1" ]]
   then
     HELP_STRING="usage: task subcommand [arguments]
