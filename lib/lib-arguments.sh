@@ -33,8 +33,11 @@ arguments_init() {
 }
 
 arguments_bookmark() {
+  SUBCOMMANDS='|rm|list'
   BOOKMARK_DESCRIPTION="Add a bookmark to the current location."
   BOOKMARK_OPTIONS="dir:d:str name:n:str"
+  RM_DESCRIPTION="Remove a bookmark"
+  LIST_DESCRIPTION="List available bookmarks"
 }
 
 arguments_export() {

@@ -87,6 +87,7 @@ task_init() {
 }
 
 task_bookmark() {
+  local LOCAL_UUID=$ARG_NAME
   if [[ -z "$ARG_DIR" ]]
   then
     ARG_DIR=$RUNNING_DIR
@@ -95,9 +96,18 @@ task_bookmark() {
   then
     ARG_NAME=$(basename "$(readlink -f "$ARG_DIR")")
   fi
-  local LOCAL_UUID=$ARG_NAME
-  echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
-  echo "UUID_$LOCAL_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+  if [[ "$TASK_SUBCOMMAND" == "list" ]]
+  then
+    sed 's/UUID_\(.*\)=.*/\1/' $LOCATIONS_FILE
+  elif [[ "$TASK_SUBCOMMAND" == "rm" ]]
+  then
+    awk -e "/UUID_$ARG_NAME=/ { next } { print }" $LOCATIONS_FILE > $LOCATIONS_FILE.upd
+    mv $LOCATIONS_FILE.upd $LOCATIONS_FILE
+    echo "Removed bookmark: $ARG_NAME"
+  else
+    echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
+    echo "UUID_$LOCAL_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+  fi
 }
 
 task_goto() {
