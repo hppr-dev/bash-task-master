@@ -36,7 +36,7 @@ task_todo() {
       echo "$openfile does not exist"
       exit 1
     fi
-    vim $openfile
+    $DEFAULT_EDITOR $openfile
   fi
   cat "$TODO_FILE"
 }

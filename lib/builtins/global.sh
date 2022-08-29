@@ -107,7 +107,7 @@ global_unset() {
 }
 
 global_edit() {
-    vim $TASK_MASTER_HOME/state/$ARG_COMMAND.vars
+    $DEFAULT_EDITOR $TASK_MASTER_HOME/state/$ARG_COMMAND.vars
 }
 
 global_check-defs() {

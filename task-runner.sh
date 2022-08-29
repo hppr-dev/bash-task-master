@@ -26,6 +26,9 @@ task(){
   # Load task drivers
   . $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
 
+  # Load config
+  . $TASK_MASTER_HOME/config.sh
+
   # Save directory that you are running it from
   local RUNNING_DIR=$(pwd)
 

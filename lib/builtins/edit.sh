@@ -3,7 +3,7 @@ task_edit() {
   cp $TASKS_FILE $TASKS_FILE.tmp
   while [[ "$validated" != "0" ]]
   do
-    vim $TASKS_FILE
+    $DEFAULT_EDITOR $TASKS_FILE
     bash -n $TASKS_FILE
     if [[ "$?" != "0" ]]
     then
