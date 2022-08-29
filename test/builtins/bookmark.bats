@@ -2,7 +2,7 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.txt
+  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.bookmark
   export RUNNING_DIR=$(pwd)
 
   touch $LOCATIONS_FILE
@@ -17,7 +17,7 @@ teardown() {
 
   task_bookmark
 
-  run output_locations
+  run cat $LOCATIONS_FILE
   assert_output "UUID_test_dir=$TASK_MASTER_HOME/test"
 }
 
@@ -26,7 +26,7 @@ teardown() {
 
   task_bookmark
 
-  run output_locations
+  run cat $LOCATIONS_FILE
   assert_output "UUID_test_dir=/tmp"
 }
 
@@ -37,7 +37,7 @@ teardown() {
   
   task_bookmark
 
-  run output_locations
+  run cat $LOCATIONS_FILE
   assert_output ""
 }
 
@@ -67,9 +67,5 @@ source_and_set_vars() {
   TASK_SUBCOMMAND="$1"
   ARG_NAME="$2"
   ARG_DIR="$3"
-}
-
-output_locations() {
-  cat $LOCATIONS_FILE
 }
 

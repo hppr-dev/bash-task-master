@@ -35,7 +35,7 @@ teardown() {
   run task_edit <<< "no"
   assert_output --partial "Could not validate"
   
-  run cat_tasks_file
+  run cat $TASKS_FILE
   assert_output ""
 }
 
@@ -69,8 +69,3 @@ EOF
 return_0() {
   return 0
 }
-
-cat_tasks_file() {
-  cat $TASKS_FILE
-}
-
