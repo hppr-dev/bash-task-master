@@ -61,6 +61,17 @@ teardown() {
   assert_output --partial "not found"
 }
 
+@test "Sets description and defines subcommands and options" {
+  source_and_set_vars
+
+  arguments_bookmark
+
+  assert [ ! -z "$BOOKMARK_DESCRIPTION" ]
+  assert [ ! -z "$SUBCOMMANDS" ]
+  assert [ ! -z "$RM_DESCRIPTION" ]
+  assert [ ! -z "$LIST_DESCRIPTION" ]
+}
+
 source_and_set_vars() {
   source $TASK_MASTER_HOME/lib/builtins/bookmark.sh
 

@@ -35,6 +35,15 @@ setup() {
   refute_output --partial "gtask"
 }
 
+@test 'Sets descriptions and options' {
+  source $TASK_MASTER_HOME/lib/builtins/list.sh
+
+  arguments_list
+
+  assert [ ! -z "$LIST_DESCRIPTION" ]
+  assert [ ! -z "$LIST_OPTIONS" ]
+}
+
 task_gtask() {
   return 0
 }

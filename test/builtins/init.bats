@@ -86,3 +86,26 @@ teardown() {
   run cat $LOCATIONS_FILE
   assert_output "UUID_project=$TEST_DIR"
 }
+
+@test 'Sets description and options' {
+  source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  arguments_init
+
+  assert [ ! -z "$INIT_DESCRIPTION" ]
+  assert [ ! -z "$INIT_OPTIONS" ]
+}
+
+@test 'Alerts user when file already exists' {
+  source $TASK_MASTER_HOME/lib/builtins/init.sh
+  cd $TASK_MASTER_HOME/test
+  ARG_NAME=project
+  ARG_DIR=$TEST_DIR
+  touch $TEST_DIR/tasks.sh
+
+  run task_init
+  assert_output --partial "exists"
+
+  run cat $TEST_DIR/tasks.sh
+  assert_output ""
+}
