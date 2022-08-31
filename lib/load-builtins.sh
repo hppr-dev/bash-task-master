@@ -6,5 +6,4 @@ source $TASK_MASTER_HOME/lib/builtins/init.sh
 source $TASK_MASTER_HOME/lib/builtins/bookmark.sh
 source $TASK_MASTER_HOME/lib/builtins/goto.sh
 source $TASK_MASTER_HOME/lib/builtins/global.sh
-source $TASK_MASTER_HOME/lib/builtins/export.sh
 source $TASK_MASTER_HOME/lib/builtins/edit.sh

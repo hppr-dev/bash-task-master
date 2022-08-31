@@ -49,8 +49,10 @@ record_start(){
   # Save prompt command and change it to save commands
   echo 'echo $( history 1 | tr -s " " | cut -f 3- -d " ") >>' $RECORDING_FILE > $TASKS_DIR/.record-script
   chmod +x $TASKS_DIR/.record-script
-  hold_var PROMPT_COMMAND " $TASKS_DIR/.record-script ; $PROMPT_COMMAND"
-  hold_var PS1 "(rec/$LOCAL_TASKS_UUID) $PS1"
+  hold_var PROMPT_COMMAND 
+  export_var PROMPT_COMMAND " $TASKS_DIR/.record-script ; $PROMPT_COMMAND"
+  hold_var PS1 
+  export_var PS1 "(rec/$LOCAL_TASKS_UUID) $PS1"
 }
 
 record_stop(){

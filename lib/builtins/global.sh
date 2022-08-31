@@ -93,7 +93,11 @@ global_clean() {
     fi
   done
   echo "Removing empty files from state directory..."
-  rm $(find $TASK_MASTER_HOME/state/* -type f -empty) 2> /dev/null
+  local empty_files=$(find $TASK_MASTER_HOME/state/* -type f -empty)
+  if [[ ! -z "$empty_files" ]]
+  then
+    rm $empty_files
+  fi
 }
 
 readonly -f task_global
