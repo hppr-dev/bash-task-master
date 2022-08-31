@@ -33,8 +33,7 @@ task(){
   local RUNNING_DIR=$(pwd)
 
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
-  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
-  local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib/global-function-defs.sh
+  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$HOME
   local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
