@@ -32,12 +32,6 @@ bash_parse() {
       # add added args
       local ADDED_ARGS="$ADDED_ARGS ${separated%-[[:alpha:]]}"
     fi
-    #ignore any whitespace arguments
-    if [[ -z "$ARGUMENT" ]]
-    then
-      shift
-      ARGUMENT="$1"
-    fi
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
@@ -69,14 +63,14 @@ bash_parse() {
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
       requirements="${requirements} ${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
     else
-      echo "Unrecognized argument: $ARGUMENT"
+      echo "Unrecognized value: $ARGUMENT"
       return 1
     fi
     shift
   done
   if [[ ! -z "$ADDED_ARGS" ]]
   then
-    parse_args_for_task "GARBAGE" $ADDED_ARGS
+    bash_parse "GARBAGE" $ADDED_ARGS
   fi
 }
 
@@ -85,7 +79,7 @@ bash_validate() {
   declare -A verif
   local avail_types='str|int|bool|nowhite|upper|lower|single|ip'
   local verif[str]='^.*$'
-  local verif[int]='^[0-9]*$'
+  local verif[int]='^[0-9]+$'
   local verif[bool]='^1$'
   local verif[nowhite]='^[^[:space:]]+$'
   local verif[upper]='^[A-Z]+$'
@@ -99,17 +93,20 @@ bash_validate() {
   if [[ "$?" == "0" ]]
   then
     arguments_$TASK_COMMAND
-    # check if subcommand exists or if there are no subcommands
-    if [[ $TASK_SUBCOMMAND =~ ^($SUBCOMMANDS)$ ]] || [[ -z "$SUBCOMMANDS" ]]
+    # check if subcommand exists
+    if [[ $TASK_SUBCOMMAND =~ ^($SUBCOMMANDS)$ ]]
     then
-      # handle subcommandless tasks
       local sub=${TASK_SUBCOMMAND^^}
-      # Check required arguments
-      local reqvar_com="${TASK_COMMAND^^}_REQUIREMENTS"
-      local reqvar_sub="${sub}_REQUIREMENTS"
-      if [[ ! -z "${!reqvar_sub}" ]] || [[ ! -z "${!reqvar_com}" ]]
+      # handle subcommandless tasks
+      if [[ -z "$sub" ]]
       then
-        for requirement in ${!reqvar_sub} ${!reqvar_com}
+        sub=${TASK_COMMAND^^}
+      fi
+      # Check required arguments
+      local reqvar_sub="${sub}_REQUIREMENTS"
+      if [[ ! -z "${!reqvar_sub}" ]]
+      then
+        for requirement in ${!reqvar_sub}
         do
           local name=${requirement%%:*}
           local atype=${requirement##*:}
@@ -138,6 +135,7 @@ bash_validate() {
           name=${name//-/_}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
+          echo $valname=${!valname}
           if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
             echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}"
