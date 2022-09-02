@@ -170,23 +170,99 @@ setup() {
   assert_output "tymbd"
 }
 
-@test 'Shows help' {
+@test 'Shows help for task with subcommand' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_SUBCOMMAND="mytask_withsub"
+
+  run $DRIVER_HELP_TASK
+  assert_output --partial "task mytask_withsub"
+  assert_output --partial "--force"
+  assert_output --partial "--num"
+  assert_output --partial "task mytask_withsub sub"
+  assert_output --partial "--thing"
+  assert_output --partial "--pass"
+  assert_output --partial "--confirm"
+  assert_output --partial "jiofni walki"
+  assert_output --partial "qsc bie"
+  assert_output --partial "task mytask_withsub some"
+  assert_success
+}
+
+@test 'Shows help for task with no subcommands' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_SUBCOMMAND="mytask"
+
+  run $DRIVER_HELP_TASK
+  assert_output --partial "task mytask"
+  assert_output --partial "odejfk fjwick"
+  assert_output --partial "--force"
+  assert_output --partial "--num"
+  assert_output --partial "--out"
+  assert_output --partial "--in"
+  assert_success
+}
+
+@test 'Shows help for task with no description' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_SUBCOMMAND="nodescription"
+
+  run $DRIVER_HELP_TASK
+  assert_output --partial "task nodescription"
+  assert_output --partial "--not"
+  assert_success
+}
+
+@test 'Help does not fail when there are no arguments defined' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_SUBCOMMAND="example"
+
+  run $DRIVER_HELP_TASK
+  assert_success
+}
+
+@test 'Help fails if no task is given' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  run $DRIVER_HELP_TASK
+
+  assert_failure
 }
 
 @test 'Identifies existing task' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  run $HAS_TASK task_example
+  assert_success
+}
+
+@test 'Does not identify missing task' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  run $HAS_TASK not_a_task
+  assert_failure
 }
 
 arguments_mytask() {
+  MYTASK_DESCRIPTION="odejfk fjwick"
   MYTASK_OPTIONS="force:f:bool num:n:int"
   MYTASK_REQUIREMENTS="out:o:str in:i:nowhite"
 }
 
 arguments_mytask_withsub() {
-  SUBCOMMANDS="|sub"
-  MYTASK_OPTIONS="force:f:bool num:n:int"
+  MYTASK_WITHSUB_DESCRIPTION="jiofni walki"
+  SUB_DESCRIPTION="qsc bie"
+  SUBCOMMANDS="|sub|some"
+  MYTASK_WITHSUB_OPTIONS="force:f:bool num:n:int"
   SUB_REQUIREMENTS="thing:t:ip pass:p:single"
+  SUB_OPTIONS="confirm:c:bool dest:d:str"
+}
+
+arguments_nodescription() {
+  NODESCRIPTION_OPTIONS="not:n:bool"
 }
 
 task_example() {
