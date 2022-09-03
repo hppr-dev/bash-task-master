@@ -36,7 +36,8 @@ jobs:
             export TASK_MASTER_HOME=/home/circleci/.task-master
             /home/circleci/.task-master/test/coverage.sh
       - codecov/upload:
-          file: /home/circleci/.task-master/test/kcov 
+          file: /home/circleci/.task-master/test/kcov/
+          flags: -s /home/circleci/.task-master/test/kcov/ 
 
 workflows:
   default-workflow:
