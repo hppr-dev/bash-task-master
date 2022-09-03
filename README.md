@@ -1,4 +1,7 @@
 
+[![bash-task-master](https://circleci.com/gh/hppr-dev/bash-task-master.svg?style=shield)](https://circleci.com/gh/hppr-dev/bash-task-master)
+[![codecov](https://codecov.io/gh/hppr-dev/bash-task-master/branch/master/graph/badge.svg?token=2DJJIA4TBL)](https://codecov.io/gh/hppr-dev/bash-task-master)
+
 Bash Task Master
 ===================
 
