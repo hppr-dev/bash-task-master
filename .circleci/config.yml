@@ -10,7 +10,7 @@ jobs:
       - run:
           name: "Create user"
           command: |
-            useradd tester
+            adduser tester
       - checkout
       - run:
           name: "Install"
