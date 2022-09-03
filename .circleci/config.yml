@@ -9,6 +9,11 @@ jobs:
     steps:
       - checkout
       - run:
+          name: "Checkout submodules"
+          command: |
+            git submodule sync --recursive
+            git submodule update --recursive --init
+      - run:
           name: "Install"
           command: |
             /home/circleci/project/install-task-master.sh
