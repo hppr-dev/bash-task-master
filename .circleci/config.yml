@@ -2,30 +2,23 @@ version: 2.1
 
 jobs:
   install-test-then-coverage:
-    working_directory: /home/tester/
+    working_directory: /home/circleci/
     resource_class: small
     docker:
-      - image: bash:5.1.16 
+      - image: cimg/base:2022.08
     steps:
-      - run:
-          name: "Create user"
-          command: |
-            adduser tester
       - checkout
       - run:
           name: "Install"
           command: |
-            sudo -iu tester
             ./bash-task-master/install-task-master.sh
       - run:
           name: "Test"
           command: |
-            sudo -iu tester
             .task-master/test/test_all.sh
       - run:
           name: "Coverage"
           command: |
-            sudo -iu tester
             .task-master/test/coverage.sh
 
 # Invoke jobs via workflows
