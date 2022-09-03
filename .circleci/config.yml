@@ -2,7 +2,7 @@ version: 2.1
 
 jobs:
   install-test-then-coverage:
-    working_directory: /home/circleci/
+    working_directory: /home/circleci/project
     resource_class: small
     docker:
       - image: cimg/base:2022.08
@@ -11,18 +11,16 @@ jobs:
       - run:
           name: "Install"
           command: |
-            ./bash-task-master/install-task-master.sh
+            /home/circleci/project/bash-task-master/install-task-master.sh
       - run:
           name: "Test"
           command: |
-            .task-master/test/test_all.sh
+            /home/circleci/.task-master/test/test_all.sh
       - run:
           name: "Coverage"
           command: |
-            .task-master/test/coverage.sh
+            /home/circleci/.task-master/test/coverage.sh
 
-# Invoke jobs via workflows
-# See: https://circleci.com/docs/2.0/configuration-reference/#workflows
 workflows:
   default-workflow:
     jobs:
