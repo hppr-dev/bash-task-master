@@ -1,0 +1,41 @@
+version: 2.1
+
+jobs:
+  install-test-then-coverage:
+    working_directory: /home/circleci/project
+    resource_class: small
+    docker:
+      - image: cimg/base:2022.08
+    steps:
+      - checkout
+      - run:
+          name: "Checkout submodules"
+          command: |
+            git submodule sync --recursive
+            git submodule update --recursive --init
+      - run:
+          name: "Install"
+          command: |
+            sudo apt-get install kcov
+            # Need to do this to get it to build right now, should make an enhancement to support earlier versions
+            sudo apt-get upgrade gawk
+            /home/circleci/project/install-task-master.sh
+      - run:
+          name: "Test"
+          command: |
+            . /home/circleci/.bashrc
+            export TASK_MASTER_HOME=/home/circleci/.task-master
+            /home/circleci/.task-master/test/test_all.sh
+      - run:
+          name: "Coverage"
+          command: |
+            . /home/circleci/.bashrc
+            export TASK_MASTER_HOME=/home/circleci/.task-master
+            /home/circleci/.task-master/test/coverage.sh
+            bash <(curl -s https://codecov.io/bash) -s /home/circleci/.task-master/test/kcov
+
+
+workflows:
+  default-workflow:
+    jobs:
+      - install-test-then-coverage
