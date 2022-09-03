@@ -18,6 +18,7 @@ jobs:
       - run:
           name: "Install"
           command: |
+            rm -r /home/circleci/.task-master
             /home/circleci/project/install-task-master.sh
       - run:
           name: "Test"
