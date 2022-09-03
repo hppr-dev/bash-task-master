@@ -4,3 +4,4 @@ state/**/*.vars
 state/**
 **/*.swp
 backup
+test/kcov

@@ -24,10 +24,6 @@ export_var(){
 hold_var() {
   remove_file_value $1 $STATE_FILE.hold
   echo "$1=\"${!1}\"" >> $STATE_FILE.hold
-  if [[ ! -z "$2" ]]
-  then
-    export_var "$1" "$2"
-  fi
 }
 
 # release a held value of a variable and export it back to the outside session
@@ -69,7 +65,19 @@ load_state() {
 remove_file_value() {
   if [[ -f $2 ]]
   then
-    grep -F -v $1 $2  > $2.tmp
-    mv $2.tmp $2
+    awk -i inplace "/^$1=/ { next } 0" $2
   fi
 }
+
+
+readonly -f persist_var
+readonly -f remove_var
+readonly -f export_var
+readonly -f hold_var
+readonly -f release_var
+readonly -f set_trap
+readonly -f unset_trap
+readonly -f clean_up_state
+readonly -f set_return_directory
+readonly -f load_state
+readonly -f remove_file_value

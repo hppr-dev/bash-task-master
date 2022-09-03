@@ -23,36 +23,48 @@ task(){
     shift
   fi
 
+  # Load task drivers
+  . $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
+
+  # Load config
+  . $TASK_MASTER_HOME/config.sh
+
   # Save directory that you are running it from
   local RUNNING_DIR=$(pwd)
 
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
-  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/global.sh
-  local GLOBAL_FUNCTION_DEFS=$TASK_MASTER_HOME/lib/global-function-defs.sh
+  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
-  local TASKS_FILE=$TASKS_DIR/tasks.sh
+  local TASKS_FILE=$HOME
+  local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
-  local ARG_FORMAT=bash
 
-  # Find tasks.sh file
-  while [[ ! -f "$TASKS_FILE" ]] && [[ ! -a "$HIDDEN_TASKS_FILE" ]] && [[ "$TASKS_DIR" != "$HOME" ]]
-  do 
-    cd ..
+  local FN=""
+  local TASKS_FILE_FOUND=""
+
+  # Find tasks file
+  while [[ "$TASKS_DIR" != "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]]
+  do
     TASKS_DIR=$(pwd)
-    TASKS_FILE=$TASKS_DIR/tasks.sh
-    HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
+    cd ..
+    for FN in "${!TASK_DRIVERS[@]}"
+    do
+      if [[ -f "$TASKS_DIR/$FN" ]]
+      then
+        TASKS_FILE=$TASKS_DIR/$FN
+	      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+	      TASKS_FILE_FOUND="T"
+	      break
+      fi
+    done
   done
 
   _tmverbose_echo "Tasks file: $TASKS_FILE in $TASKS_DIR"
 
-  if [[ ! -f "$TASKS_FILE" ]]
-  then
-    TASKS_FILE=$HIDDEN_TASKS_FILE
-  fi
   cd $RUNNING_DIR
 
-  if [[ "$TASKS_DIR" == "$HOME" ]] || [[ "$TASKS_DIR" == "/" ]]
+  if [[ -z "$TASKS_FILE_FOUND" ]]
   then
     TASKS_FILE=$GLOBAL_TASKS_FILE
     local RUNNING_GLOBAL="1"
@@ -73,6 +85,11 @@ task(){
   
   _tmverbose_echo "State Dir: $STATE_DIR\nState file: $STATE_FILE"
 
+  if [[ ! -d "$STATE_DIR" ]]
+  then
+    mkdir "$STATE_DIR"
+  fi
+
   #Run requested task in subshell
   (
     _tmverbose_echo "Task master has called itself ${RUN_NUMBER:-0} times"
@@ -90,14 +107,13 @@ task(){
       _tmverbose_echo "Loading internal functions"
 
       . $TASK_MASTER_HOME/lib/state.sh
-      . $TASK_MASTER_HOME/lib/validate-args.sh
       . $GLOBAL_TASKS_FILE
     fi
 
     load_state
 
     #Load local tasks if the desired task isn't loaded
-    if ([[ "$TASK_COMMAND" == "list" ]] || [["$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
+    if ([[ "$TASK_COMMAND" == "list" ]] || [[ "$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
     then
       _tmverbose_echo "Sourcing tasks file"
       . $TASKS_FILE
@@ -108,33 +124,39 @@ task(){
       ARG_FORMAT=bash
     fi
 
+    _tmverbose_echo "Loading $TASK_DRIVER as task driver"
+    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
+    . $TASK_DRIVER
+
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
-    parse_args_for_task "$@"
-    if [[ "$?" == "1" ]]
+    $PARSE_ARGS "$@"
+    if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Parsing of task args returned 1, exiting..."
-      return 
+      return 1 
     fi
 
-    validate_args_for_task
-    if [[ "$?" == "1" ]]
+    $VALIDATE_ARGS
+    if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Validation of task args returned 1, exiting..."
-      return 
+      return 1
     fi
 
     local TASK_NAME=task_$TASK_COMMAND
-    type $TASK_NAME &> /dev/null
+    $HAS_TASK "$TASK_NAME"
     if [[ "$?" == "0" ]]
     then
       echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-      $TASK_NAME
+      $EXECUTE_TASK "$TASK_NAME"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
+      return 1
     fi
   )
+  local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
   if [[ -f $STATE_FILE ]]
@@ -173,6 +195,8 @@ task(){
     rm $STATE_FILE.export
     _tmverbose_echo "Found $STATE_FILE.export as a state file export, loaded and removed it"
   fi
+
+  return $subshell_ret
 }
 
 _tmverbose_echo(){
@@ -194,3 +218,4 @@ _TaskTabCompletion(){
 }
 
 complete -F _TaskTabCompletion -o bashdefault -o default task
+complete -F _TaskTabCompletion -o bashdefault -o default t

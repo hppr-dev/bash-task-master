@@ -1,9 +1,0 @@
----
-test:
-  subcommands: none
-  none:
-    required:
-      one: o,str,A string argument
-      three: h,int,An integer argument
-    optional:
-      two: t,bool,A boolean argument
