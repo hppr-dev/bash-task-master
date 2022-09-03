@@ -135,7 +135,6 @@ bash_validate() {
           name=${name//-/_}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
-          echo $valname=${!valname}
           if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
             echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}"
@@ -150,7 +149,6 @@ bash_validate() {
     fi
   fi
   return 0
-
 }
 
 bash_help() {
@@ -159,7 +157,6 @@ bash_help() {
     type arguments_$TASK_SUBCOMMAND &> /dev/null
     if [[ "$?" == "0" ]]
     then 
-      echo
       arguments_$TASK_SUBCOMMAND
       reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       optname=${TASK_SUBCOMMAND^^}_OPTIONS

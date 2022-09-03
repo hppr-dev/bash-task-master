@@ -53,9 +53,9 @@ task(){
       if [[ -f "$TASKS_DIR/$FN" ]]
       then
         TASKS_FILE=$TASKS_DIR/$FN
-	TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
-	TASKS_FILE_FOUND="T"
-	break
+	      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+	      TASKS_FILE_FOUND="T"
+	      break
       fi
     done
   done
@@ -84,6 +84,11 @@ task(){
   local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
   
   _tmverbose_echo "State Dir: $STATE_DIR\nState file: $STATE_FILE"
+
+  if [[ ! -d "$STATE_DIR" ]]
+  then
+    mkdir "$STATE_DIR"
+  fi
 
   #Run requested task in subshell
   (
@@ -126,17 +131,17 @@ task(){
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
     $PARSE_ARGS "$@"
-    if [[ "$?" == "1" ]]
+    if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Parsing of task args returned 1, exiting..."
-      return 
+      return 1 
     fi
 
     $VALIDATE_ARGS
-    if [[ "$?" == "1" ]]
+    if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Validation of task args returned 1, exiting..."
-      return 
+      return 1
     fi
 
     local TASK_NAME=task_$TASK_COMMAND
@@ -148,8 +153,10 @@ task(){
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
+      return 1
     fi
   )
+  local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
   if [[ -f $STATE_FILE ]]
@@ -188,6 +195,8 @@ task(){
     rm $STATE_FILE.export
     _tmverbose_echo "Found $STATE_FILE.export as a state file export, loaded and removed it"
   fi
+
+  return $subshell_ret
 }
 
 _tmverbose_echo(){

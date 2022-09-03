@@ -2,7 +2,11 @@
 source $TASK_MASTER_HOME/lib/load-builtins.sh
 
 # Load module tasks
-for module in $TASK_MASTER_HOME/modules/*-module.sh
-do
-  source $module
-done
+enabled=$(find $TASK_MASTER_HOME/modules/ -name "*-module.sh")
+if [[ ! -z "$enabled" ]]
+then
+  for module in $enabled
+  do
+    source $module
+  done
+fi
