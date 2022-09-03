@@ -21,11 +21,13 @@ jobs:
           name: "Test"
           command: |
             . /home/circleci/.bashrc
+            export TASK_MASTER_HOME=/home/circleci/.task-master
             /home/circleci/.task-master/test/test_all.sh
       - run:
           name: "Coverage"
           command: |
             . /home/circleci/.bashrc
+            export TASK_MASTER_HOME=/home/circleci/.task-master
             /home/circleci/.task-master/test/coverage.sh
 
 workflows:
