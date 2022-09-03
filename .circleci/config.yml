@@ -1,5 +1,8 @@
 version: 2.1
 
+orbs:
+  codecov: codecov/codecov@3.0.0
+
 jobs:
   install-test-then-coverage:
     working_directory: /home/circleci/project
@@ -32,6 +35,8 @@ jobs:
             . /home/circleci/.bashrc
             export TASK_MASTER_HOME=/home/circleci/.task-master
             /home/circleci/.task-master/test/coverage.sh
+      - codecov/upload:
+          file: /home/circleci/.task-master/test/kcov 
 
 workflows:
   default-workflow:
