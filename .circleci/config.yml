@@ -6,6 +6,8 @@ jobs:
     resource_class: small
     docker:
       - image: cimg/base:2022.08
+        environment:
+          TASK_MASTER_HOME: /home/circleci/.task-master
     steps:
       - checkout
       - run:
