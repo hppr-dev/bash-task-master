@@ -42,10 +42,15 @@ task_remove_state() {
 }
 
 EOF
+  export DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers/
 }
 
 teardown_file() {
   rm -r $PROJECT_DIR
+
+  rm -r $TASK_MASTER_HOME/test/dtest
+  awk -i inplace '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh
+  rm $DRIVER_DIR/test_custom_driver.sh
 }
 
 setup() {
@@ -222,6 +227,55 @@ setup() {
   GLOBAL_VERBOSE=T
   run _tmverbose_echo "hello"
   assert_output "hello"
+}
+
+@test 'Uses a custom driver' {
+  source $TASK_MASTER_HOME/task-runner.sh
+
+  echo "TASK_DRIVERS[testtasks.myfile]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+
+  cat > $DRIVER_DIR/test_custom_driver.sh <<EOF
+DRIVER_PARSE_ARGS=parse_test
+DRIVER_VALIDATE_ARGS=validate_test
+DRIVER_EXECUTE_TASK=execute_test
+DRIVER_LIST_TASKS=list_test
+DRIVER_HELP_TASK=help_test
+DRIVER_LOAD_TASKS_FILE=load_test
+
+load_test() {
+  echo I am loading: \$@
+}
+parse_test() {
+  echo I am parsing: \$@
+}
+
+validate_test() {
+  echo I am validating: \$@
+}
+
+execute_test() {
+  echo I am executing: \$@
+}
+
+list_test() {
+  echo "do"
+}
+
+help_test() {
+  echo I am helping: \$@
+}
+
+EOF
+
+  mkdir $TASK_MASTER_HOME/test/dtest
+  cd $TASK_MASTER_HOME/test/dtest
+  touch testtasks.myfile
+
+  run task do something --special
+  assert [ "${lines[1]}" ==  "I am loading: $TASK_MASTER_HOME/test/dtest/testtasks.myfile" ]
+  assert [ "${lines[2]}" == "I am parsing: do something --special" ]
+  assert [ "${lines[3]}" == "I am validating:" ]
+  assert [ "${lines[5]}" == "I am executing: do" ]
 }
 
 wrap_change_dir() {

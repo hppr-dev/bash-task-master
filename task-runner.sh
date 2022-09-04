@@ -108,26 +108,26 @@ task(){
     load_state
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
-    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
+    # This should set commands for DRIVER_PARSE_ARGS DRIVER_VALIDATE_ARGS DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     . $TASK_DRIVER
 
     #Load local tasks if the desired task isn't loaded
     if [[ ! -z "$TASKS_FILE_FOUND" ]] 
     then
       _tmverbose_echo "Sourcing tasks file"
-      . $TASKS_FILE
+      $DRIVER_LOAD_TASKS_FILE $TASKS_FILE
     fi
 
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
-    $PARSE_ARGS "$@"
+    $DRIVER_PARSE_ARGS $@
     if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Parsing of task args returned 1, exiting..."
       return 1 
     fi
 
-    $VALIDATE_ARGS
+    $DRIVER_VALIDATE_ARGS
     if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Validation of task args returned 1, exiting..."
@@ -144,7 +144,7 @@ task(){
     elif [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMMAND" ]]
     then
       # Local non bash task
-      $EXECUTE_TASK "$TASK_COMMAND"
+      $DRIVER_EXECUTE_TASK "$TASK_COMMAND"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list

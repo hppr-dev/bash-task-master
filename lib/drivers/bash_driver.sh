@@ -1,6 +1,7 @@
-PARSE_ARGS=bash_parse
-VALIDATE_ARGS=bash_validate
-EXECUTE_TASK=execute_task
+DRIVER_PARSE_ARGS=bash_parse
+DRIVER_VALIDATE_ARGS=bash_validate
+DRIVER_LOAD_TASKS_FILE=source
+DRIVER_EXECUTE_TASK=execute_task
 DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
 
@@ -246,7 +247,7 @@ bash_help() {
 bash_list() {
   if [[ ! -z "$TASKS_FILE_FOUND" ]]
   then
-    echo "$(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')"
+    echo $(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')
   fi
 }
 
