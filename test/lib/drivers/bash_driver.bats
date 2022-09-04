@@ -166,7 +166,7 @@ setup() {
 @test 'Executes task' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $EXECUTE_TASK task_example
+  run $EXECUTE_TASK example
   assert_output "tymbd"
 }
 
@@ -235,7 +235,7 @@ setup() {
 @test 'Identifies existing task' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $HAS_TASK task_example
+  run $HAS_TASK example
   assert_success
 }
 

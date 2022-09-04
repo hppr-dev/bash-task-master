@@ -25,11 +25,12 @@ teardown() {
   source $TASK_MASTER_HOME/lib/state.sh
 
   echo "hello=world" > $STATE_FILE
+  echo "foo=bar" >> $STATE_FILE
 
   remove_var "hello"
 
   run cat $STATE_FILE
-  assert_output ""
+  assert_output "foo=bar"
 }
 
 @test 'Exports var in an export file' {

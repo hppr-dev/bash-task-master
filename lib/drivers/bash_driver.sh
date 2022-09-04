@@ -244,11 +244,11 @@ bash_help() {
 }
 
 execute_task() {
-  $1
+  task_$1
 }
 
 check_for_task() {
-  type $1 &> /dev/null
+  type task_$1 &> /dev/null
   return $?
 }
 

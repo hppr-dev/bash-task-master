@@ -6,7 +6,6 @@
 #      - RUNNING_DIR = directory that the task is being run from
 #      - TASK_COMMAND = command that the task is running i.e 'record' in 'task record start'
 #      - TASK_SUBCOMMAND = sub command of the running task i.e 'start' in 'task record start'
-#      - TASK_NAME = method name of the parent task i.e. 'task_record' for 'task record stop'
 #
 #   Arguments are supplied as environment variables to child tasks
 #   for instance, running 'task record start --name hello --force' will set ARG_FORCE=1 and ARG_NAME=hello
@@ -37,7 +36,6 @@ task(){
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$HOME
   local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-  local HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
   local FN=""
@@ -119,11 +117,6 @@ task(){
       . $TASKS_FILE
     fi
 
-    if [[ "$TASK_COMMAND" == "list" ]]
-    then
-      ARG_FORMAT=bash
-    fi
-
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
     . $TASK_DRIVER
@@ -144,12 +137,11 @@ task(){
       return 1
     fi
 
-    local TASK_NAME=task_$TASK_COMMAND
-    $HAS_TASK "$TASK_NAME"
+    $HAS_TASK "$TASK_COMMAND"
     if [[ "$?" == "0" ]]
     then
       echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-      $EXECUTE_TASK "$TASK_NAME"
+      $EXECUTE_TASK "$TASK_COMMAND"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
@@ -159,34 +151,13 @@ task(){
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
-  if [[ -f $STATE_FILE ]]
+  if [[ ! -z "$(grep -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE $STATE_FILE 2> /dev/null)" ]]
   then
-    # Deal with persisted return directory
-    grep -e "TASK_RETURN_DIR" $STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      eval $(grep -e "TASK_RETURN_DIR" $STATE_FILE)
-      local retdir=${TASK_RETURN_DIR//\'}
-      cd ${retdir//\"}
-      _tmverbose_echo "Returning to the directory $retdir which was specified in the state file: $STATE_FILE"
-    fi
+    awk -F = -E $TASK_MASTER_HOME/awk/special_state_vars.awk $STATE_FILE >> $STATE_FILE.export
 
-    # Deal with setting an exit trap to clean up after leaving the terminal
-    grep -e "TASK_TERM_TRAP" $STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      eval $(grep -e "TASK_TERM_TRAP" $STATE_FILE)
-      trap "$TASK_TERM_TRAP" EXIT
-      _tmverbose_echo "Setting trap $TASK_TERM_TRAP for terminal exit. Specified by $STATE_FILE"
-    fi
+    awk -i inplace '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' $STATE_FILE
 
-    # Destroy state file if it is marked as such
-    grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      rm $STATE_FILE
-      _tmverbose_echo "Removing $STATE_FILE because it was marked with DESTROY_STATE_FILE"
-    fi
+    _tmverbose_echo "Added export commands for TASK_RETURN_DIR, TASK_TERM_TRAP or DESTROY_STAE_FILE"
   fi
 
   if [[ -f $STATE_FILE.export ]]
