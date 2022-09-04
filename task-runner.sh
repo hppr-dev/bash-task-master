@@ -152,7 +152,8 @@ task(){
   then
     awk -F = -E $TASK_MASTER_HOME/awk/special_state_vars.awk $STATE_FILE >> $STATE_FILE.export
 
-    awk -i inplace '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' $STATE_FILE
+    awk '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' $STATE_FILE > $STATE_FILE.tmp
+    mv $STATE_FILE.tmp $STATE_FILE
 
     _tmverbose_echo "Added export commands for TASK_RETURN_DIR, TASK_TERM_TRAP or DESTROY_STAE_FILE"
   fi
@@ -185,5 +186,11 @@ _TaskTabCompletion(){
     fi
 }
 
+# Setup tab completion for task
 complete -F _TaskTabCompletion -o bashdefault -o default task
-complete -F _TaskTabCompletion -o bashdefault -o default t
+
+# Setup tab completion for any aliases for task
+for a in $(alias | grep task | sed "s/alias \(.*\)='task'/\1/")
+do
+  complete -F _TaskTabCompletion -o bashdefault -o default $a
+done
