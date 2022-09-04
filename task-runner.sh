@@ -62,22 +62,19 @@ task(){
 
   cd $RUNNING_DIR
 
-  if [[ -z "$TASKS_FILE_FOUND" ]]
-  then
-    TASKS_FILE=$GLOBAL_TASKS_FILE
-    local RUNNING_GLOBAL="1"
-    _tmverbose_echo "Switching to global: $TASKS_FILE"
-  fi
-
   local TASK_COMMAND=$1
   local TASK_SUBCOMMAND=""
 
   # Load Local Task UUID
-  local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
-  if [[ -z "$LOCAL_TASKS_UUID" ]] && [[ "$RUNNING_GLOBAL" != "1" ]]
+  if [[ ! -z "$TASKS_FILE_FOUND" ]]
   then
-    echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+    local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
+    if [[ -z "$LOCAL_TASKS_UUID" ]]
+    then
+      echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+    fi
   fi
+
   local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
   local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
   
@@ -110,16 +107,16 @@ task(){
 
     load_state
 
+    _tmverbose_echo "Loading $TASK_DRIVER as task driver"
+    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
+    . $TASK_DRIVER
+
     #Load local tasks if the desired task isn't loaded
-    if ([[ "$TASK_COMMAND" == "list" ]] || [[ "$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
+    if [[ ! -z "$TASKS_FILE_FOUND" ]] 
     then
       _tmverbose_echo "Sourcing tasks file"
       . $TASKS_FILE
     fi
-
-    _tmverbose_echo "Loading $TASK_DRIVER as task driver"
-    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
-    . $TASK_DRIVER
 
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
@@ -151,7 +148,7 @@ task(){
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
-  if [[ ! -z "$(grep -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE $STATE_FILE 2> /dev/null)" ]]
+  if [[ -f $STATE_FILE ]] && [[ ! -z "$(grep -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE $STATE_FILE )" ]]
   then
     awk -F = -E $TASK_MASTER_HOME/awk/special_state_vars.awk $STATE_FILE >> $STATE_FILE.export
 
