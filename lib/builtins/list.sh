@@ -18,6 +18,7 @@ task_list() {
   fi
   if [[ ! -z "$ARG_LOCAL$ARG_ALL" ]]
   then
+    . $TASK_FILE_DRIVER
     echo "Available local tasks:"
     echo
     echo "     $($DRIVER_LIST_TASKS $TASKS_FILE)"

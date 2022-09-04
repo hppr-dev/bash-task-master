@@ -35,6 +35,7 @@ task(){
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=$HOME
+  local TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
@@ -51,7 +52,7 @@ task(){
       if [[ -f "$TASKS_DIR/$FN" ]]
       then
         TASKS_FILE=$TASKS_DIR/$FN
-	      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
 	      TASKS_FILE_FOUND="T"
 	      break
       fi
@@ -107,6 +108,16 @@ task(){
 
     load_state
 
+    type task_$TASK_COMMAND &> /dev/null
+    if [[ "$?" == "0" ]]
+    then
+      # Set driver to bash if task command is global
+      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+      GLOBAL_TASK=T
+    else
+      TASK_DRIVER=$TASK_FILE_DRIVER
+    fi
+
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_PARSE_ARGS DRIVER_VALIDATE_ARGS DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     . $TASK_DRIVER
@@ -136,14 +147,12 @@ task(){
 
     echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
 
-    type task_$TASK_COMMAND &> /dev/null
-    if [[ "$?" == "0" ]]
+    if [[ ! -z "$GLOBAL_TASK" ]]
     then
-      # Task is either global or bash
       task_$TASK_COMMAND
     elif [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMMAND" ]]
     then
-      # Local non bash task
+      # Local Task
       $DRIVER_EXECUTE_TASK "$TASK_COMMAND"
     else
       echo "Invalid task: $TASK_COMMAND"
