@@ -1,5 +1,5 @@
 setup_file() {
-  export EXAMPLE_TASKS_FILE=$TASK_MASTER_HOME/tasks.sh.bash_driver
+  export EXAMPLE_TASKS_FILE=$TASK_MASTER_HOME/test/tasks.sh.bash_driver
   cat > $EXAMPLE_TASKS_FILE <<EOF
 task_hello() {
   :

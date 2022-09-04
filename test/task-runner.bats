@@ -181,7 +181,7 @@ setup() {
   cd $PROJECT_DIR
 
   run task missing
-  assert_failure
+  assert_output --partial "Invalid"
 }
 
 @test 'Returns to directory specified in TASK_RETURN_DIR in state file' {
@@ -294,6 +294,17 @@ setup() {
 
   run task help do
   assert_output --partial "I am helping: do"
+}
+
+@test 'Installs tab completion on aliases to task command' {
+  alias mytaskalias=task
+  source $TASK_MASTER_HOME/task-runner.sh
+  run display_completes
+  assert_output --partial "_TaskTabCompletion mytaskalias"
+}
+
+display_completes() {
+  complete | grep _TaskTabCompletion
 }
 
 wrap_change_dir() {

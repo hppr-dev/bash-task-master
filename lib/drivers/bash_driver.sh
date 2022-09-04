@@ -245,7 +245,7 @@ bash_help() {
 }
 
 bash_list() {
-  if [[ ! -z "$TASKS_FILE_FOUND" ]]
+  if [[ -f "$1" ]]
   then
     echo $(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')
   fi
@@ -255,14 +255,3 @@ execute_task() {
   task_$1
 }
 
-check_for_task() {
-  type task_$1 &> /dev/null
-  return $?
-}
-
-
-readonly -f bash_parse
-readonly -f bash_validate
-readonly -f bash_help
-readonly -f execute_task
-readonly -f check_for_task

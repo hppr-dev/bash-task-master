@@ -34,7 +34,7 @@ task(){
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
-  local TASKS_FILE=$HOME
+  local TASKS_FILE=""
   local TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
@@ -87,7 +87,7 @@ task(){
   fi
 
   #Run requested task in subshell
-  (
+  ( _tmverbose_echo "Starting Subshell"
     _tmverbose_echo "Task master has called itself ${RUN_NUMBER:-0} times"
 
     if [[ -z "$RUN_NUMBER" ]]
@@ -150,7 +150,7 @@ task(){
     if [[ ! -z "$GLOBAL_TASK" ]]
     then
       task_$TASK_COMMAND
-    elif [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMMAND" ]]
+    elif [[ ! -z "$TASKS_FILE" ]] && [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMAND" ]]
     then
       # Local Task
       $DRIVER_EXECUTE_TASK "$TASK_COMMAND"
@@ -159,7 +159,7 @@ task(){
       task_list
       return 1
     fi
-  )
+    _tmverbose_echo "Closing subshell" )
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
