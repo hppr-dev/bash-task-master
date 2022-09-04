@@ -1,8 +1,9 @@
-PARSE_ARGS=bash_parse
-VALIDATE_ARGS=bash_validate
-EXECUTE_TASK=execute_task
+DRIVER_PARSE_ARGS=bash_parse
+DRIVER_VALIDATE_ARGS=bash_validate
+DRIVER_LOAD_TASKS_FILE=source
+DRIVER_EXECUTE_TASK=execute_task
+DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
-HAS_TASK=check_for_task
 
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
@@ -243,18 +244,14 @@ bash_help() {
   return 1
 }
 
+bash_list() {
+  if [[ -f "$1" ]]
+  then
+    echo $(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')
+  fi
+}
+
 execute_task() {
-  $1
+  task_$1
 }
 
-check_for_task() {
-  type $1 &> /dev/null
-  return $?
-}
-
-
-readonly -f bash_parse
-readonly -f bash_validate
-readonly -f bash_help
-readonly -f execute_task
-readonly -f check_for_task

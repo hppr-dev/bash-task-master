@@ -1,16 +1,40 @@
+setup_file() {
+  export EXAMPLE_TASKS_FILE=$TASK_MASTER_HOME/test/tasks.sh.bash_driver
+  cat > $EXAMPLE_TASKS_FILE <<EOF
+task_hello() {
+  :
+}
+task_world() {
+  :
+}
+task_foo() {
+  :
+}
+task_bar() {
+  :
+}
+echo I have been loaded
+EOF
+}
+
+teardown_file() {
+  rm $EXAMPLE_TASKS_FILE
+}
+
 setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 }
 
-@test 'Defines PARSE_ARGS, VALIDATE_ARGS, EXECUTE_TASK, DRIVER_HELP_TASK, HAS_TASK' {
+@test 'Defines DRIVER_PARSE_ARGS, DRIVER_VALIDATE_ARGS, DRIVER_EXECUTE_TASK, DRIVER_HELP_TASK, ' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  assert [ ! -z "$PARSE_ARGS" ]
-  assert [ ! -z "$VALIDATE_ARGS" ]
-  assert [ ! -z "$EXECUTE_TASK" ]
+  assert [ ! -z "$DRIVER_PARSE_ARGS" ]
+  assert [ ! -z "$DRIVER_VALIDATE_ARGS" ]
+  assert [ ! -z "$DRIVER_EXECUTE_TASK" ]
   assert [ ! -z "$DRIVER_HELP_TASK" ]
-  assert [ ! -z "$HAS_TASK" ]
+  assert [ ! -z "$DRIVER_LIST_TASKS" ]
+  assert [ ! -z "$DRIVER_LOAD_TASKS_FILE" ]
 }
 
 @test 'Parses long arguments' {
@@ -18,7 +42,7 @@ setup() {
 
   TASK_COMMAND="mytask"
 
-  $PARSE_ARGS mytask --force --num 10 --out "hello world" --in foobar
+  $DRIVER_PARSE_ARGS mytask --force --num 10 --out "hello world" --in foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
@@ -30,7 +54,7 @@ setup() {
 
   TASK_COMMAND="mytask"
 
-  $PARSE_ARGS mytask -f -n 10 -o "hello world" -i foobar
+  $DRIVER_PARSE_ARGS mytask -f -n 10 -o "hello world" -i foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
@@ -42,7 +66,7 @@ setup() {
 
   TASK_COMMAND="mytask"
 
-  $PARSE_ARGS mytask -fn 10 --out "hello world" --in foobar
+  $DRIVER_PARSE_ARGS mytask -fn 10 --out "hello world" --in foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
@@ -54,7 +78,7 @@ setup() {
 
   TASK_COMMAND="mytask_withsub"
 
-  $PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3
+  $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3
   assert [ "$ARG_PASS" == "y" ]
   assert [ "$ARG_THING" == "192.168.1.3" ]
 }
@@ -64,7 +88,7 @@ setup() {
 
   TASK_COMMAND="mytask_withsub"
 
-  run $PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 -k
+  run $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 -k
   assert_failure
 }
 
@@ -73,7 +97,7 @@ setup() {
 
   TASK_COMMAND="mytask_withsub"
 
-  run $PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 dangit
+  run $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 dangit
   assert_failure
 }
 
@@ -87,7 +111,7 @@ setup() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_success
 }
 
@@ -100,7 +124,7 @@ setup() {
   ARG_NUM="10"
   ARG_OUT="hello world"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_failure
 }
 
@@ -114,7 +138,7 @@ setup() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_failure
 }
 
@@ -128,7 +152,7 @@ setup() {
   ARG_OUT="hello world"
   ARG_IN="foo bar"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_failure
 }
 
@@ -143,7 +167,7 @@ setup() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_failure
 }
 
@@ -159,14 +183,14 @@ setup() {
   ARG_IN="foobar"
   ARG_PASS="y"
 
-  run $VALIDATE_ARGS
+  run $DRIVER_VALIDATE_ARGS
   assert_failure
 }
 
 @test 'Executes task' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $EXECUTE_TASK task_example
+  run $DRIVER_EXECUTE_TASK example
   assert_output "tymbd"
 }
 
@@ -232,18 +256,22 @@ setup() {
   assert_failure
 }
 
-@test 'Identifies existing task' {
+@test 'Lists tasks in a task file' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $HAS_TASK task_example
+  TASKS_FILE_FOUND=1
+
+  run $DRIVER_LIST_TASKS $EXAMPLE_TASKS_FILE
+  assert_output "hello world foo bar"
   assert_success
 }
 
-@test 'Does not identify missing task' {
+@test 'Loads tasks file' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $HAS_TASK not_a_task
-  assert_failure
+  run $DRIVER_LOAD_TASKS_FILE $EXAMPLE_TASKS_FILE
+  assert_output "I have been loaded"
+  assert_success
 }
 
 arguments_mytask() {

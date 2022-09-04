@@ -6,7 +6,6 @@
 #      - RUNNING_DIR = directory that the task is being run from
 #      - TASK_COMMAND = command that the task is running i.e 'record' in 'task record start'
 #      - TASK_SUBCOMMAND = sub command of the running task i.e 'start' in 'task record start'
-#      - TASK_NAME = method name of the parent task i.e. 'task_record' for 'task record stop'
 #
 #   Arguments are supplied as environment variables to child tasks
 #   for instance, running 'task record start --name hello --force' will set ARG_FORCE=1 and ARG_NAME=hello
@@ -35,9 +34,9 @@ task(){
   local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
-  local TASKS_FILE=$HOME
+  local TASKS_FILE=""
+  local TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
   local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-  local HIDDEN_TASKS_FILE=$TASKS_DIR/.tasks.sh
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
   local FN=""
@@ -53,7 +52,7 @@ task(){
       if [[ -f "$TASKS_DIR/$FN" ]]
       then
         TASKS_FILE=$TASKS_DIR/$FN
-	      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
 	      TASKS_FILE_FOUND="T"
 	      break
       fi
@@ -64,22 +63,19 @@ task(){
 
   cd $RUNNING_DIR
 
-  if [[ -z "$TASKS_FILE_FOUND" ]]
-  then
-    TASKS_FILE=$GLOBAL_TASKS_FILE
-    local RUNNING_GLOBAL="1"
-    _tmverbose_echo "Switching to global: $TASKS_FILE"
-  fi
-
   local TASK_COMMAND=$1
   local TASK_SUBCOMMAND=""
 
   # Load Local Task UUID
-  local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
-  if [[ -z "$LOCAL_TASKS_UUID" ]] && [[ "$RUNNING_GLOBAL" != "1" ]]
+  if [[ ! -z "$TASKS_FILE_FOUND" ]]
   then
-    echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+    local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
+    if [[ -z "$LOCAL_TASKS_UUID" ]]
+    then
+      echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+    fi
   fi
+
   local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
   local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
   
@@ -91,7 +87,7 @@ task(){
   fi
 
   #Run requested task in subshell
-  (
+  ( _tmverbose_echo "Starting Subshell"
     _tmverbose_echo "Task master has called itself ${RUN_NUMBER:-0} times"
 
     if [[ -z "$RUN_NUMBER" ]]
@@ -112,81 +108,69 @@ task(){
 
     load_state
 
-    #Load local tasks if the desired task isn't loaded
-    if ([[ "$TASK_COMMAND" == "list" ]] || [[ "$TASK_COMMAND" == "export" ]] || [[ "$(type -t task_$TASK_COMMAND)" != "function" ]]) && [[ "$RUNNING_GLOBAL" != "1" ]] 
+    type task_$TASK_COMMAND &> /dev/null
+    if [[ "$?" == "0" ]]
     then
-      _tmverbose_echo "Sourcing tasks file"
-      . $TASKS_FILE
-    fi
-
-    if [[ "$TASK_COMMAND" == "list" ]]
-    then
-      ARG_FORMAT=bash
+      # Set driver to bash if task command is global
+      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+      GLOBAL_TASK=T
+    else
+      TASK_DRIVER=$TASK_FILE_DRIVER
     fi
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
-    # This should set commands for PARSE_ARGS VALIDATE_ARGS EXECUTE_TASK DRIVER_HELP_TASK and HAS_TASK
+    # This should set commands for DRIVER_PARSE_ARGS DRIVER_VALIDATE_ARGS DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     . $TASK_DRIVER
+
+    #Load local tasks if the desired task isn't loaded
+    if [[ ! -z "$TASKS_FILE_FOUND" ]] 
+    then
+      _tmverbose_echo "Sourcing tasks file"
+      $DRIVER_LOAD_TASKS_FILE $TASKS_FILE
+    fi
 
     #Parse and validate arguments
     unset TASK_SUBCOMMAND
-    $PARSE_ARGS "$@"
+    $DRIVER_PARSE_ARGS $@
     if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Parsing of task args returned 1, exiting..."
       return 1 
     fi
 
-    $VALIDATE_ARGS
+    $DRIVER_VALIDATE_ARGS
     if [[ "$?" != "0" ]]
     then
       _tmverbose_echo "Validation of task args returned 1, exiting..."
       return 1
     fi
 
-    local TASK_NAME=task_$TASK_COMMAND
-    $HAS_TASK "$TASK_NAME"
-    if [[ "$?" == "0" ]]
+    echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
+
+    if [[ ! -z "$GLOBAL_TASK" ]]
     then
-      echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-      $EXECUTE_TASK "$TASK_NAME"
+      task_$TASK_COMMAND
+    elif [[ ! -z "$TASKS_FILE" ]] && [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMAND" ]]
+    then
+      # Local Task
+      $DRIVER_EXECUTE_TASK "$TASK_COMMAND"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
       return 1
     fi
-  )
+    _tmverbose_echo "Closing subshell" )
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
-  if [[ -f $STATE_FILE ]]
+  if [[ -f $STATE_FILE ]] && [[ ! -z "$(grep -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE $STATE_FILE )" ]]
   then
-    # Deal with persisted return directory
-    grep -e "TASK_RETURN_DIR" $STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      eval $(grep -e "TASK_RETURN_DIR" $STATE_FILE)
-      local retdir=${TASK_RETURN_DIR//\'}
-      cd ${retdir//\"}
-      _tmverbose_echo "Returning to the directory $retdir which was specified in the state file: $STATE_FILE"
-    fi
+    awk -F = -E $TASK_MASTER_HOME/awk/special_state_vars.awk $STATE_FILE >> $STATE_FILE.export
 
-    # Deal with setting an exit trap to clean up after leaving the terminal
-    grep -e "TASK_TERM_TRAP" $STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      eval $(grep -e "TASK_TERM_TRAP" $STATE_FILE)
-      trap "$TASK_TERM_TRAP" EXIT
-      _tmverbose_echo "Setting trap $TASK_TERM_TRAP for terminal exit. Specified by $STATE_FILE"
-    fi
+    awk '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' $STATE_FILE > $STATE_FILE.tmp
+    mv $STATE_FILE.tmp $STATE_FILE
 
-    # Destroy state file if it is marked as such
-    grep $STATE_FILE -e DESTROY_STATE_FILE > /dev/null
-    if [[ "$?" == "0" ]]
-    then
-      rm $STATE_FILE
-      _tmverbose_echo "Removing $STATE_FILE because it was marked with DESTROY_STATE_FILE"
-    fi
+    _tmverbose_echo "Added export commands for TASK_RETURN_DIR, TASK_TERM_TRAP or DESTROY_STAE_FILE"
   fi
 
   if [[ -f $STATE_FILE.export ]]
@@ -217,5 +201,11 @@ _TaskTabCompletion(){
     fi
 }
 
+# Setup tab completion for task
 complete -F _TaskTabCompletion -o bashdefault -o default task
-complete -F _TaskTabCompletion -o bashdefault -o default t
+
+# Setup tab completion for any aliases for task
+for a in $(alias | grep task | sed "s/alias \(.*\)='task'/\1/")
+do
+  complete -F _TaskTabCompletion -o bashdefault -o default $a
+done

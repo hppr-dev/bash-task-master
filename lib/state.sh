@@ -65,7 +65,8 @@ load_state() {
 remove_file_value() {
   if [[ -f $2 ]]
   then
-    awk -i inplace "/^$1=/ { next } 0" $2
+    awk "/^$1=/ { next } { print }" $2 > $2.tmp
+    mv $2.tmp $2
   fi
 }
 

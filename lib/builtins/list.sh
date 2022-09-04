@@ -18,9 +18,10 @@ task_list() {
   fi
   if [[ ! -z "$ARG_LOCAL$ARG_ALL" ]]
   then
+    . $TASK_FILE_DRIVER
     echo "Available local tasks:"
     echo
-    declare -F  | grep -e "declare -f task_" | sed 's/declare -f task_/     /' | tr '\n' ' '
+    echo "     $($DRIVER_LIST_TASKS $TASKS_FILE)"
     echo
     echo
   fi
