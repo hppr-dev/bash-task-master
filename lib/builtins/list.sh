@@ -20,7 +20,7 @@ task_list() {
   then
     echo "Available local tasks:"
     echo
-    declare -F  | grep -e "declare -f task_" | sed 's/declare -f task_/     /' | tr '\n' ' '
+    echo "     $($DRIVER_LIST_TASKS $TASKS_FILE)"
     echo
     echo
   fi

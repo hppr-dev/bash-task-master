@@ -1,8 +1,8 @@
 PARSE_ARGS=bash_parse
 VALIDATE_ARGS=bash_validate
 EXECUTE_TASK=execute_task
+DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
-HAS_TASK=check_for_task
 
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
@@ -241,6 +241,13 @@ bash_help() {
     return 0
   fi
   return 1
+}
+
+bash_list() {
+  if [[ ! -z "$TASKS_FILE_FOUND" ]]
+  then
+    echo "$(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')"
+  fi
 }
 
 execute_task() {

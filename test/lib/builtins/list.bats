@@ -1,10 +1,9 @@
 setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
-}
 
-# These test will probably change dramatically when functionality for drivers is included
-# The global tasks should be the same, but the local tasks may have different drivers
+  export DRIVER_LIST_TASKS="ltask"
+}
 
 @test 'Lists all tasks by default' {
   source $TASK_MASTER_HOME/lib/builtins/list.sh
