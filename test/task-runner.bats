@@ -54,6 +54,7 @@ DRIVER_EXECUTE_TASK=execute_test
 DRIVER_LIST_TASKS=list_test
 DRIVER_HELP_TASK=help_test
 DRIVER_LOAD_TASKS_FILE=load_test
+DRIVER_VALIDATE_TASKS_FILE=validate_tasks_file_test
 
 load_test() {
   echo I am loading: \$@
@@ -76,6 +77,10 @@ list_test() {
 
 help_test() {
   echo I am helping: \$@
+}
+
+validate_tasks_file_test() {
+  return 0
 }
 
 EOF
@@ -268,7 +273,7 @@ setup() {
   assert_output "hello"
 }
 
-@test 'Uses a custom driver' {
+@test 'Uses a working custom driver' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $DRIVER_TEST_DIR
 
@@ -277,6 +282,18 @@ setup() {
   assert [ "${lines[2]}" == "I am parsing: do something --special" ]
   assert [ "${lines[3]}" == "I am validating:" ]
   assert [ "${lines[5]}" == "I am executing: do" ]
+}
+
+@test 'Fails if task file driver is missing an interface value' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $DRIVER_TEST_DIR
+
+  awk -i inplace '/DRIVER_VALIDATE_ARGS/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh
+
+  run task do something --special
+  assert_failure
+
+  sed --in-place 's/#DRIVER_VALIDATE_ARGS/DRIVER_VALIDATE_ARGS/' $DRIVER_DIR/test_custom_driver.sh
 }
 
 @test 'Calls global list task in custom driver task file scope' {
