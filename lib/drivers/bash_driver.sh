@@ -4,6 +4,7 @@ DRIVER_LOAD_TASKS_FILE=source
 DRIVER_EXECUTE_TASK=execute_task
 DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
+DRIVER_VALIDATE_TASKS_FILE=bash_validate_file
 
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
@@ -255,3 +256,6 @@ execute_task() {
   task_$1
 }
 
+bash_validate_file() {
+  bash -n $1
+}

@@ -13,7 +13,7 @@ task_edit() {
   while [[ "$validated" != "0" ]]
   do
     $DEFAULT_EDITOR $TASKS_FILE
-    bash -n $TASKS_FILE
+    $DRIVER_VALIDATE_TASKS_FILE $TASKS_FILE
     if [[ "$?" != "0" ]]
     then
       validated=1
