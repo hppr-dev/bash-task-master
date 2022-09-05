@@ -1,10 +1,12 @@
 arguments_module() {
   SUBCOMMANDS="enable|disable|list"
 
-  ENABLE_DESCRIPTION="Enable a module"
+  MODULE_DESCRIPTION="Manage modules."
+
+  ENABLE_DESCRIPTION="Enable a module. Downloads modules from TASK_REPOS if not found locally."
   ENABLE_REQUIREMENTS="id:i:str"
 
-  DISABLE_DESRIPTION="Disable a module"
+  DISABLE_DESCRIPTION="Disable a module"
   DISABLE_REQUIREMENTS="id:i:str"
 
   LIST_DESCRIPTION="List modules"
@@ -80,7 +82,9 @@ module_list() {
     echo "Disabled Modules:"
     echo "$(echo "$local_files" | grep disabled | sed 's/\(.*\)-module.sh.disabled/    \1/' )"
     echo
-  else
+  fi
+  if [[ ! -z "$ARG_ALL$ARG_ENABLED" ]]
+  then
     echo "Enabled Modules:"
     echo "$(echo "$local_files" | grep -v disabled | sed 's/\(.*\)-module.sh/    \1/' )"
     echo
