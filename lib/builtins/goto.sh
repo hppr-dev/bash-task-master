@@ -1,3 +1,8 @@
+arguments_goto() {
+  SUBCOMMANDS="$(sed 's/UUID_\(.*\)=.*/\1|/' $LOCATIONS_FILE)"
+  GOTO_DESCRIPTION="Change directories to a bookmark"
+}
+
 task_goto() {
   local location=UUID_$TASK_SUBCOMMAND
   local $(awk "/^$location=.*$/{print} 0" $LOCATIONS_FILE) > /dev/null
@@ -13,3 +18,4 @@ task_goto() {
 }
 
 readonly -f task_goto
+readonly -f arguments_goto
