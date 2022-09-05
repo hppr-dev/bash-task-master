@@ -1,3 +1,7 @@
+arguments_edit() {
+  EDIT_DESCRIPTION="Edit the current tasks file. Validates the file after closing"
+}
+
 task_edit() {
   local validated=1
   cp $TASKS_FILE $TASKS_FILE.tmp

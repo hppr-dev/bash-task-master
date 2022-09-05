@@ -19,6 +19,12 @@ teardown() {
   rm $LOCATIONS_FILE
 }
 
+@test "Sets descripton" {
+  source $TASK_MASTER_HOME/lib/builtins/goto.sh
+
+  assert [ ! -z "$GOTO_DESCRIPTION" ]
+}
+
 @test "Should goto directory" {
   source $TASK_MASTER_HOME/lib/builtins/goto.sh
 

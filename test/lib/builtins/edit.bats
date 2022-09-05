@@ -12,6 +12,13 @@ teardown() {
   rm $TASKS_FILE
 }
 
+@test "Sets description" {
+  source $TASK_MASTER_HOME/lib/builtins/edit.sh
+
+  arguments_edit
+
+  assert [ ! -z "$EDIT_DESCRIPTION" ]
+}
 @test "Validates tasks file" {
   source $TASK_MASTER_HOME/lib/builtins/edit.sh
 
