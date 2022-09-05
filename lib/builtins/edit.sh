@@ -3,6 +3,11 @@ arguments_edit() {
 }
 
 task_edit() {
+  if [[ -z "$TASKS_FILE" ]]
+  then
+    echo "No tasks file found."
+    return 1
+  fi
   local validated=1
   cp $TASKS_FILE $TASKS_FILE.tmp
   while [[ "$validated" != "0" ]]
@@ -29,3 +34,4 @@ task_edit() {
 }
 
 readonly -f task_edit
+readonly -f arguments_edit

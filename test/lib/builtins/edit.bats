@@ -9,7 +9,7 @@ setup() {
 }
 
 teardown() {
-  rm $TASKS_FILE
+  rm -f $TASKS_FILE
 }
 
 @test "Sets description" {
@@ -19,6 +19,15 @@ teardown() {
 
   assert [ ! -z "$EDIT_DESCRIPTION" ]
 }
+
+@test "Fails if a task file is not found" {
+  source $TASK_MASTER_HOME/lib/builtins/edit.sh
+  TASKS_FILE=""
+
+  run task_edit
+  assert_failure
+}
+
 @test "Validates tasks file" {
   source $TASK_MASTER_HOME/lib/builtins/edit.sh
 

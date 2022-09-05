@@ -1,5 +1,5 @@
 arguments_goto() {
-  SUBCOMMANDS=".*"
+  SUBCOMMANDS="$(sed 's/UUID_\(.*\)=.*/\1|/' $LOCATIONS_FILE)"
   GOTO_DESCRIPTION="Change directories to a bookmark"
 }
 

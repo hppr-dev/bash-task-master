@@ -101,3 +101,12 @@ get_repo_module_list() {
 get_local_module_files() {
   find $TASK_MASTER_HOME/modules -name '*-module.sh' -or -name '*-module.sh.disabled' 
 }
+
+
+readonly -f arguments_module
+readonly -f task_module
+readonly -f module_enable
+readonly -f module_disable
+readonly -f module_list
+readonly -f get_repo_module_list
+readonly -f get_local_module_files

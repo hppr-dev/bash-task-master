@@ -22,6 +22,8 @@ teardown() {
 @test "Sets descripton" {
   source $TASK_MASTER_HOME/lib/builtins/goto.sh
 
+  arguments_goto
+
   assert [ ! -z "$GOTO_DESCRIPTION" ]
 }
 
