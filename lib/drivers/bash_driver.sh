@@ -80,7 +80,7 @@ bash_validate() {
   # Define available types
   declare -A verif
   local avail_types='str|int|bool|nowhite|upper|lower|single|ip'
-  local verif[str]='^.*$'
+  local verif[str]='^[^1].*$'
   local verif[int]='^[0-9]+$'
   local verif[bool]='^1$'
   local verif[nowhite]='^[^[:space:]]+$'
