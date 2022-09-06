@@ -1,4 +1,6 @@
-setup_file() {
+setup() {
+  load "$TASK_MASTER_HOME/test/run/bats-support/load"
+  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
 
@@ -54,7 +56,7 @@ DRIVER_EXECUTE_TASK=execute_test
 DRIVER_LIST_TASKS=list_test
 DRIVER_HELP_TASK=help_test
 DRIVER_LOAD_TASKS_FILE=load_test
-DRIVER_VALIDATE_TASKS_FILE=validate_tasks_file_test
+DRIVER_VALIDATE_TASKS_FILE="not used in task runner"
 
 load_test() {
   echo I am loading: \$@
@@ -79,27 +81,18 @@ help_test() {
   echo I am helping: \$@
 }
 
-validate_tasks_file_test() {
-  return 0
-}
-
 EOF
   export DRIVER_TEST_DIR=$TASK_MASTER_HOME/test/dtest
   mkdir -p $DRIVER_TEST_DIR
   touch $DRIVER_TEST_DIR/testtasks.myfile
 }
 
-teardown_file() {
+teardown() {
   rm -r $PROJECT_DIR
 
   rm -r $DRIVER_TEST_DIR
   awk -i inplace '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh
   rm $DRIVER_DIR/test_custom_driver.sh
-}
-
-setup() {
-  load "$TASK_MASTER_HOME/test/run/bats-support/load"
-  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 }
 
 # The tests in this file are integration tests with the bash_driver
