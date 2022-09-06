@@ -1,4 +1,6 @@
-setup_file() {
+setup() {
+  load "$TASK_MASTER_HOME/test/run/bats-support/load"
+  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
 
@@ -54,6 +56,7 @@ DRIVER_EXECUTE_TASK=execute_test
 DRIVER_LIST_TASKS=list_test
 DRIVER_HELP_TASK=help_test
 DRIVER_LOAD_TASKS_FILE=load_test
+DRIVER_VALIDATE_TASKS_FILE="not used in task runner"
 
 load_test() {
   echo I am loading: \$@
@@ -84,17 +87,12 @@ EOF
   touch $DRIVER_TEST_DIR/testtasks.myfile
 }
 
-teardown_file() {
+teardown() {
   rm -r $PROJECT_DIR
 
   rm -r $DRIVER_TEST_DIR
   awk -i inplace '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh
   rm $DRIVER_DIR/test_custom_driver.sh
-}
-
-setup() {
-  load "$TASK_MASTER_HOME/test/run/bats-support/load"
-  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 }
 
 # The tests in this file are integration tests with the bash_driver
@@ -268,7 +266,7 @@ setup() {
   assert_output "hello"
 }
 
-@test 'Uses a custom driver' {
+@test 'Uses a working custom driver' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $DRIVER_TEST_DIR
 
@@ -277,6 +275,18 @@ setup() {
   assert [ "${lines[2]}" == "I am parsing: do something --special" ]
   assert [ "${lines[3]}" == "I am validating:" ]
   assert [ "${lines[5]}" == "I am executing: do" ]
+}
+
+@test 'Fails if task file driver is missing an interface value' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $DRIVER_TEST_DIR
+
+  awk -i inplace '/DRIVER_VALIDATE_ARGS/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh
+
+  run task do something --special
+  assert_failure
+
+  sed --in-place 's/#DRIVER_VALIDATE_ARGS/DRIVER_VALIDATE_ARGS/' $DRIVER_DIR/test_custom_driver.sh
 }
 
 @test 'Calls global list task in custom driver task file scope' {

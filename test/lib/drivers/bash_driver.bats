@@ -1,4 +1,6 @@
-setup_file() {
+setup() {
+  load "$TASK_MASTER_HOME/test/run/bats-support/load"
+  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
   export EXAMPLE_TASKS_FILE=$TASK_MASTER_HOME/test/tasks.sh.bash_driver
   cat > $EXAMPLE_TASKS_FILE <<EOF
 task_hello() {
@@ -17,13 +19,8 @@ echo I have been loaded
 EOF
 }
 
-teardown_file() {
+teardown() {
   rm $EXAMPLE_TASKS_FILE
-}
-
-setup() {
-  load "$TASK_MASTER_HOME/test/run/bats-support/load"
-  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 }
 
 @test 'Defines DRIVER_PARSE_ARGS, DRIVER_VALIDATE_ARGS, DRIVER_EXECUTE_TASK, DRIVER_HELP_TASK, ' {
@@ -272,6 +269,22 @@ setup() {
   run $DRIVER_LOAD_TASKS_FILE $EXAMPLE_TASKS_FILE
   assert_output "I have been loaded"
   assert_success
+}
+
+@test 'Validates tasks file' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  run $DRIVER_VALIDATE_TASKS_FILE $EXAMPLE_TASKS_FILE
+  assert_success
+}
+
+@test 'Does not validate bad tasks file {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+  grep -v task_bar $EXAMPLE_TASKS_FILE > $EXAMPLE_TASKS_FILE.tmp
+  mv $EXAMPLE_TASKS_FILE{.tmp,}
+
+  run $DRIVER_VALIDATE_TASKS_FILE $EXAMPLE_TASKS_FILE
+  assert_failure
 }
 
 arguments_mytask() {

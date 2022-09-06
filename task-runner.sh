@@ -121,6 +121,12 @@ task(){
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_PARSE_ARGS DRIVER_VALIDATE_ARGS DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     . $TASK_DRIVER
+    if [[ -z "$DRIVER_PARSE_ARGS" ]] || [[ -z "$DRIVER_VALIDATE_ARGS" ]] || [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
+    then
+      echo Driver implementation error.
+      echo $TASK_DRIVER is missing required definitions
+      return 1
+    fi
 
     #Load local tasks if the desired task isn't loaded
     if [[ ! -z "$TASKS_FILE_FOUND" ]] 

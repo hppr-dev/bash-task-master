@@ -2,6 +2,7 @@ state/**/*.hold
 state/**/*.export
 state/**/*.vars
 state/**
+modules/*-module.sh*
 **/*.swp
 backup
 test/kcov

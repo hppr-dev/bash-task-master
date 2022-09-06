@@ -4,6 +4,7 @@ DRIVER_LOAD_TASKS_FILE=source
 DRIVER_EXECUTE_TASK=execute_task
 DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
+DRIVER_VALIDATE_TASKS_FILE=bash_validate_file
 
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
@@ -79,7 +80,7 @@ bash_validate() {
   # Define available types
   declare -A verif
   local avail_types='str|int|bool|nowhite|upper|lower|single|ip'
-  local verif[str]='^.*$'
+  local verif[str]='^[^1].*$'
   local verif[int]='^[0-9]+$'
   local verif[bool]='^1$'
   local verif[nowhite]='^[^[:space:]]+$'
@@ -255,3 +256,6 @@ execute_task() {
   task_$1
 }
 
+bash_validate_file() {
+  bash -n $1
+}
