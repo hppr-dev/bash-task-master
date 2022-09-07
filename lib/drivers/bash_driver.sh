@@ -1,6 +1,3 @@
-DRIVER_PARSE_ARGS=bash_parse
-DRIVER_VALIDATE_ARGS=bash_validate
-DRIVER_LOAD_TASKS_FILE=source
 DRIVER_EXECUTE_TASK=execute_task
 DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
@@ -253,7 +250,31 @@ bash_list() {
 }
 
 execute_task() {
-  task_$1
+  #Load local tasks if the desired task isn't loaded
+  if [[ ! -z "$TASKS_FILE_FOUND" ]] 
+  then
+    _tmverbose_echo "Sourcing tasks file"
+    source $TASKS_FILE
+  fi
+
+  #Parse and validate arguments
+  unset TASK_SUBCOMMAND
+  bash_parse $@
+  if [[ "$?" != "0" ]]
+  then
+    _tmverbose_echo "Parsing of task args returned 1, exiting..."
+    return 1 
+  fi
+
+  bash_validate
+  if [[ "$?" != "0" ]]
+  then
+    _tmverbose_echo "Validation of task args returned 1, exiting..."
+    return 1
+  fi
+
+  echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
+  task_$TASK_COMMAND
 }
 
 bash_validate_file() {

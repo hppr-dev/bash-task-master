@@ -35,9 +35,11 @@ task(){
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=""
-  local TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-  local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+  local DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
+  local TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
+  local TASK_DRIVER=$TASK_FILE_DRIVER
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+
 
   local FN=""
   local TASKS_FILE_FOUND=""
@@ -87,7 +89,7 @@ task(){
   fi
 
   #Run requested task in subshell
-  ( _tmverbose_echo "Starting Subshell"
+  (
     _tmverbose_echo "Task master has called itself ${RUN_NUMBER:-0} times"
 
     if [[ -z "$RUN_NUMBER" ]]
@@ -108,10 +110,10 @@ task(){
 
     load_state
 
+    # Check if task is already loaded
     type task_$TASK_COMMAND &> /dev/null
     if [[ "$?" == "0" ]]
     then
-      # Set driver to bash if task command is global
       TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
       GLOBAL_TASK=T
     else
@@ -119,53 +121,26 @@ task(){
     fi
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
-    # This should set commands for DRIVER_PARSE_ARGS DRIVER_VALIDATE_ARGS DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
+    # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     . $TASK_DRIVER
-    if [[ -z "$DRIVER_PARSE_ARGS" ]] || [[ -z "$DRIVER_VALIDATE_ARGS" ]] || [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
+
+    if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
       echo Driver implementation error.
       echo $TASK_DRIVER is missing required definitions
       return 1
     fi
 
-    #Load local tasks if the desired task isn't loaded
-    if [[ ! -z "$TASKS_FILE_FOUND" ]] 
+    if [[ ! -z "$GLOBAL_TASK" ]] || [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMAND" ]]
     then
-      _tmverbose_echo "Sourcing tasks file"
-      $DRIVER_LOAD_TASKS_FILE $TASKS_FILE
-    fi
-
-    #Parse and validate arguments
-    unset TASK_SUBCOMMAND
-    $DRIVER_PARSE_ARGS $@
-    if [[ "$?" != "0" ]]
-    then
-      _tmverbose_echo "Parsing of task args returned 1, exiting..."
-      return 1 
-    fi
-
-    $DRIVER_VALIDATE_ARGS
-    if [[ "$?" != "0" ]]
-    then
-      _tmverbose_echo "Validation of task args returned 1, exiting..."
-      return 1
-    fi
-
-    echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-
-    if [[ ! -z "$GLOBAL_TASK" ]]
-    then
-      task_$TASK_COMMAND
-    elif [[ ! -z "$TASKS_FILE" ]] && [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMAND" ]]
-    then
-      # Local Task
-      $DRIVER_EXECUTE_TASK "$TASK_COMMAND"
+      $DRIVER_EXECUTE_TASK $@
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
       return 1
     fi
-    _tmverbose_echo "Closing subshell" )
+  )
+
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside

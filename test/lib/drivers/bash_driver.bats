@@ -26,12 +26,9 @@ teardown() {
 @test 'Defines DRIVER_PARSE_ARGS, DRIVER_VALIDATE_ARGS, DRIVER_EXECUTE_TASK, DRIVER_HELP_TASK, ' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  assert [ ! -z "$DRIVER_PARSE_ARGS" ]
-  assert [ ! -z "$DRIVER_VALIDATE_ARGS" ]
   assert [ ! -z "$DRIVER_EXECUTE_TASK" ]
   assert [ ! -z "$DRIVER_HELP_TASK" ]
   assert [ ! -z "$DRIVER_LIST_TASKS" ]
-  assert [ ! -z "$DRIVER_LOAD_TASKS_FILE" ]
 }
 
 @test 'Parses long arguments' {
@@ -39,7 +36,7 @@ teardown() {
 
   TASK_COMMAND="mytask"
 
-  $DRIVER_PARSE_ARGS mytask --force --num 10 --out "hello world" --in foobar
+  bash_parse mytask --force --num 10 --out "hello world" --in foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
@@ -51,7 +48,7 @@ teardown() {
 
   TASK_COMMAND="mytask"
 
-  $DRIVER_PARSE_ARGS mytask -f -n 10 -o "hello world" -i foobar
+  bash_parse mytask -f -n 10 -o "hello world" -i foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
@@ -63,11 +60,23 @@ teardown() {
 
   TASK_COMMAND="mytask"
 
-  $DRIVER_PARSE_ARGS mytask -fn 10 --out "hello world" --in foobar
+  bash_parse mytask -fn 10 --out "hello world" --in foobar
   assert [ ! -z "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
   assert [ "$ARG_IN" == "foobar" ]
+}
+
+@test 'Parses a lot of combined bool arguments' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_COMMAND="boolbunch"
+
+  bash_parse mytask -iozn 10
+  assert [ ! -z "$ARG_IN" ]
+  assert [ ! -z "$ARG_OUT" ]
+  assert [ ! -z "$ARG_ZOO" ]
+  assert [ "$ARG_NUM" == "10" ]
 }
 
 @test 'Parses subcommand arguments' {
@@ -75,7 +84,7 @@ teardown() {
 
   TASK_COMMAND="mytask_withsub"
 
-  $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3
+  bash_parse mytask_withsub sub -p y -t 192.168.1.3
   assert [ "$ARG_PASS" == "y" ]
   assert [ "$ARG_THING" == "192.168.1.3" ]
 }
@@ -85,7 +94,7 @@ teardown() {
 
   TASK_COMMAND="mytask_withsub"
 
-  run $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 -k
+  run bash_parse mytask_withsub sub -p y -t 192.168.1.3 -k
   assert_failure
 }
 
@@ -94,7 +103,7 @@ teardown() {
 
   TASK_COMMAND="mytask_withsub"
 
-  run $DRIVER_PARSE_ARGS mytask_withsub sub -p y -t 192.168.1.3 dangit
+  run bash_parse mytask_withsub sub -p y -t 192.168.1.3 dangit
   assert_failure
 }
 
@@ -108,7 +117,7 @@ teardown() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_success
 }
 
@@ -121,7 +130,7 @@ teardown() {
   ARG_NUM="10"
   ARG_OUT="hello world"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_failure
 }
 
@@ -135,7 +144,7 @@ teardown() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_failure
 }
 
@@ -149,7 +158,7 @@ teardown() {
   ARG_OUT="hello world"
   ARG_IN="foo bar"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_failure
 }
 
@@ -164,7 +173,7 @@ teardown() {
   ARG_OUT="hello world"
   ARG_IN="foobar"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_failure
 }
 
@@ -180,15 +189,17 @@ teardown() {
   ARG_IN="foobar"
   ARG_PASS="y"
 
-  run $DRIVER_VALIDATE_ARGS
+  run bash_validate
   assert_failure
 }
 
 @test 'Executes task' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $DRIVER_EXECUTE_TASK example
-  assert_output "tymbd"
+  TASK_COMMAND="example"
+
+  run $DRIVER_EXECUTE_TASK
+  assert_output --partial "tymbd"
 }
 
 @test 'Shows help for task with subcommand' {
@@ -263,14 +274,6 @@ teardown() {
   assert_success
 }
 
-@test 'Loads tasks file' {
-  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-
-  run $DRIVER_LOAD_TASKS_FILE $EXAMPLE_TASKS_FILE
-  assert_output "I have been loaded"
-  assert_success
-}
-
 @test 'Validates tasks file' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
@@ -304,6 +307,10 @@ arguments_mytask_withsub() {
 
 arguments_nodescription() {
   NODESCRIPTION_OPTIONS="not:n:bool"
+}
+
+arguments_boolbunch() {
+  BOOLBUNCH_OPTIONS="out:o:bool in:i:bool zoo:z:bool num:n:int"
 }
 
 task_example() {
