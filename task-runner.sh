@@ -35,9 +35,11 @@ task(){
   local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   local TASKS_DIR=$RUNNING_DIR
   local TASKS_FILE=""
-  local TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-  local TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+  local DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
+  local TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
+  local TASK_DRIVER=$TASK_FILE_DRIVER
   local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+
 
   local FN=""
   local TASKS_FILE_FOUND=""
