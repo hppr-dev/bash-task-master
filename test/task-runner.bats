@@ -50,24 +50,10 @@ EOF
   echo "TASK_DRIVERS[testtasks.myfile]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
 
   cat > $DRIVER_DIR/test_custom_driver.sh <<EOF
-DRIVER_PARSE_ARGS=parse_test
-DRIVER_VALIDATE_ARGS=validate_test
 DRIVER_EXECUTE_TASK=execute_test
 DRIVER_LIST_TASKS=list_test
 DRIVER_HELP_TASK=help_test
-DRIVER_LOAD_TASKS_FILE=load_test
 DRIVER_VALIDATE_TASKS_FILE="not used in task runner"
-
-load_test() {
-  echo I am loading: \$@
-}
-parse_test() {
-  echo I am parsing: \$@
-}
-
-validate_test() {
-  echo I am validating: \$@
-}
 
 execute_test() {
   echo I am executing: \$@
@@ -271,17 +257,14 @@ teardown() {
   cd $DRIVER_TEST_DIR
 
   run task do something --special
-  assert [ "${lines[1]}" ==  "I am loading: $TASK_MASTER_HOME/test/dtest/testtasks.myfile" ]
-  assert [ "${lines[2]}" == "I am parsing: do something --special" ]
-  assert [ "${lines[3]}" == "I am validating:" ]
-  assert [ "${lines[5]}" == "I am executing: do" ]
+  assert [ "${lines[1]}" == "I am executing: do something --special" ]
 }
 
 @test 'Fails if task file driver is missing an interface value' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $DRIVER_TEST_DIR
 
-  awk -i inplace '/DRIVER_VALIDATE_ARGS/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh
+  awk -i inplace '/DRIVER_EXECUTE_TASK/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh
 
   run task do something --special
   assert_failure
