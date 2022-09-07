@@ -23,10 +23,10 @@ task(){
   fi
 
   # Load task drivers
-  . $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
+  . "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
 
   # Load config
-  . $TASK_MASTER_HOME/config.sh
+  . "$TASK_MASTER_HOME"/config.sh
 
   # Save directory that you are running it from
   local RUNNING_DIR=$(pwd)
@@ -63,15 +63,15 @@ task(){
 
   _tmverbose_echo "Tasks file: $TASKS_FILE in $TASKS_DIR"
 
-  cd $RUNNING_DIR
+  cd "$RUNNING_DIR" || return 1
 
   local TASK_COMMAND=$1
   local TASK_SUBCOMMAND=""
 
   # Load Local Task UUID
-  if [[ ! -z "$TASKS_FILE_FOUND" ]]
+  if [[ -n "$TASKS_FILE_FOUND" ]]
   then
-    local $(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' $TASKS_FILE) > /dev/null
+    local "$(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' "$TASKS_FILE")" &> /dev/null
     if [[ -z "$LOCAL_TASKS_UUID" ]]
     then
       echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
@@ -104,15 +104,16 @@ task(){
     then
       _tmverbose_echo "Loading internal functions"
 
-      . $TASK_MASTER_HOME/lib/state.sh
-      . $GLOBAL_TASKS_FILE
+      . "$TASK_MASTER_HOME"/lib/state.sh
+      . "$GLOBAL_TASKS_FILE"
     fi
 
     load_state
 
     # Check if task is already loaded
-    type task_$TASK_COMMAND &> /dev/null
-    if [[ "$?" == "0" ]]
+    
+    
+    if type task_"$TASK_COMMAND" &> /dev/null 
     then
       TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
       GLOBAL_TASK=T
@@ -122,18 +123,18 @@ task(){
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
-    . $TASK_DRIVER
+    . "$TASK_DRIVER"
 
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
       echo Driver implementation error.
-      echo $TASK_DRIVER is missing required definitions
+      echo "$TASK_DRIVER is missing required definitions"
       return 1
     fi
 
-    if [[ ! -z "$GLOBAL_TASK" ]] || [[ "$($DRIVER_LIST_TASKS $TASKS_FILE)" =~ "$TASK_COMMAND" ]]
+    if [[ -n "$GLOBAL_TASK" ]] || [[ "$($DRIVER_LIST_TASKS "$TASKS_FILE")" =~ $TASK_COMMAND ]]
     then
-      $DRIVER_EXECUTE_TASK $@
+      $DRIVER_EXECUTE_TASK "$@"
     else
       echo "Invalid task: $TASK_COMMAND"
       task_list
@@ -144,20 +145,20 @@ task(){
   local subshell_ret=$?
 
   #This needs to be here because it interacts with the outside
-  if [[ -f $STATE_FILE ]] && [[ ! -z "$(grep -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE $STATE_FILE )" ]]
+  if [[ -f "$STATE_FILE" ]] && grep -q -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE "$STATE_FILE"
   then
-    awk -F = -E $TASK_MASTER_HOME/awk/special_state_vars.awk $STATE_FILE >> $STATE_FILE.export
+    awk -F = -E "$TASK_MASTER_HOME"/awk/special_state_vars.awk "$STATE_FILE" >> "$STATE_FILE.export"
 
-    awk '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' $STATE_FILE > $STATE_FILE.tmp
-    mv $STATE_FILE.tmp $STATE_FILE
+    awk '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' "$STATE_FILE" > "$STATE_FILE.tmp"
+    mv "$STATE_FILE"{.tmp,} 
 
     _tmverbose_echo "Added export commands for TASK_RETURN_DIR, TASK_TERM_TRAP or DESTROY_STAE_FILE"
   fi
 
   if [[ -f $STATE_FILE.export ]]
   then
-    source $STATE_FILE.export
-    rm $STATE_FILE.export
+    source "$STATE_FILE.export"
+    rm "$STATE_FILE.export"
     _tmverbose_echo "Found $STATE_FILE.export as a state file export, loaded and removed it"
   fi
 
@@ -165,9 +166,9 @@ task(){
 }
 
 _tmverbose_echo(){
-  if [[ ! -z "$GLOBAL_VERBOSE" ]]
+  if [[ -n "$GLOBAL_VERBOSE" ]]
   then
-    echo -e $1
+    echo -e "$1"
   fi
 }
 
@@ -188,5 +189,5 @@ complete -F _TaskTabCompletion -o bashdefault -o default task
 # Setup tab completion for any aliases for task
 for a in $(alias | grep task | sed "s/alias \(.*\)='task'/\1/")
 do
-  complete -F _TaskTabCompletion -o bashdefault -o default $a
+  complete -F _TaskTabCompletion -o bashdefault -o default "$a"
 done
