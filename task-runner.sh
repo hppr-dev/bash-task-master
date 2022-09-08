@@ -1,17 +1,22 @@
 #!/bin/bash
-#########################################################################################################
-# Main Task Runner:
-#   Supplies the following environment variables to tasks:
-#      - TASKS_DIR = directory of the local tasks.sh file
-#      - RUNNING_DIR = directory that the task is being run from
-#      - TASK_COMMAND = command that the task is running i.e 'record' in 'task record start'
-#      - TASK_SUBCOMMAND = sub command of the running task i.e 'start' in 'task record start'
-#
-#   Arguments are supplied as environment variables to child tasks
-#   for instance, running 'task record start --name hello --force' will set ARG_FORCE=1 and ARG_NAME=hello
-#
-##########################################################################################################
 task(){
+  # ALL OF THE FOLLOWING VARIABLES ARE AVAILABLE TO TASK SUBSHELLS
+  local RUNNING_DIR
+  local TASK_AWK_DIR
+  local GLOBAL_TASKS_FILE
+  local TASKS_DIR
+  local TASKS_FILE
+  local DRIVER_DIR
+  local TASK_FILE_DRIVER
+  local TASK_DRIVER
+  local LOCATIONS_FILE
+  local TASKS_FILE_NAME
+  local TASKS_FILE_FOUND
+  local TASK_COMMAND
+  local TASK_SUBCOMMAND
+  local STATE_DIR
+  local STATE_FILE
+  local GLOBAL_VERBOSE
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
@@ -23,38 +28,37 @@ task(){
   fi
 
   # Load task drivers
-  . "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
+  source "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
 
   # Load config
-  . "$TASK_MASTER_HOME"/config.sh
+  source "$TASK_MASTER_HOME"/config.sh
 
   # Save directory that you are running it from
-  local RUNNING_DIR=$(pwd)
+  RUNNING_DIR=$(pwd)
+  TASK_AWK_DIR=$TASK_MASTER_HOME/awk
+  GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
+  TASKS_DIR=$RUNNING_DIR
+  TASKS_FILE=""
+  DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
+  TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
+  TASK_DRIVER=$TASK_FILE_DRIVER
+  LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
-  local TASK_AWK_DIR=$TASK_MASTER_HOME/awk
-  local GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
-  local TASKS_DIR=$RUNNING_DIR
-  local TASKS_FILE=""
-  local DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
-  local TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
-  local TASK_DRIVER=$TASK_FILE_DRIVER
-  local LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
-
-  local FN=""
-  local TASKS_FILE_FOUND=""
+  TASKS_FILE_NAME=""
+  TASKS_FILE_FOUND=""
 
   # Find tasks file
   while [[ "$TASKS_DIR" != "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]]
   do
     TASKS_DIR=$(pwd)
     cd ..
-    for FN in "${!TASK_DRIVERS[@]}"
+    for TASKS_FILE_NAME in "${!TASK_DRIVERS[@]}"
     do
-      if [[ -f "$TASKS_DIR/$FN" ]]
+      if [[ -f "$TASKS_DIR/$TASKS_FILE_NAME" ]]
       then
-        TASKS_FILE=$TASKS_DIR/$FN
-	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$FN]}
+        TASKS_FILE=$TASKS_DIR/$TASKS_FILE_NAME
+	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$TASKS_FILE_NAME]}
 	      TASKS_FILE_FOUND="T"
 	      break
       fi
@@ -65,8 +69,8 @@ task(){
 
   cd "$RUNNING_DIR" || return 1
 
-  local TASK_COMMAND=$1
-  local TASK_SUBCOMMAND=""
+  TASK_COMMAND=$1
+  TASK_SUBCOMMAND=""
 
   # Load Local Task UUID
   if [[ -n "$TASKS_FILE_FOUND" ]]
@@ -78,8 +82,8 @@ task(){
     fi
   fi
 
-  local STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
-  local STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
+  STATE_DIR="$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
+  STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
   
   _tmverbose_echo "State Dir: $STATE_DIR\nState file: $STATE_FILE"
 
@@ -104,8 +108,8 @@ task(){
     then
       _tmverbose_echo "Loading internal functions"
 
-      . "$TASK_MASTER_HOME"/lib/state.sh
-      . "$GLOBAL_TASKS_FILE"
+      source "$TASK_MASTER_HOME"/lib/state.sh
+      source "$GLOBAL_TASKS_FILE"
     fi
 
     load_state
@@ -123,7 +127,7 @@ task(){
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
-    . "$TASK_DRIVER"
+    source "$TASK_DRIVER"
 
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
@@ -173,14 +177,15 @@ _tmverbose_echo(){
 }
 
 _TaskTabCompletion(){
-    local tasks=$(task list | grep -v Available | grep -v Running)
-    local cur=${COMP_WORDS[COMP_CWORD]}  
-    local word=${COMP_WORDS[$COMP_CWORD-1]}
-    local aliases="$(alias | grep task | sed "s/alias \(.*\)='task'/\1/")"
-    if [[ "$word" == "task" ]] || [[ "$word" == "help" ]] || [[ "$aliases" == *"$word"* ]]
-    then
-      COMPREPLY=($( compgen -W "$tasks" -- "$cur" ))
-    fi
+  local tasks cur word aliases
+  tasks=$(task list | grep -v Available | grep -v Running)
+  cur=${COMP_WORDS[COMP_CWORD]}  
+  word=${COMP_WORDS[$COMP_CWORD-1]}
+  aliases="$(alias | grep task | sed "s/alias \(.*\)='task'/\1/")"
+  if [[ "$word" == "task" ]] || [[ "$word" == "help" ]] || [[ "$aliases" == *"$word"* ]]
+  then
+    COMPREPLY=("$( compgen -W "$tasks" -- "$cur" )")
+  fi
 }
 
 # Setup tab completion for task

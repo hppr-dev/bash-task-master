@@ -2,23 +2,21 @@
 GIT_DIR=$(dirname "$(readlink -f "$0")")
 ALREADY_INSTALLED="Task Master already installed"
 
-which awk &> /dev/null
-if [[ "$?" != "0" ]]
+if ! which awk &> /dev/null
 then
   echo "awk not installed"
   echo "Install awk and try again"
   exit 1
 fi
 
-which sed &> /dev/null
-if [[ "$?" != "0" ]]
+if ! which sed &> /dev/null
 then
   echo "sed not installed"
   echo "Install sed and try again"
   exit 1
 fi
 
-if [[ ! -z "$TASK_MASTER_HOME" ]]
+if [[ -n "$TASK_MASTER_HOME" ]]
 then
   echo "$ALREADY_INSTALLED"
   exit 1
@@ -42,27 +40,28 @@ then
   exit 1
 fi
 
-grep $HOME/.bashrc -e "export TASK_MASTER_HOME=$HOME/.task-master" > /dev/null
-if [[ "$?" == "0" ]]
+
+if grep -q "$HOME/.bashrc" -e "export TASK_MASTER_HOME=$HOME/.task-master"
 then
   echo "$ALREADY_INSTALLED"
   exit 1
 fi
 
-grep $HOME/.bashrc -e "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" > /dev/null
-if [[ "$?" == "0" ]]
+
+if grep -q "$HOME/.bashrc" -e "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\""
 then
   echo "$ALREADY_INSTALLED"
   exit 1
 fi
 
-echo >> ~/.bashrc
-echo 'alias t=task' >> ~/.bashrc
-echo "export TASK_MASTER_HOME=$HOME/.task-master" >> ~/.bashrc
-echo "[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"" >> ~/.bashrc
+cat >> ~/.bashrc <<EOF
+alias t=task
+export TASK_MASTER_HOME=$HOME/.task-master
+[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"
+EOF
 
 cd ..
-mv $GIT_DIR $HOME/.task-master
+mv "$GIT_DIR" "$HOME/.task-master"
 
 echo "Task Master successfully installed"
 echo "You may have to start a new bash session to apply changes"
