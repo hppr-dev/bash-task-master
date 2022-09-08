@@ -34,7 +34,7 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
   export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.global
-  echo "UUID_tmhome=$TASK_MASTER" > "$LOCATIONS_FILE"
+  echo "UUID_tmhome=$TASK_MASTER_HOME" > "$LOCATIONS_FILE"
 
   export STATE_DIR=$TASK_MASTER_HOME/state
 
@@ -125,13 +125,14 @@ teardown() {
 
   run cat $LOCATIONS_FILE
 
+  assert_output --partial "UUID_tmhome=$TASK_MASTER_HOME"
   refute_output --partial "UUID_hello=$TASK_MASTER_HOME/test/doesnotexist"
 }
 
 @test 'Clean removes state files that refer to locations that no longer exist' {
   source $TASK_MASTER_HOME/lib/builtins/global.sh
 
-  mkdir $TASK_MASTER_HOME/state/doesnotexist
+  mkdir -p $TASK_MASTER_HOME/state/doesnotexist
   echo some=var > $TASK_MASTER_HOME/state/doesnotexist/command.vars
 
   TASK_SUBCOMMAND="clean"
@@ -148,7 +149,7 @@ teardown() {
 
   TASK_SUBCOMMAND="clean"
 
-  task_global
+  run task_global
 
   assert [ ! -f "$TASK_MASTER_HOME/state/empty.vars" ]
 }
