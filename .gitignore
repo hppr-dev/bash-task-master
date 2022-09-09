@@ -3,6 +3,8 @@ state/**/*.export
 state/**/*.vars
 state/**
 modules/*-module.sh*
+lib/drivers/*_driver.sh
+lib/drivers/bash_driver.sh
 **/*.swp
 backup
 test/kcov
