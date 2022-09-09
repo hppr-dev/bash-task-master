@@ -35,6 +35,7 @@ bash_parse() {
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
+      # shellcheck disable=SC2001
       spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[:space:]' )
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[A-Za-z]:[a-z]+$ ]]
@@ -44,6 +45,7 @@ bash_parse() {
       fi
       ARGUMENT="--${long_arg,,}"
     fi
+    # shellcheck disable=SC2001
     spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[:space:]' )
     if [[ "$ARGUMENT" =~ ^--[a-z_-]+$ ]]
     then
@@ -70,6 +72,7 @@ bash_parse() {
   done
   if [[ -n "$ADDED_ARGS" ]]
   then
+    # shellcheck disable=SC2086
     bash_parse "GARBAGE" $ADDED_ARGS
   fi
 }
@@ -258,6 +261,7 @@ execute_task() {
 
   #Parse and validate arguments
   unset TASK_SUBCOMMAND
+  # shellcheck disable=SC2068
   if ! bash_parse $@ || ! bash_validate
   then
     _tmverbose_echo "Parsing or validation of task args returned 1, exiting..."

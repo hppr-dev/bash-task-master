@@ -53,6 +53,7 @@ task(){
   do
     TASKS_DIR=$(pwd)
     cd ..
+    # shellcheck disable=SC2153
     for TASKS_FILE_NAME in "${!TASK_DRIVERS[@]}"
     do
       if [[ -f "$TASKS_DIR/$TASKS_FILE_NAME" ]]
