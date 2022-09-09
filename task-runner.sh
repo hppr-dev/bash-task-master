@@ -17,6 +17,8 @@ task(){
   local STATE_DIR
   local STATE_FILE
   local GLOBAL_VERBOSE
+  local GLOBAL_TASKS
+  local LOCAL_TASKS
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
@@ -111,17 +113,21 @@ task(){
 
       source "$TASK_MASTER_HOME"/lib/state.sh
       source "$GLOBAL_TASKS_FILE"
+
+      GLOBAL_TASKS=$(declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_//' | tr '\n' '|')
+      GLOBAL_TASKS=${GLOBAL_TASKS%?}
     fi
 
     load_state
 
+    task_in() {
+      [[ -n "$1" ]] && [[ "$TASK_COMMAND" =~ $1 ]]
+    }
+
     # Check if task is already loaded
-    
-    
-    if type task_"$TASK_COMMAND" &> /dev/null 
+    if task_in "$GLOBAL_TASKS"
     then
       TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-      GLOBAL_TASK=T
     else
       TASK_DRIVER=$TASK_FILE_DRIVER
     fi
@@ -129,7 +135,6 @@ task(){
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     source "$TASK_DRIVER"
-
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
       echo Driver implementation error.
@@ -137,7 +142,9 @@ task(){
       return 1
     fi
 
-    if [[ -n "$GLOBAL_TASK" ]] || [[ "$($DRIVER_LIST_TASKS "$TASKS_FILE")" =~ $TASK_COMMAND ]]
+    LOCAL_TASKS=$( $DRIVER_LIST_TASKS "$TASKS_FILE" | tr '  \n' '|' )
+    LOCAL_TASKS=${LOCAL_TASKS%?}
+    if task_in "$GLOBAL_TASKS" || task_in "$LOCAL_TASKS"
     then
       $DRIVER_EXECUTE_TASK "$@"
     else
