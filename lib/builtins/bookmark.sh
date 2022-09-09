@@ -18,7 +18,10 @@ task_bookmark() {
   fi
   if [[ "$TASK_SUBCOMMAND" == "list" ]]
   then
-    sed 's/UUID_\(.*\)=.*/\1/' "$LOCATIONS_FILE"
+    echo "Bookmarks:"
+    sed 's/UUID_\(.*\)=.*/    \1/' "$LOCATIONS_FILE" | tr '\n' ' '
+    echo
+    echo
   elif [[ "$TASK_SUBCOMMAND" == "rm" ]]
   then
     if grep -q "UUID_$ARG_NAME=" "$LOCATIONS_FILE"

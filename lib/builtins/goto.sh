@@ -10,7 +10,8 @@ task_goto() {
   then
      echo "Unknown location: $TASK_SUBCOMMAND"
      echo "Available locations are:"
-     sed 's/^UUID_\(.*\)=.*/\1/' "$LOCATIONS_FILE" | tr -d '\n'
+     sed 's/^UUID_\(.*\)=.*/\1/' "$LOCATIONS_FILE" | tr '\n' ' '
+     echo
      return 0
   fi
   eval "$loc_line"

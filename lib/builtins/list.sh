@@ -23,7 +23,6 @@ task_list() {
     echo
     echo "     $($DRIVER_LIST_TASKS "$TASKS_FILE")"
     echo
-    echo
   fi
 }
 

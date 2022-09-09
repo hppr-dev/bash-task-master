@@ -178,6 +178,8 @@ global_driver() {
   else
     echo Current drivers:
     grep _driver.sh "$driver_defs" | sed 's/^.*=\(.*\)_driver.sh/   \1/'| uniq | tr -d '\n'
+    echo
+    echo
   fi
 }
 

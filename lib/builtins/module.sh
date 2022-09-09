@@ -70,6 +70,10 @@ module_disable() {
 
 module_list() {
   local_files=$(get_local_module_files | awk -F "$TASK_MASTER_HOME/modules/" '{ print $2 }')
+  if [[ -z "$ARG_REMOTE$ARG_ENABLED$ARG_DISABLED" ]]
+  then
+    ARG_ALL=1
+  fi
 
   if [[ -n "$ARG_REMOTE" ]]
   then 
@@ -94,7 +98,9 @@ module_list() {
 get_repo_module_list() {
   for repo in $TASK_REPOS
   do
-    curl -s "$repo" | awk '/module-.*/ { print } 0' | sed 's/\s*module-\(.*\) = .*/    \1/'
+    echo -n "  $repo:"
+    curl -s "$repo" | awk '/module-.*/ { print } 0' | sed 's/\s*module-\(.*\) = .*/    \1/' | tr '\n' ' '
+    echo
   done
 }
 
