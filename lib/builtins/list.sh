@@ -17,7 +17,7 @@ task_list() {
   fi
   if [[ -n "$ARG_LOCAL$ARG_ALL" ]]
   then
-    . "$TASK_FILE_DRIVER"
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}"
     echo "Available local tasks:"
     echo
     echo "     $($DRIVER_LIST_TASKS "$TASKS_FILE")"

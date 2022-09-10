@@ -19,6 +19,8 @@ task(){
   local GLOBAL_VERBOSE
   local GLOBAL_TASKS
   local LOCAL_TASKS
+  local TASK_DRIVER_DICT
+  local TASK_FILE_NAME_DICT
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
@@ -29,22 +31,24 @@ task(){
     shift
   fi
 
-  # Load task drivers
-  source "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
-
   # Load config
   source "$TASK_MASTER_HOME"/config.sh
+
+  # Load task drivers
+  source "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
 
   # Save directory that you are running it from
   RUNNING_DIR=$(pwd)
   TASK_AWK_DIR=$TASK_MASTER_HOME/awk
+  LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+
   GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   TASKS_DIR=$RUNNING_DIR
   TASKS_FILE=""
+
   DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
-  TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
-  TASK_DRIVER=$TASK_FILE_DRIVER
-  LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+  TASK_DRIVER=bash
+  TASK_FILE_DRIVER=$DEFAULT_TASK_DRIVER
 
 
   TASKS_FILE_NAME=""
@@ -56,12 +60,12 @@ task(){
     TASKS_DIR=$(pwd)
     cd ..
     # shellcheck disable=SC2153
-    for TASKS_FILE_NAME in "${!TASK_DRIVERS[@]}"
+    for TASKS_FILE_NAME in "${!TASK_FILE_NAME_DICT[@]}"
     do
       if [[ -f "$TASKS_DIR/$TASKS_FILE_NAME" ]]
       then
         TASKS_FILE=$TASKS_DIR/$TASKS_FILE_NAME
-	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$TASKS_FILE_NAME]}
+	      TASK_FILE_DRIVER=${TASK_FILE_NAME_DICT[$TASKS_FILE_NAME]}
 	      TASKS_FILE_FOUND="T"
 	      break
       fi
@@ -127,14 +131,14 @@ task(){
     # Check if task is already loaded
     if task_in "$GLOBAL_TASKS"
     then
-      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+      TASK_DRIVER=bash
     else
       TASK_DRIVER=$TASK_FILE_DRIVER
     fi
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
-    source "$TASK_DRIVER"
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_DRIVER]}"
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
       echo Driver implementation error.
