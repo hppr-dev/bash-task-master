@@ -8,21 +8,19 @@ task_list() {
   then
     ARG_ALL='T'
   fi
-  if [[ ! -z "$ARG_GLOBAL$ARG_ALL" ]]
+  if [[ -n "$ARG_GLOBAL$ARG_ALL" ]]
   then
     echo "Available global tasks:"
     echo
-    declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_/     /' | tr '\n' ' '
-    echo
+    echo "    $GLOBAL_TASKS" | sed 's/|/    /g'
     echo
   fi
-  if [[ ! -z "$ARG_LOCAL$ARG_ALL" ]]
+  if [[ -n "$ARG_LOCAL$ARG_ALL" ]]
   then
-    . $TASK_FILE_DRIVER
+    . "$TASK_FILE_DRIVER"
     echo "Available local tasks:"
     echo
-    echo "     $($DRIVER_LIST_TASKS $TASKS_FILE)"
-    echo
+    echo "     $($DRIVER_LIST_TASKS "$TASKS_FILE")"
     echo
   fi
 }

@@ -270,7 +270,7 @@ teardown() {
   TASKS_FILE_FOUND=1
 
   run $DRIVER_LIST_TASKS $EXAMPLE_TASKS_FILE
-  assert_output "hello world foo bar"
+  assert_output "hello world foo bar "
   assert_success
 }
 

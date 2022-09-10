@@ -24,11 +24,11 @@ task_init() {
     NEW_TASKS_FILE=$ARG_DIR/.tasks.sh
   fi
   echo "Initializing tasks.sh file in $ARG_DIR..."
-  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> $NEW_TASKS_FILE
+  echo "LOCAL_TASKS_UUID=$LOCAL_TASKS_UUID" >> "$NEW_TASKS_FILE"
   echo "Creating state directory..."
-  mkdir $TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID
+  mkdir "$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
   echo "Saving tasks file location to $LOCATIONS_FILE as $ARG_NAME"
-  echo "UUID_$LOCAL_TASKS_UUID=$ARG_DIR" >> $LOCATIONS_FILE
+  echo "UUID_$LOCAL_TASKS_UUID=$ARG_DIR" >> "$LOCATIONS_FILE"
 }
 
 readonly -f arguments_init

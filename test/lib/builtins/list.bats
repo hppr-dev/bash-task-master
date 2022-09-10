@@ -7,26 +7,29 @@ setup() {
 
 @test 'Lists all tasks by default' {
   source $TASK_MASTER_HOME/lib/builtins/list.sh
-  readonly -f task_gtask
 
+  GLOBAL_TASKS="gtask|gtask2"
   run task_list
   assert_output --partial "gtask"
+  assert_output --partial "gtask2"
   assert_output --partial "ltask"
 }
 
 @test 'Lists global tasks when global flag given' {
   source $TASK_MASTER_HOME/lib/builtins/list.sh
-  readonly -f task_gtask
+
   ARG_GLOBAL=T
+  GLOBAL_TASKS="gtask|gtask2"
 
   run task_list
   assert_output --partial "gtask"
+  assert_output --partial "gtask2"
   refute_output --partial "ltask"
 }
 
 @test 'Lists local tasks when local flag given' {
   source $TASK_MASTER_HOME/lib/builtins/list.sh
-  readonly -f task_gtask
+  GLOBAL_TASKS="gtask|gtask2"
   ARG_LOCAL=T
 
   run task_list

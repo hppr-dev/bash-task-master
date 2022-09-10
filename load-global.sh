@@ -1,12 +1,12 @@
 # Load built in tasks
-source $TASK_MASTER_HOME/lib/load-builtins.sh
+source "$TASK_MASTER_HOME/lib/load-builtins.sh"
 
 # Load module tasks
-enabled=$(find $TASK_MASTER_HOME/modules/ -name "*-module.sh")
-if [[ ! -z "$enabled" ]]
+enabled=$(find "$TASK_MASTER_HOME/modules/" -name "*-module.sh")
+if [[ -n "$enabled" ]]
 then
   for module in $enabled
   do
-    source $module
+    source "$module"
   done
 fi

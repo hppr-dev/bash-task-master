@@ -6,10 +6,9 @@ DRIVER_VALIDATE_TASKS_FILE=bash_validate_file
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
   # load argument specification
-  type arguments_$TASK_COMMAND &> /dev/null 
-  if [[ "$?" == "0" ]]
+  if type -t "arguments_$TASK_COMMAND" &> /dev/null
   then
-    arguments_$TASK_COMMAND
+    "arguments_$TASK_COMMAND"
   fi
   if [[ -z "$SPEC_REQUIREMENT_NAME" ]]
   then
@@ -18,6 +17,8 @@ bash_parse() {
     local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
   fi
   #check if there are more than one specified arg and add the first ones to the end
+
+  local spec separated
   unset ADDED_ARGS
   shift
   while [[ $# != "0" ]]
@@ -25,7 +26,9 @@ bash_parse() {
     ARGUMENT="$1"
     if [[ $ARGUMENT =~ ^\-[A-Za-z]{2,}$ ]]
     then
-      local separated=$(echo "$ARGUMENT" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
+      # Separate -ilt to -i -l -t
+      # shellcheck disable=SC2001
+      separated=$(echo "${ARGUMENT#-}" | sed 's/./ -&/g')
       # grab the last character as this argument
       ARGUMENT="-${separated:${#separated}-1:1}"
       # add added args
@@ -34,7 +37,8 @@ bash_parse() {
     #Translate shortend arg
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
-      local spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[[:space:]]' )
+      # shellcheck disable=SC2001
+      spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[:space:]' )
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[A-Za-z]:[a-z]+$ ]]
       then
@@ -43,17 +47,18 @@ bash_parse() {
       fi
       ARGUMENT="--${long_arg,,}"
     fi
-    local spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[[:space:]]' )
+    # shellcheck disable=SC2001
+    spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[:space:]' )
     if [[ "$ARGUMENT" =~ ^--[a-z_-]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
       TRANSLATE_ARG=${TRANSLATE_ARG//-/_}
       if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z_-]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
       then
-        export ARG_${TRANSLATE_ARG^^}="1"
+        export "ARG_${TRANSLATE_ARG^^}=1"
       else
         shift
-        export ARG_${TRANSLATE_ARG^^}="$1"
+        export "ARG_${TRANSLATE_ARG^^}=$1"
       fi
     elif [[ "$ARGUMENT" =~ ^[a-z0-9_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
@@ -67,8 +72,9 @@ bash_parse() {
     fi
     shift
   done
-  if [[ ! -z "$ADDED_ARGS" ]]
+  if [[ -n "$ADDED_ARGS" ]]
   then
+    # shellcheck disable=SC2086
     bash_parse "GARBAGE" $ADDED_ARGS
   fi
 }
@@ -88,10 +94,9 @@ bash_validate() {
   local SUBCOMMANDS=""
 
   # Check if argument specifications exist
-  type arguments_$TASK_COMMAND &> /dev/null 
-  if [[ "$?" == "0" ]]
+  if type -t "arguments_$TASK_COMMAND" &> /dev/null
   then
-    arguments_$TASK_COMMAND
+    "arguments_$TASK_COMMAND"
     # check if subcommand exists
     if [[ $TASK_SUBCOMMAND =~ ^($SUBCOMMANDS)$ ]]
     then
@@ -103,7 +108,7 @@ bash_validate() {
       fi
       # Check required arguments
       local reqvar_sub="${sub}_REQUIREMENTS"
-      if [[ ! -z "${!reqvar_sub}" ]]
+      if [[ -n "${!reqvar_sub}" ]]
       then
         for requirement in ${!reqvar_sub}
         do
@@ -126,7 +131,7 @@ bash_validate() {
       fi
       # Verify optional requirements
       local optvar="${sub}_OPTIONS"
-      if [[ ! -z "${!optvar}" ]]
+      if [[ -n "${!optvar}" ]]
       then
         for option in ${!optvar}
         do
@@ -134,7 +139,7 @@ bash_validate() {
           name=${name//-/_}
           local atype=${option##*:}
           local valname="ARG_${name^^}"
-          if [[ ! -z "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
+          if [[ -n "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
             echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}"
             return 1
@@ -143,7 +148,7 @@ bash_validate() {
       fi
     else
       echo "Unknown subcommand: $TASK_SUBCOMMAND"
-      echo Available subcommands: $SUBCOMMANDS
+      echo "Available subcommands: $SUBCOMMANDS"
       return 1
     fi
   fi
@@ -151,26 +156,25 @@ bash_validate() {
 }
 
 bash_help() {
-  if [[ ! -z "$TASK_SUBCOMMAND" ]]
+  if [[ -n "$TASK_SUBCOMMAND" ]]
   then
-    type arguments_$TASK_SUBCOMMAND &> /dev/null
-    if [[ "$?" == "0" ]]
+    if type -t "arguments_$TASK_SUBCOMMAND" &> /dev/null
     then 
-      arguments_$TASK_SUBCOMMAND
+      "arguments_$TASK_SUBCOMMAND"
       reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       optname=${TASK_SUBCOMMAND^^}_OPTIONS
       descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
-      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ ! -z "${!reqname}" ]] || [[ ! -z "${!optname}" ]] || [[ ! -z "${!descname}" ]]
+      if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ -n "${!reqname}" ]] || [[ -n "${!optname}" ]] || [[ -n "${!descname}" ]]
       then
         echo "Command: task $TASK_SUBCOMMAND"
         TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
-        if [[ ! -z "${!descname}" ]]
+        if [[ -n "${!descname}" ]]
         then
           echo "  ${!descname}"
         else
           echo "  No description available"
         fi
-        if [[ ! -z "${!reqname}" ]]
+        if [[ -n "${!reqname}" ]]
         then
           echo "  Required:"
           for req in ${!reqname}
@@ -179,7 +183,7 @@ bash_help() {
             echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
           done
         fi
-        if [[ ! -z "${!optname}" ]]
+        if [[ -n "${!optname}" ]]
         then
           echo "  Optional:"
           for opt in ${!optname}
@@ -202,13 +206,13 @@ bash_help() {
         reqname=${sub^^}_REQUIREMENTS
         optname=${sub^^}_OPTIONS
         descname=${sub^^}_DESCRIPTION
-        if [[ ! -z "${!descname}" ]]
+        if [[ -n "${!descname}" ]]
         then
           echo "  ${!descname}"
         else
           echo "  No description available"
         fi
-        if [[ ! -z "${!reqname}" ]]
+        if [[ -n "${!reqname}" ]]
         then
           echo "  Required:"
           for req in ${!reqname}
@@ -217,7 +221,7 @@ bash_help() {
             echo "    --${arg_spec%:*}, -${arg_spec#*:} ${req##*:}"
           done
         fi
-        if [[ ! -z "${!optname}" ]]
+        if [[ -n "${!optname}" ]]
         then
           echo "  Optional:"
           for opt in ${!optname}
@@ -245,38 +249,31 @@ bash_help() {
 bash_list() {
   if [[ -f "$1" ]]
   then
-    echo $(awk '/task_.*(.*).*/ { print }' $1 | sed 's/.*task_\(.*\)(.*).*/\1/')
+    awk '/task_.*(.*).*/ { print }' "$1" | sed 's/.*task_\(.*\)(.*).*/\1 /' | tr -d "\n"
   fi
 }
 
 execute_task() {
   #Load local tasks if the desired task isn't loaded
-  if [[ ! -z "$TASKS_FILE_FOUND" ]] 
+  if [[ -n "$TASKS_FILE_FOUND" ]] 
   then
     _tmverbose_echo "Sourcing tasks file"
-    source $TASKS_FILE
+    source "$TASKS_FILE"
   fi
 
   #Parse and validate arguments
   unset TASK_SUBCOMMAND
-  bash_parse $@
-  if [[ "$?" != "0" ]]
+  # shellcheck disable=SC2068
+  if ! bash_parse $@ || ! bash_validate
   then
-    _tmverbose_echo "Parsing of task args returned 1, exiting..."
+    _tmverbose_echo "Parsing or validation of task args returned 1, exiting..."
     return 1 
   fi
 
-  bash_validate
-  if [[ "$?" != "0" ]]
-  then
-    _tmverbose_echo "Validation of task args returned 1, exiting..."
-    return 1
-  fi
-
   echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
-  task_$TASK_COMMAND
+  "task_$TASK_COMMAND"
 }
 
 bash_validate_file() {
-  bash -n $1
+  bash -n "$1"
 }

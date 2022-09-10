@@ -77,7 +77,7 @@ teardown() {
   rm -r $PROJECT_DIR
 
   rm -r $DRIVER_TEST_DIR
-  awk -i inplace '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh
+  awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh > $DRIVER_DIR/driver_defs.sh.tmp && mv $DRIVER_DIR/driver_defs.sh{.tmp,}
   rm $DRIVER_DIR/test_custom_driver.sh
 }
 
@@ -127,7 +127,7 @@ teardown() {
   cd $PROJECT_DIR
 
   cp tasks.sh tasks.sh.bk
-  awk -i inplace '/LOCAL_TASKS_UUID/ {next} 0' tasks.sh
+  awk '/LOCAL_TASKS_UUID/ {next} 0' tasks.sh > tasks.sh.tmp && mv tasks.sh{.tmp,}
 
   run task change_dir
 
@@ -264,12 +264,12 @@ teardown() {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $DRIVER_TEST_DIR
 
-  awk -i inplace '/DRIVER_EXECUTE_TASK/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh
+  awk '/DRIVER_EXECUTE_TASK/ { print "#" $0; next } { print }' $DRIVER_DIR/test_custom_driver.sh > $DRIVER_DIR/test_custom_driver.sh.tmp && mv $DRIVER_DIR/test_custom_driver.sh{.tmp,}
 
   run task do something --special
   assert_failure
 
-  sed --in-place 's/#DRIVER_VALIDATE_ARGS/DRIVER_VALIDATE_ARGS/' $DRIVER_DIR/test_custom_driver.sh
+  sed 's/#DRIVER_VALIDATE_ARGS/DRIVER_VALIDATE_ARGS/' $DRIVER_DIR/test_custom_driver.sh > $DRIVER_DIR/test_custom_driver.sh.tmp && mv $DRIVER_DIR/test_custom_driver.sh{.tmp,}
 }
 
 @test 'Calls global list task in custom driver task file scope' {

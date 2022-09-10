@@ -5,34 +5,34 @@
 #This function writes to the state file
 #Used for when values are needed to be retained between runs
 persist_var() {
-  remove_file_value $1 $STATE_FILE
-  echo "$1=\"$2\"" >> $STATE_FILE
+  remove_file_value "$1" "$STATE_FILE"
+  echo "$1=\"$2\"" >> "$STATE_FILE"
   eval "$1=\"$2\""
 }
 
 remove_var() {
-  remove_file_value $1 $STATE_FILE
+  remove_file_value "$1" "$STATE_FILE"
 }
 
 # export a variable to the outside session
 export_var(){
-  remove_file_value $1 $STATE_FILE.export
-  echo "export $1=\"$2\"" >> $STATE_FILE.export
+  remove_file_value "$1" "$STATE_FILE".export
+  echo "export $1=\"$2\"" >> "$STATE_FILE".export
 }
 
 # hold the current value of a variable
 hold_var() {
-  remove_file_value $1 $STATE_FILE.hold
-  echo "$1=\"${!1}\"" >> $STATE_FILE.hold
+  remove_file_value "$1" "$STATE_FILE".hold
+  echo "$1=\"${!1}\"" >> "$STATE_FILE".hold
 }
 
 # release a held value of a variable and export it back to the outside session
 release_var() {
   if [[ -f $STATE_FILE.hold ]]
   then
-    remove_file_value $1 $STATE_FILE.export
-    grep -e $1 $STATE_FILE.hold >> $STATE_FILE.export
-    remove_file_value $1 $STATE_FILE.hold
+    remove_file_value "$1" "$STATE_FILE".export
+    grep -e "$1" "$STATE_FILE".hold >> "$STATE_FILE".export
+    remove_file_value "$1" "$STATE_FILE".hold
   fi
 }
 
@@ -52,21 +52,21 @@ clean_up_state() {
 }
 
 set_return_directory() {
-  persist_var "TASK_RETURN_DIR" $1
+  persist_var "TASK_RETURN_DIR" "$1"
 }
 
 load_state() {
   if [[ -f $STATE_FILE ]]
   then
-      source $STATE_FILE
+      source "$STATE_FILE"
   fi
 }
 
 remove_file_value() {
   if [[ -f $2 ]]
   then
-    awk "/^$1=/ { next } { print }" $2 > $2.tmp
-    mv $2.tmp $2
+    awk "/^$1=/ { next } { print }" "$2" > "$2".tmp
+    mv "$2".tmp "$2"
   fi
 }
 

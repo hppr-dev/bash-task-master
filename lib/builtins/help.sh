@@ -1,6 +1,6 @@
 task_help() {
-  . $TASK_FILE_DRIVER
-  $DRIVER_HELP_TASK $TASK_SUBCOMMAND
+  . "$TASK_FILE_DRIVER"
+  $DRIVER_HELP_TASK "$TASK_SUBCOMMAND"
   if [[ "$?" == "1" ]]
   then
     HELP_STRING="usage: task subcommand [arguments]
