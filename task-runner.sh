@@ -159,7 +159,7 @@ task(){
   #This needs to be here because it interacts with the outside
   if [[ -f "$STATE_FILE" ]] && grep -q -e TASK_RETURN_DIR -e TASK_TERM_TRAP -e DESTROY_STATE_FILE "$STATE_FILE"
   then
-    awk -F = -E "$TASK_MASTER_HOME"/awk/special_state_vars.awk "$STATE_FILE" >> "$STATE_FILE.export"
+    awk -F = -f "$TASK_MASTER_HOME"/awk/special_state_vars.awk "$STATE_FILE" >> "$STATE_FILE.export"
 
     awk '/^TASK_RETURN_DIR|^TASK_TERM_TRAP|^DESTROY_STATE_FILE/ { next } { print }' "$STATE_FILE" > "$STATE_FILE.tmp"
     mv "$STATE_FILE"{.tmp,} 

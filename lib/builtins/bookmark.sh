@@ -26,7 +26,7 @@ task_bookmark() {
   then
     if grep -q "UUID_$ARG_NAME=" "$LOCATIONS_FILE"
     then
-      awk -e "/UUID_$ARG_NAME=/ { next } { print }" "$LOCATIONS_FILE" > "$LOCATIONS_FILE.upd"
+      awk "/UUID_$ARG_NAME=/ { next } { print }" "$LOCATIONS_FILE" > "$LOCATIONS_FILE.upd"
       mv "$LOCATIONS_FILE"{.upd,}
       echo "Removed bookmark: $ARG_NAME"
     else

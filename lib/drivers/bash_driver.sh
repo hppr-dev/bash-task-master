@@ -26,7 +26,9 @@ bash_parse() {
     ARGUMENT="$1"
     if [[ $ARGUMENT =~ ^\-[A-Za-z]{2,}$ ]]
     then
-      separated=$(echo "$ARGUMENT" | awk '{ match($1,"-[A-Za-z]{2,}", a); split(a[0], b, "") ; j="" ; s = " -" ; for(i=2;i in b; i++) { j = j s b[i] ; } print j }')
+      # Separate -ilt to -i -l -t
+      # shellcheck disable=SC2001
+      separated=$(echo "${ARGUMENT#-}" | sed 's/./ -&/g')
       # grab the last character as this argument
       ARGUMENT="-${separated:${#separated}-1:1}"
       # add added args
