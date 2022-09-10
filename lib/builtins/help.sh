@@ -1,5 +1,5 @@
 task_help() {
-  . "$TASK_FILE_DRIVER"
+  source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}"
   $DRIVER_HELP_TASK "$TASK_SUBCOMMAND"
   if [[ "$?" == "1" ]]
   then

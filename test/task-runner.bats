@@ -47,7 +47,8 @@ EOF
 
   export DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers/
 
-  echo "TASK_DRIVERS[testtasks.myfile]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+  echo "TASK_FILE_NAME_DICT[testtasks.myfile]=test_custom #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+  echo "TASK_DRIVER_DICT[test_custom]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
 
   cat > $DRIVER_DIR/test_custom_driver.sh <<EOF
 DRIVER_EXECUTE_TASK=execute_test
@@ -257,7 +258,7 @@ teardown() {
   cd $DRIVER_TEST_DIR
 
   run task do something --special
-  assert [ "${lines[1]}" == "I am executing: do something --special" ]
+  assert [ "${lines[0]}" == "I am executing: do something --special" ]
 }
 
 @test 'Fails if task file driver is missing an interface value' {

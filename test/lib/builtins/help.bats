@@ -1,6 +1,5 @@
 setup_file() {
-  export TASK_FILE_DRIVER=$TASK_MASTER_HOME/test/driver.help
-  cat > $TASK_FILE_DRIVER <<EOF
+  cat > $TASK_MASTER_HOME/test/driver.help <<EOF
 DRIVER_HELP_TASK=echo_subcommand
 
 echo_subcommand() {
@@ -15,7 +14,7 @@ EOF
 }
 
 teardown_file() {
-  rm $TASK_FILE_DRIVER
+  rm $TASK_MASTER_HOME/test/driver.help
 }
 
 setup() {
@@ -25,6 +24,11 @@ setup() {
 
 @test 'Should call driver help when driver returns zero' {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
+
+  declare -a TASK_DRIVER_DICT
+  DRIVER_DIR=$TASK_MASTER_HOME/test
+  TASK_FILE_DRIVER=help_test
+  TASK_DRIVER_DICT[help_test]=driver.help
   
   TASK_SUBCOMMAND="tester"
 
@@ -36,6 +40,11 @@ setup() {
 @test 'Should display global help when driver returns non-zero' {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
   TASK_SUBCOMMAND="chester"
+
+  declare -a TASK_DRIVER_DICT
+  DRIVER_DIR=$TASK_MASTER_HOME/test
+  TASK_FILE_DRIVER=help_test
+  TASK_DRIVER_DICT[help_test]=driver.help
 
   run task_help
   assert_output --partial 'Task Master'
