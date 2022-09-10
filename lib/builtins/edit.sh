@@ -8,7 +8,7 @@ task_edit() {
     echo "No tasks file found."
     return 1
   fi
-  . $TASK_FILE_DRIVER
+  . "$TASK_FILE_DRIVER"
   local validated=1
   cp "$TASKS_FILE" "$TASKS_FILE.tmp"
   while [[ "$validated" != "0" ]]

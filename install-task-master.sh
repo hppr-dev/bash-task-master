@@ -2,14 +2,14 @@
 GIT_DIR=$(dirname "$(readlink -f "$0")")
 ALREADY_INSTALLED="Task Master already installed"
 
-if ! which awk &> /dev/null
+if ! command -v awk &> /dev/null
 then
   echo "awk not installed"
   echo "Install awk and try again"
   exit 1
 fi
 
-if ! which sed &> /dev/null
+if ! command -v sed &> /dev/null
 then
   echo "sed not installed"
   echo "Install sed and try again"
