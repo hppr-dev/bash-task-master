@@ -79,13 +79,17 @@ task(){
   TASK_COMMAND=$1
   TASK_SUBCOMMAND=""
 
-  # Load Local Task UUID
+  # Infer task UUID
   if [[ -n "$TASKS_FILE_FOUND" ]]
   then
-    local "$(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' "$TASKS_FILE")" &> /dev/null
-    if [[ -z "$LOCAL_TASKS_UUID" ]]
+    LOCAL_TASKS_UUID=$( grep "$TASKS_DIR" "$LOCATIONS_FILE" | head -n 1 )
+    if [[ -z "$LOCAL_TASKS" ]]
     then
-      echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+      LOCAL_TASKS_UUID=$(basename "$(readlink -f "$TASKS_DIR")")
+      _tmverbose_echo "Warning: $TASKS_DIR is not bookmarked. Saving State in $LOCAL_TASKS_UUID"
+    else
+      LOCAL_TASKS_UUID=${LOCAL_TASKS_UUID#UUID_}
+      LOCAL_TASKS_UUID=${LOCAL_TASKS_UUID%=*}
     fi
   fi
 
