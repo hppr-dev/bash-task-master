@@ -1,6 +1,6 @@
 arguments_init() {
   INIT_DESCRIPTION="Create a new local tasks location"
-  INIT_OPTIONS="dir:d:str name:n:str driver:D:str template:t"
+  INIT_OPTIONS="dir:d:str name:n:str driver:D:str template:t:str"
 }
 
 task_init() {
@@ -16,32 +16,54 @@ task_init() {
 
   if [[ -z "$ARG_DRIVER" ]]
   then
-    ARG_DRIVER=bash
+    ARG_DRIVER=$DEFAULT_TASK_DRIVER
   fi
 
   if [[ -z "$ARG_TEMPLATE" ]]
   then
-    ARG_TEMPLATE=${ARG_DRIVER}_template
+    ARG_TEMPLATE=${ARG_DRIVER}.template
+  else
+    if [[ ! -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE" ]]
+    then
+      echo "Can't find template $ARG_TEMPLATE. Aborting..."
+      return 1
+    fi
   fi
 
-
-  NEW_TASKS_FILE=$ARG_DIR/tasks.sh
+  # Determine task file name
+  for filename in ${!TASK_FILE_NAME_DICT[@]}
+  do
+    if [[ "${TASK_FILE_NAME_DICT[$filename]}" == "$ARG_DRIVER" ]]
+    then
+      break
+    fi
+  done
+  
+  NEW_TASKS_FILE=$ARG_DIR/$filename
 
   # Check for existing tasks file
-  if [[ -f "$ARG_DIR/tasks.sh" ]]
+  if [[ -f "$NEW_TASKS_FILE" ]]
   then
-    echo "Tasks file already exists can't init $ARG_DIR"
+    echo "Task file already exists can't init in $ARG_DIR"
     return 1
   fi
 
   # Copy template to ARG_DIR
-  echo "Initializing tasks.sh file in $ARG_DIR..."
+  if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE" ]]
+  then
+    echo "Initializing tasks.sh file in $ARG_DIR..."
+    cp $TASK_MASTER_HOME/templates/$ARG_TEMPLATE $ARG_DIR/$filename
+  else
+    echo "Creating empty $filename..."
+    touch $ARG_DIR/$filename
+  fi
 
   echo "Creating state directory..."
   mkdir "$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
 
   echo "Bookmarking location..."
-  task bookmark --dir $ARG_DIR --name $ARG_NAME
+  # Uses ARG_NAME and ARG_DIR
+  task_bookmark
 }
 
 readonly -f arguments_init

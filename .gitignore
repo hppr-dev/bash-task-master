@@ -5,6 +5,8 @@ state/**
 modules/*-module.sh*
 lib/drivers/*_driver.sh
 !lib/drivers/bash_driver.sh
+templates/*.template
+!templates/bash.template
 **/*.swp
 backup
 test/kcov

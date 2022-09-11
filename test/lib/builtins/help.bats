@@ -25,7 +25,7 @@ setup() {
 @test 'Should call driver help when driver returns zero' {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
 
-  declare -a TASK_DRIVER_DICT
+  declare -A TASK_DRIVER_DICT
   DRIVER_DIR=$TASK_MASTER_HOME/test
   TASK_FILE_DRIVER=help_test
   TASK_DRIVER_DICT[help_test]=driver.help
@@ -41,7 +41,7 @@ setup() {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
   TASK_SUBCOMMAND="chester"
 
-  declare -a TASK_DRIVER_DICT
+  declare -A TASK_DRIVER_DICT
   DRIVER_DIR=$TASK_MASTER_HOME/test
   TASK_FILE_DRIVER=help_test
   TASK_DRIVER_DICT[help_test]=driver.help

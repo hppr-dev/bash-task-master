@@ -7,7 +7,6 @@ arguments_bookmark() {
 }
 
 task_bookmark() {
-  local LOCAL_UUID=$ARG_NAME
   if [[ -z "$ARG_DIR" ]]
   then
     ARG_DIR=$RUNNING_DIR
@@ -34,7 +33,7 @@ task_bookmark() {
     fi
   else
     echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
-    echo "UUID_$LOCAL_UUID=$ARG_DIR" >> "$LOCATIONS_FILE"
+    echo "UUID_$ARG_NAME=$ARG_DIR" >> "$LOCATIONS_FILE"
   fi
 }
 
