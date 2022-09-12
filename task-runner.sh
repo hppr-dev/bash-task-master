@@ -2,7 +2,6 @@
 task(){
   # ALL OF THE FOLLOWING VARIABLES ARE AVAILABLE TO TASK SUBSHELLS
   local RUNNING_DIR
-  local TASK_AWK_DIR
   local GLOBAL_TASKS_FILE
   local TASKS_DIR
   local TASKS_FILE
@@ -32,14 +31,13 @@ task(){
   fi
 
   # Load config
-  source "$TASK_MASTER_HOME"/config.sh
+  source "$TASK_MASTER_HOME/config.sh"
 
   # Load task drivers
-  source "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
+  source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
 
   # Save directory that you are running it from
   RUNNING_DIR=$(pwd)
-  TASK_AWK_DIR=$TASK_MASTER_HOME/awk
   LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
 
   GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
@@ -55,10 +53,11 @@ task(){
   TASKS_FILE_FOUND=""
 
   # Find tasks file
-  while [[ "$TASKS_DIR" != "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]]
+  while [[ ! "$TASKS_DIR" -ef "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]] && [[ ! "$TASKS_DIR" -ef "/" ]]
   do
     TASKS_DIR=$(pwd)
     cd ..
+    _tmverbose_echo "Searching $TASKS_DIR..."
     # shellcheck disable=SC2153
     for TASKS_FILE_NAME in "${!TASK_FILE_NAME_DICT[@]}"
     do
