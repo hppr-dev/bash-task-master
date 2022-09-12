@@ -76,12 +76,16 @@ task_driver() {
       echo "Downloading extra file: $extra_file..."
       if ! curl -s "$remote_driver_dir/$extra_file" > "$TASK_MASTER_HOME/lib/drivers/$extra_file"
       then
-        echo "Failed to download $remote_driver_dir/$target_dir/$target_file."
+        echo "Failed to download $remote_driver_dir/$extra_file."
         echo "Check repository availability and try again"
         rm "$local_file"
         return 1
       fi
     done
+    if [[ "$?" != "0" ]]
+    then
+      return 1
+    fi
 
     setup_script=$(grep "#\s*setup\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
     if [[ -n "$setup_script" ]]
