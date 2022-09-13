@@ -20,13 +20,13 @@ task_template() {
     $DEFAULT_EDITOR "$template_file"
   elif [[ "$TASK_SUBCOMMAND" == "rm" ]] 
   then
-    if [[ -f "$template_file" ]]
+    if [[ ! -f "$template_file" ]]
     then
-      echo "Removing $ARG_NAME template."
-      rm "$template_file"
-      return 0
+      echo "$ARG_NAME template does not exist."
+      return 1
     fi
-    echo "$ARG_NAME template does not exist."
+    echo "Removing $ARG_NAME template."
+    rm "$template_file"
   else
     echo "Available templates:"
     ls "$TASK_MASTER_HOME/templates" | sed 's/\(.*\)\.template/    \1/' | tr -d '\n'

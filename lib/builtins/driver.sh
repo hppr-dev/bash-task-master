@@ -1,12 +1,18 @@
 arguments_driver() {
   SUBCOMMANDS="enable|disable|list"
   DRIVER_DESCRIPTION="Manage drivers"
-  ENABLE_REQUIREMENTS="id:i:str"
-  DISABLE_REQUIREMENTS="id:i:str"
+
+  ENABLE_DESCRIPTION="Enable a driver. Will check TASK_REPOS for drivers not available locally."
+  ENABLE_REQUIREMENTS="name:n:str"
+
+  DISABLE_DESCRIPTION="Disable a driver. Removes a driver from the list of available drivers but keeps driver files."
+  DISABLE_REQUIREMENTS="name:n:str"
+
+  LIST_DESCRIPTION="List available drivers"
 }
 
 task_driver() {
-  if [[ "$ARG_ID" == "bash" ]]
+  if [[ "$ARG_NAME" == "bash" ]]
   then
     echo Can not modify the bash driver!
     return 1
@@ -16,40 +22,41 @@ task_driver() {
 
   if [[ "$TASK_SUBCOMMAND" == "enable" ]]
   then
-    if grep -q "${ARG_ID}_driver.sh" "$driver_defs"
+    if grep -q "${ARG_NAME}_driver.sh" "$driver_defs"
     then
-      sed "s/^#\(TASK_FILE_NAME_DICT\[.*\]=$ARG_ID\)/\1/" "$driver_defs" > "$driver_defs.tmp"
-      sed "s/^#\(TASK_DRIVER_DICT\[${ARG_ID}\]=.*\)/\1/" "$driver_defs.tmp" > "$driver_defs"
+      sed "s/^#\(TASK_FILE_NAME_DICT\[.*\]=$ARG_NAME\)/\1/" "$driver_defs" > "$driver_defs.tmp"
+      sed "s/^#\(TASK_DRIVER_DICT\[${ARG_NAME}\]=.*\)/\1/" "$driver_defs.tmp" > "$driver_defs"
       rm "$driver_defs.tmp"
-      echo "$ARG_ID driver re-enabled."
+      echo "$ARG_NAME driver re-enabled."
       return 0
     fi
 
-    echo "Searching repositories for $ARG_ID driver..."
+    echo "Searching repositories for $ARG_NAME driver..."
     for repo in $TASK_REPOS
     do
       inventory=$(curl -s "$repo")
-      remote_driver_file=$(echo "$inventory" | grep "driver-$ARG_ID" | awk -F '=' '{ print $2 }' | xargs )
+      remote_driver_file=$(echo "$inventory" | grep "driver-$ARG_NAME" | awk -F '=' '{ print $2 }' | xargs )
       if [[ -n "$remote_driver_file" ]]
       then
-        echo "$ARG_ID driver found in $repo"
+        echo "$ARG_NAME driver found in $repo"
         break
       fi
     done
 
     if [[ -z "$remote_driver_file" ]]
     then
-      echo "Could not find $ARG_ID driver."
+      echo "Could not find $ARG_NAME driver."
       return 1
     fi
 
-    local_file=$TASK_MASTER_HOME/lib/drivers/${ARG_ID}_driver.sh
+    local_file=$TASK_MASTER_HOME/lib/drivers/${ARG_NAME}_driver.sh
     remote_driver_dir=$(dirname "$repo")/$(echo "$inventory" | grep DRIVER_DIR | awk -F '=' '{ print $2 }' | xargs )
 
     echo Downloading driver file...
     if ! curl -s "$remote_driver_dir/$remote_driver_file" > "$local_file"
     then
       echo "Could not download $remote_driver_dir/$remote_driver_file"
+      rm "$local_file"
       return 1
     fi
 
@@ -64,6 +71,10 @@ task_driver() {
         return 1
       fi
     done
+    if [[ "$?" != "0" ]]
+    then
+      return 1
+    fi
 
     echo Downloading extra files...
     grep "#\s*extra_file\s*=" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | while IFS= read -r extra_file
@@ -78,7 +89,7 @@ task_driver() {
       then
         echo "Failed to download $remote_driver_dir/$extra_file."
         echo "Check repository availability and try again"
-        rm "$local_file"
+        rm "$local_file" "$TASK_MASTER_HOME/lib/drivers/$extra_file"
         return 1
       fi
     done
@@ -104,9 +115,10 @@ task_driver() {
     if [[ -n "$template" ]]
     then
       echo Creating default template...
-      if ! curl -s "$remote_driver_dir/$template" > "$TASK_MASTER_HOME/templates/$ARG_ID.template"
+      if ! curl -s "$remote_driver_dir/$template" > "$TASK_MASTER_HOME/templates/$ARG_NAME.template"
       then
         echo "Could not download template $remote_driver_dir/$template"
+        rm "$TASK_MASTER_HOME/templates/$ARG_NAME.template"
         echo "Continuing..."
       fi
     fi
@@ -114,22 +126,22 @@ task_driver() {
 
     echo Adding driver definitions...
     task_file_name=$( grep "#\s*tasks_file_name" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' )
-    echo "TASK_FILE_NAME_DICT[$task_file_name]=${ARG_ID}" >> "$driver_defs"
-    echo "TASK_DRIVER_DICT[$ARG_ID]=${ARG_ID}_driver.sh" >> "$driver_defs"
-    echo "$ARG_ID driver enabled for $task_file_name files."
+    echo "TASK_FILE_NAME_DICT[$task_file_name]=${ARG_NAME}" >> "$driver_defs"
+    echo "TASK_DRIVER_DICT[$ARG_NAME]=${ARG_NAME}_driver.sh" >> "$driver_defs"
+    echo "$ARG_NAME driver enabled for $task_file_name files."
 
   elif [[ "$TASK_SUBCOMMAND" == "disable" ]]
   then
-    if ! grep -q "^TASK_DRIVER_DICT\[$ARG_ID\]=" "$driver_defs"
+    if ! grep -q "^TASK_DRIVER_DICT\[$ARG_NAME\]=" "$driver_defs"
     then
-      echo "Driver $ARG_ID not found"
+      echo "Driver $ARG_NAME not found"
       return 1
     fi
 
-    sed "s/^TASK_FILE_NAME_DICT\[.*\]=$ARG_ID/#\0/" "$driver_defs" > "$driver_defs.tmp"
-    sed "s/^TASK_DRIVER_DICT\[$ARG_ID\]=.*/#\0/" "$driver_defs.tmp" > "$driver_defs"
+    sed "s/^TASK_FILE_NAME_DICT\[.*\]=$ARG_NAME/#\0/" "$driver_defs" > "$driver_defs.tmp"
+    sed "s/^TASK_DRIVER_DICT\[$ARG_NAME\]=.*/#\0/" "$driver_defs.tmp" > "$driver_defs"
     rm "$driver_defs.tmp"
-    echo "$ARG_ID driver disabled."
+    echo "$ARG_NAME driver disabled."
   else
     echo Current drivers:
     echo "    ${!TASK_DRIVER_DICT[@]}"

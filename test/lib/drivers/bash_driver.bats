@@ -26,9 +26,9 @@ teardown() {
 @test 'Defines DRIVER_PARSE_ARGS, DRIVER_VALIDATE_ARGS, DRIVER_EXECUTE_TASK, DRIVER_HELP_TASK, ' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  assert [ ! -z "$DRIVER_EXECUTE_TASK" ]
-  assert [ ! -z "$DRIVER_HELP_TASK" ]
-  assert [ ! -z "$DRIVER_LIST_TASKS" ]
+  assert [ -n "$DRIVER_EXECUTE_TASK" ]
+  assert [ -n "$DRIVER_HELP_TASK" ]
+  assert [ -n "$DRIVER_LIST_TASKS" ]
 }
 
 @test 'Parses long arguments' {
@@ -37,7 +37,7 @@ teardown() {
   TASK_COMMAND="mytask"
 
   bash_parse mytask --force --num 10 --out "hello world" --in foobar
-  assert [ ! -z "$ARG_FORCE" ]
+  assert [ -n "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
   assert [ "$ARG_IN" == "foobar" ]
@@ -49,7 +49,7 @@ teardown() {
   TASK_COMMAND="mytask"
 
   bash_parse mytask -f -n 10 -o "hello world" -i foobar
-  assert [ ! -z "$ARG_FORCE" ]
+  assert [ -n "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
   assert [ "$ARG_IN" == "foobar" ]
@@ -61,7 +61,7 @@ teardown() {
   TASK_COMMAND="mytask"
 
   bash_parse mytask -fn 10 --out "hello world" --in foobar
-  assert [ ! -z "$ARG_FORCE" ]
+  assert [ -n "$ARG_FORCE" ]
   assert [ "$ARG_NUM" == "10" ]
   assert [ "$ARG_OUT" == "hello world" ]
   assert [ "$ARG_IN" == "foobar" ]
@@ -72,10 +72,10 @@ teardown() {
 
   TASK_COMMAND="boolbunch"
 
-  bash_parse mytask -iozn 10
-  assert [ ! -z "$ARG_IN" ]
-  assert [ ! -z "$ARG_OUT" ]
-  assert [ ! -z "$ARG_ZOO" ]
+  bash_parse boolbunch mytask -iozn 10
+  assert [ -n "$ARG_IN" ]
+  assert [ -n "$ARG_OUT" ]
+  assert [ -n "$ARG_ZOO" ]
   assert [ "$ARG_NUM" == "10" ]
 }
 
@@ -288,6 +288,20 @@ teardown() {
 
   run $DRIVER_VALIDATE_TASKS_FILE $EXAMPLE_TASKS_FILE
   assert_failure
+}
+
+@test 'Fails when bad spec given' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+  TASK_COMMAND=bad
+
+  run bash_parse bad
+  assert_failure
+  assert_output --partial "f:fudge:dangit"
+  
+}
+
+arguments_bad() {
+  BAD_OPTIONS="f:fudge:dangit"
 }
 
 arguments_mytask() {

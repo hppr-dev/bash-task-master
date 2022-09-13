@@ -21,13 +21,7 @@ task_init() {
 
   if [[ -z "$ARG_TEMPLATE" ]]
   then
-    ARG_TEMPLATE=${ARG_DRIVER}.template
-  else
-    if [[ ! -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE" ]]
-    then
-      echo "Can't find template $ARG_TEMPLATE. Aborting..."
-      return 1
-    fi
+    ARG_TEMPLATE=$ARG_DRIVER
   fi
 
   # Determine task file name
@@ -35,9 +29,16 @@ task_init() {
   do
     if [[ "${TASK_FILE_NAME_DICT[$filename]}" == "$ARG_DRIVER" ]]
     then
+      filename_found="T"
       break
     fi
   done
+
+  if [[ -z "$filename_found" ]]
+  then
+    echo "Can not determine task file name for $ARG_DRIVER. Aborting..."
+    return 1
+  fi
   
   NEW_TASKS_FILE=$ARG_DIR/$filename
 
@@ -49,11 +50,12 @@ task_init() {
   fi
 
   # Copy template to ARG_DIR
-  if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE" ]]
+  if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" ]]
   then
     echo "Initializing tasks.sh file in $ARG_DIR..."
-    cp $TASK_MASTER_HOME/templates/$ARG_TEMPLATE $ARG_DIR/$filename
+    cp $TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template $ARG_DIR/$filename
   else
+    echo "Template $ARG_TEMPLATE not found."
     echo "Creating empty $filename..."
     touch $ARG_DIR/$filename
   fi

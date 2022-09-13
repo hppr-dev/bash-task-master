@@ -4,8 +4,9 @@ setup() {
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
 
+  echo "UUID_runner-proj=$PROJECT_DIR #TEST REMOVE ME" > "$TASK_MASTER_HOME/state/locations.vars"
+
   cat > $PROJECT_DIR/tasks.sh <<EOF
-LOCAL_TASKS_UUID="runner-proj"
 
 arguments_run_test() {
   RUN_TEST_OPTIONS="force:f:bool"
@@ -79,6 +80,7 @@ teardown() {
 
   rm -r $DRIVER_TEST_DIR
   awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh > $DRIVER_DIR/driver_defs.sh.tmp && mv $DRIVER_DIR/driver_defs.sh{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
   rm $DRIVER_DIR/test_custom_driver.sh
 }
 
@@ -123,18 +125,20 @@ teardown() {
   assert_success
 }
 
-@test 'Fails when LOCAL_TASKS_UUID is not set in task file' {
+@test 'Infers the LOCAL_TASKS_UUID from directory' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $PROJECT_DIR
 
-  cp tasks.sh tasks.sh.bk
-  awk '/LOCAL_TASKS_UUID/ {next} 0' tasks.sh > tasks.sh.tmp && mv tasks.sh{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
+
+  if [[ -d "$TASK_MASTER_HOME/state/runner-proj" ]]
+  then
+    rm -r "$TASK_MASTER_HOME/state/runner-proj"
+  fi
 
   run task change_dir
 
-  assert_failure
-
-  cp tasks.sh.bk tasks.sh
+  assert [ -d "$TASK_MASTER_HOME/state/runner-proj" ]
 }
 
 @test 'Fails when an argument doesnt exist in spec' {

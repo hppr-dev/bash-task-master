@@ -5,86 +5,94 @@ setup() {
   export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.init
   export TEST_DIR=$TASK_MASTER_HOME/test/init_test
   export RUNNING_DIR=$TEST_DIR
+  export DEFAULT_TASK_DRIVER=bash
+
+  echo "hello world" > $TASK_MASTER_HOME/templates/test.template
 
   mkdir $TEST_DIR
 }
 
 teardown() {
-  cd $TASK_MASTER_HOME/test
-  rm $LOCATIONS_FILE
-  rm -r $TEST_DIR
-  if [[ -d "$TASK_MASTER_HOME/state/init_test" ]]
-  then
-    rm -r $TASK_MASTER_HOME/state/init_test
-  fi
-  if [[ -d "$TASK_MASTER_HOME/state/project" ]]
-  then
-    rm -r $TASK_MASTER_HOME/state/project
-  fi
+  echo "OUTPUT:"
+  echo "$output"
+  rm -f $LOCATIONS_FILE
+  rm -rf $TEST_DIR
+  rm -rf $TASK_MASTER_HOME/state/init_test
+  rm -rf $TASK_MASTER_HOME/state/project
+  rm -f $TASK_MASTER_HOME/templates/test.template
 }
 
-@test 'Initialize empty tasks file with UUID of current dir' {
+@test 'Initialize tasks file with default template and bookmarks the directory' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
   cd $TEST_DIR
 
-  task_init
+  run task_init
+  assert_output --partial "Bookmark $TEST_DIR init_test"
 
   assert [ -f "$TEST_DIR/tasks.sh" ]
 
-  run cat $TEST_DIR/tasks.sh
-  assert_output "LOCAL_TASKS_UUID=init_test"
-
-  run cat $LOCATIONS_FILE
-  assert_output "UUID_init_test=$TEST_DIR"
+  run diff $TASK_MASTER_HOME/templates/bash.template $TEST_DIR/tasks.sh
+  assert_output ""
 }
 
-@test 'Initialize empty hidden tasks file' {
+@test 'Initialize tasks file with specified template and bookmarks the directory' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
   cd $TASK_DIR
-  ARG_HIDDEN=T
+  ARG_TEMPLATE=test
 
-  task_init
+  run task_init
+  assert_output --partial "Bookmark $TEST_DIR init_test"
 
-  assert [ -f "$TEST_DIR/.tasks.sh" ]
+  assert [ -f "$TEST_DIR/tasks.sh" ]
 
-  run cat $TEST_DIR/.tasks.sh
-  assert_output "LOCAL_TASKS_UUID=init_test"
-
-  run cat $LOCATIONS_FILE
-  assert_output "UUID_init_test=$TEST_DIR"
+  run diff $TASK_MASTER_HOME/templates/test.template $TEST_DIR/tasks.sh
+  assert_output ""
 }
 
-@test 'Initialize with custom uuid' {
+@test 'Initialize with custom name' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
   cd $TASK_DIR
   ARG_NAME=project
 
-  task_init
-
-  assert [ -f "$TEST_DIR/tasks.sh" ]
-
-  run cat $TEST_DIR/tasks.sh
-  assert_output "LOCAL_TASKS_UUID=project"
-
-  run cat $LOCATIONS_FILE
-  assert_output "UUID_project=$TEST_DIR"
+  run task_init
+  assert_output --partial "Bookmark $TEST_DIR project"
 }
 
-@test 'Initialize with custom uuid and foreign dir' {
+@test 'Initialize with custom name and foreign dir' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
   cd $TASK_MASTER_HOME/test
+
   ARG_NAME=project
   ARG_DIR=$TEST_DIR
 
-  task_init
+  run task_init
+  assert_output --partial "Bookmark $TEST_DIR project"
 
   assert [ -f "$TEST_DIR/tasks.sh" ]
-
-  run cat $TEST_DIR/tasks.sh
-  assert_output "LOCAL_TASKS_UUID=project"
-
-  run cat $LOCATIONS_FILE
-  assert_output "UUID_project=$TEST_DIR"
 }
 
 @test 'Sets description and options' {
@@ -98,14 +106,64 @@ teardown() {
 
 @test 'Alerts user when file already exists' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
   cd $TASK_MASTER_HOME/test
+  touch $TEST_DIR/tasks.sh
+
   ARG_NAME=project
   ARG_DIR=$TEST_DIR
-  touch $TEST_DIR/tasks.sh
 
   run task_init
   assert_output --partial "exists"
 
   run cat $TEST_DIR/tasks.sh
   assert_output ""
+}
+
+@test 'Fails when driver does not exist' {
+  source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
+  cd $TEST_DIR
+
+  ARG_DRIVER=missing
+
+  run task_init
+  assert_failure
+
+  assert [ ! -f "$TEST_DIR/tasks.sh" ]
+}
+
+@test 'Creates empty file when template does not exist' {
+  source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
+  cd $TEST_DIR
+
+  ARG_TEMPLATE=missing
+
+  run task_init
+  assert_success
+
+  assert [ -f "$TEST_DIR/tasks.sh" ]
+
+  run cat $TEST_DIR/tasks.sh
+  assert_output ""
+}
+
+task_bookmark() {
+  echo Bookmark $ARG_DIR $ARG_NAME
 }

@@ -1,8 +1,14 @@
-setup_file() {
+setup() {
+  load "$TASK_MASTER_HOME/test/run/bats-support/load"
+  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
+
+  cp $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh{,.bk}
+
   export local_repo_dir=$TASK_MASTER_HOME/test/repo.driver
   mkdir $local_repo_dir
 
   export TASK_REPOS=file:///$local_repo_dir/inventory
+  export driver_file=$local_repo_dir/drivers/yaml-driver.sh
 
   cat > $local_repo_dir/inventory <<EOF
 DRIVER_DIR = drivers
@@ -11,7 +17,7 @@ driver-yaml = yaml-driver.sh
 EOF
 
   mkdir $local_repo_dir/drivers
-  cat > $local_repo_dir/drivers/yaml-driver.sh <<EOF
+  cat > $driver_file <<EOF
 # tasks_file_name = tasks.yaml
 # extra_file = yaml/executor.py
 # extra_file = yaml/validator.py
@@ -25,38 +31,42 @@ EOF
   echo "#world" > $local_repo_dir/drivers/yaml/validator.py
 }
 
-teardown_file() {
-  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh}
-}
-
-setup() {
-  load "$TASK_MASTER_HOME/test/run/bats-support/load"
-  load "$TASK_MASTER_HOME/test/run/bats-assert/load"
-
-  cp $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh{,.bk}
-}
-
 teardown() {
+  echo "OUTPUT:"
+  echo "$output"
+  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh}
   mv $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh{.bk,}
 }
 
-@test 'Should protect bash driver' {
+@test 'Defines descriptions and requirements' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
-  ARG_ID=bash
+  arguments_driver
+  assert [ -n "$DRIVER_DESCRIPTION" ]
+  assert [ -n "$ENABLE_DESCRIPTION" ]
+  assert [ -n "$ENABLE_REQUIREMENTS" ]
+  assert [ -n "$DISABLE_DESCRIPTION" ]
+  assert [ -n "$DISABLE_REQUIREMENTS" ]
+  assert [ -n "$LIST_DESCRIPTION" ]
+}
+
+@test 'Protects the bash driver' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  ARG_NAME=bash
   TASK_SUBCOMMAND=enable
 
   run task_driver
   assert_failure
 }
 
-@test 'Should enable local driver' {
+@test 'Enables local driver' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
   echo "#TASK_DRIVER_DICT[local]=local_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
   echo "#TASK_FILE_NAME_DICT[tasks.local]=local" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
 
-  ARG_ID=local
+  ARG_NAME=local
   TASK_SUBCOMMAND=enable
 
   run task_driver
@@ -66,10 +76,10 @@ teardown() {
   refute_output --partial "#TASK_DRIVER_DICT"
 }
 
-@test 'Should download and enable remote driver' {
+@test 'Downloads and enables remote driver' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
-  ARG_ID=yaml
+  ARG_NAME=yaml
   TASK_SUBCOMMAND=enable
 
   run task_driver
@@ -82,25 +92,104 @@ teardown() {
   assert_output --partial "TASK_FILE_NAME_DICT[tasks.yaml]=yaml"
 }
 
-@test 'Should fail to enable missing driver' {
+@test 'Fails to enable missing driver' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
-  ARG_ID=miss
+  ARG_NAME=miss
   TASK_SUBCOMMAND=enable
 
   run task_driver
   assert_failure
 }
 
-
-@test 'Should disable driver' {
+@test 'Fails when inventory points to the wrong file' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  awk '/^driver-yaml = yaml-driver.sh$/ { print "driver-yaml = missing-driver.sh" }' $local_repo_dir/inventory > $local_repo_dir/inventory.tmp
+  mv $local_repo_dir/inventory{.tmp,}
 
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_failure
+  assert_output --partial "missing-driver.sh"
+}
+
+@test 'Fails when remote extra_file doesnt exist' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  echo "# extra_file = yaml/noexist.py" > $driver_file
+
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_failure
+  assert_output --partial "yaml/noexist.py"
+}
+
+@test 'Fails when remote setup script fails to run' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  echo "# setup = yaml/setup.sh" > $driver_file
+  echo "exit 1" > $local_repo_dir/drivers/yaml/setup.sh
+
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_failure
+  assert_output --partial "setup"
+}
+
+@test 'Fails when remote dependency is not met' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  echo "# dependency = thisissomethingthatisntexecutableinyourpath" > $driver_file
+
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_failure
+  assert_output --partial "thisissomethingthatisntexecutableinyourpath"
+}
+
+@test 'Downloads and places template' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  echo "# template = yaml/templatefile " > $driver_file
+  echo "heyoo this is templ" > $local_repo_dir/drivers/yaml/templatefile
+
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_success
+  assert [ -f $TASK_MASTER_HOME/templates/yaml.template ]
+
+  run diff $TASK_MASTER_HOME/templates/yaml.template $local_repo_dir/drivers/yaml/templatefile
+  # Remove here in case of failure
+  rm $TASK_MASTER_HOME/templates/yaml.template
+  assert_output ""
+}
+
+@test 'Continues on bad template' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+  echo "# template = missingtemplatefile" > $driver_file
+
+  ARG_NAME=yaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_success
+  assert_output --partial "missingtemplatefile"
+  assert [ ! -f "$TASK_MASTER_HOME/templates/yaml.template" ]
+}
+
+@test 'Disables driver' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
   echo "TASK_DRIVER_DICT[xml]=xml_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
   echo "TASK_FILE_NAME_DICT[tasks.xml]=xml" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
 
-  ARG_ID=xml
+  ARG_NAME=xml
   TASK_SUBCOMMAND=disable
 
   run task_driver
@@ -109,17 +198,17 @@ teardown() {
   assert_output --partial "#TASK_FILE_NAME_DICT[tasks.xml]=xml"
 }
 
-@test 'Should fail to disable missing driver' {
+@test 'Fails to disable missing driver' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
-  ARG_ID=miss
+  ARG_NAME=miss
   TASK_SUBCOMMAND=disable
 
   run task_driver
   assert_failure
 }
 
-@test 'Should list drivers' {
+@test 'Lists drivers' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
 
   declare -A TASK_DRIVER_DICT

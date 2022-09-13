@@ -82,7 +82,7 @@ task(){
   if [[ -n "$TASKS_FILE_FOUND" ]]
   then
     LOCAL_TASKS_UUID=$( grep "$TASKS_DIR" "$LOCATIONS_FILE" | head -n 1 )
-    if [[ -z "$LOCAL_TASKS" ]]
+    if [[ -z "$LOCAL_TASKS_UUID" ]]
     then
       LOCAL_TASKS_UUID=$(basename "$(readlink -f "$TASKS_DIR")")
       _tmverbose_echo "Warning: $TASKS_DIR is not bookmarked. Saving State in $LOCAL_TASKS_UUID"
