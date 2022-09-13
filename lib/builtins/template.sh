@@ -29,7 +29,7 @@ task_template() {
     rm "$template_file"
   else
     echo "Available templates:"
-    ls "$TASK_MASTER_HOME/templates" | sed 's/\(.*\)\.template/    \1/' | tr -d '\n'
+    find "$TASK_MASTER_HOME/templates"  -name '*.template' -exec basename {} \; | sed 's/\(.*\)\.template/    \1/' | tr -d '\n'
     echo
     echo
   fi

@@ -25,7 +25,7 @@ task_init() {
   fi
 
   # Determine task file name
-  for filename in ${!TASK_FILE_NAME_DICT[@]}
+  for filename in "${!TASK_FILE_NAME_DICT[@]}"
   do
     if [[ "${TASK_FILE_NAME_DICT[$filename]}" == "$ARG_DRIVER" ]]
     then
@@ -53,11 +53,11 @@ task_init() {
   if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" ]]
   then
     echo "Initializing tasks.sh file in $ARG_DIR..."
-    cp $TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template $ARG_DIR/$filename
+    cp "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" "$ARG_DIR/$filename"
   else
     echo "Template $ARG_TEMPLATE not found."
     echo "Creating empty $filename..."
-    touch $ARG_DIR/$filename
+    touch "$ARG_DIR/$filename"
   fi
 
   echo "Creating state directory..."

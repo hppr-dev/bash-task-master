@@ -61,39 +61,39 @@ task_driver() {
     fi
 
     echo Checking dependencies...
-    grep "#\s*dependency" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | while IFS= read -r dependency
-    do
-      if ! command -v $dependency &> /dev/null
-      then
-        echo "Can not find required $dependency in PATH."
-        echo "Install $dependency and try again."
-        rm "$local_file"
-        return 1
-      fi
-    done
-    if [[ "$?" != "0" ]]
+    if ! grep "#\s*dependency" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | \
+      while IFS= read -r dependency
+      do
+        if ! command -v "$dependency" &> /dev/null
+        then
+          echo "Can not find required $dependency in PATH."
+          echo "Install $dependency and try again."
+          rm "$local_file"
+          return 1
+        fi
+      done
     then
       return 1
     fi
 
     echo Downloading extra files...
-    grep "#\s*extra_file\s*=" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | while IFS= read -r extra_file
-    do
-      target_dir=$( dirname "$extra_file" )
-      if [[ -n "$target_dir" ]]
-      then
-        mkdir -p "$TASK_MASTER_HOME/lib/drivers/$target_dir"
-      fi
-      echo "Downloading extra file: $extra_file..."
-      if ! curl -s "$remote_driver_dir/$extra_file" > "$TASK_MASTER_HOME/lib/drivers/$extra_file"
-      then
-        echo "Failed to download $remote_driver_dir/$extra_file."
-        echo "Check repository availability and try again"
-        rm "$local_file" "$TASK_MASTER_HOME/lib/drivers/$extra_file"
-        return 1
-      fi
-    done
-    if [[ "$?" != "0" ]]
+    if ! grep "#\s*extra_file\s*=" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | \
+      while IFS= read -r extra_file
+      do
+        target_dir=$( dirname "$extra_file" )
+        if [[ -n "$target_dir" ]]
+        then
+          mkdir -p "$TASK_MASTER_HOME/lib/drivers/$target_dir"
+        fi
+        echo "Downloading extra file: $extra_file..."
+        if ! curl -s "$remote_driver_dir/$extra_file" > "$TASK_MASTER_HOME/lib/drivers/$extra_file"
+        then
+          echo "Failed to download $remote_driver_dir/$extra_file."
+          echo "Check repository availability and try again"
+          rm "$local_file" "$TASK_MASTER_HOME/lib/drivers/$extra_file"
+          return 1
+        fi
+      done
     then
       return 1
     fi
@@ -144,7 +144,7 @@ task_driver() {
     echo "$ARG_NAME driver disabled."
   else
     echo Current drivers:
-    echo "    ${!TASK_DRIVER_DICT[@]}"
+    echo "    ${!TASK_DRIVER_DICT[*]}"
     echo
   fi
 }
