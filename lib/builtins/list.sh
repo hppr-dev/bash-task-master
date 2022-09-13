@@ -18,7 +18,7 @@ task_list() {
   if [[ -n "$ARG_LOCAL$ARG_ALL" ]]
   then
     # List is a global task, so we need to load the task file driver
-    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}"
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
     echo "Available local tasks:"
     echo
     echo "     $($DRIVER_LIST_TASKS "$TASK_FILE")"

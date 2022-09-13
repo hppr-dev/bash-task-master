@@ -103,6 +103,7 @@ global_clean() {
   fi
 }
 
+readonly -f arguments_global
 readonly -f task_global
 readonly -f global_debug
 readonly -f global_set

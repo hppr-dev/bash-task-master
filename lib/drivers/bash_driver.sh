@@ -286,3 +286,11 @@ execute_task() {
 bash_validate_file() {
   bash -n "$1"
 }
+
+
+readonly -f bash_parse
+readonly -f bash_validate
+readonly -f bash_help
+readonly -f bash_list
+readonly -f execute_task
+readonly -f bash_validate_file
