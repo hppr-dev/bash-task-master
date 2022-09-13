@@ -2,9 +2,9 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.goto
+  export LOCATION_FILE=$TASK_MASTER_HOME/test/locations.goto
 
-  cat > $LOCATIONS_FILE <<EOF
+  cat > $LOCATION_FILE <<EOF
 UUID_tmhome=$TASK_MASTER_HOME
 UUID_project=$TASK_MASTER_HOME/test/proj
 EOF
@@ -16,7 +16,7 @@ EOF
 teardown() {
   cd $TASK_MASTER_HOME/test/
   rmdir $TASK_MASTER_HOME/test/proj
-  rm $LOCATIONS_FILE
+  rm $TASK_MASTER_HOME/test/locations.goto
 }
 
 @test "Sets descripton" {
@@ -27,7 +27,7 @@ teardown() {
   assert [ ! -z "$GOTO_DESCRIPTION" ]
 }
 
-@test "Should goto directory" {
+@test "Changes the current directory" {
   source $TASK_MASTER_HOME/lib/builtins/goto.sh
 
   TASK_SUBCOMMAND="project"
@@ -38,7 +38,7 @@ teardown() {
   assert_output $TASK_MASTER_HOME/test/proj
 }
 
-@test "Should stay when location does not exist" {
+@test "Stays in the current directory when location does not exist" {
   source $TASK_MASTER_HOME/lib/builtins/goto.sh
 
   TASK_SUBCOMMAND="foobar"

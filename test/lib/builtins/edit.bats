@@ -2,15 +2,15 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export TASKS_FILE=$TASK_MASTER_HOME/test/test_task_file.sh
+  export TASK_FILE=$TASK_MASTER_HOME/test/test_task_file.sh
   export DEFAULT_EDITOR=return_0
-  export DRIVER_VALIDATE_TASKS_FILE="bash -n "
+  export DRIVER_VALIDATE_TASK_FILE="bash -n "
 
-  touch $TASKS_FILE
+  touch $TASK_FILE
 }
 
 teardown() {
-  rm -f $TASKS_FILE
+  rm -f $TASK_FILE
 }
 
 @test "Sets description" {
@@ -23,7 +23,7 @@ teardown() {
 
 @test "Fails if a task file is not found" {
   source $TASK_MASTER_HOME/lib/builtins/edit.sh
-  TASKS_FILE=""
+  TASK_FILE=""
 
   run task_edit
   assert_failure
@@ -40,7 +40,7 @@ teardown() {
 @test "Asks to retry if not validated" {
   source $TASK_MASTER_HOME/lib/builtins/edit.sh
   mess_up_tasks_file
-  DRIVER_VALIDATE_TASKS_FILE=validate_success
+  DRIVER_VALIDATE_TASK_FILE=validate_success
 
   run task_edit <<< "no"
   assert_output --partial "Could not validate"
@@ -53,7 +53,7 @@ teardown() {
   run task_edit <<< "no"
   assert_output --partial "Could not validate"
   
-  run cat $TASKS_FILE
+  run cat $TASK_FILE
   assert_output ""
 }
 
@@ -67,7 +67,7 @@ teardown() {
 }
 
 fix_tasks_file() {
-  cat > $TASKS_FILE <<EOF
+  cat > $TASK_FILE <<EOF
 hello() {
   return 0
 }
@@ -75,7 +75,7 @@ EOF
 }
 
 mess_up_tasks_file() {
-  cat > $TASKS_FILE <<EOF
+  cat > $TASK_FILE <<EOF
 hello() {
   if [[ this == should ]]
     echo missing then

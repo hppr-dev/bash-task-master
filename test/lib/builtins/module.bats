@@ -56,7 +56,7 @@ teardown() {
   source $TASK_MASTER_HOME/lib/builtins/module.sh
   touch $TASK_MASTER_HOME/modules/local-module.sh.disabled
 
-  ARG_ID="local"
+  ARG_NAME="local"
   TASK_SUBCOMMAND="enable"
 
   run task_module
@@ -67,7 +67,7 @@ teardown() {
 @test 'Downloads remote module and enables it' {
   source $TASK_MASTER_HOME/lib/builtins/module.sh
 
-  ARG_ID="test"
+  ARG_NAME="test"
   TASK_SUBCOMMAND="enable"
 
   run task_module
@@ -78,7 +78,7 @@ teardown() {
 @test 'Fails to find a non importable module' { 
   source $TASK_MASTER_HOME/lib/builtins/module.sh
 
-  ARG_ID="missing"
+  ARG_NAME="missing"
   TASK_SUBCOMMAND="enable"
 
   run task_module
@@ -90,7 +90,7 @@ teardown() {
 
   touch $TASK_MASTER_HOME/modules/local-module.sh
 
-  ARG_ID="local"
+  ARG_NAME="local"
   TASK_SUBCOMMAND="disable"
 
   run task_module
@@ -101,7 +101,7 @@ teardown() {
 @test 'Fails to disable module that isnt enabled' {
   source $TASK_MASTER_HOME/lib/builtins/module.sh
 
-  ARG_ID="missing"
+  ARG_NAME="missing"
   TASK_SUBCOMMAND="disable"
 
   run task_module

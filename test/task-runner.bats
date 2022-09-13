@@ -4,7 +4,7 @@ setup() {
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
 
-  echo "UUID_runner-proj=$PROJECT_DIR #TEST REMOVE ME" > "$TASK_MASTER_HOME/state/locations.vars"
+  echo "UUID_runner-proj=$PROJECT_DIR #TEST REMOVE ME" >> "$TASK_MASTER_HOME/state/locations.vars"
 
   cat > $PROJECT_DIR/tasks.sh <<EOF
 
@@ -55,7 +55,7 @@ EOF
 DRIVER_EXECUTE_TASK=execute_test
 DRIVER_LIST_TASKS=list_test
 DRIVER_HELP_TASK=help_test
-DRIVER_VALIDATE_TASKS_FILE="not used in task runner"
+DRIVER_VALIDATE_TASK_FILE="not used in task runner"
 
 execute_test() {
   echo I am executing: \$@
@@ -80,7 +80,7 @@ teardown() {
 
   rm -r $DRIVER_TEST_DIR
   awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh > $DRIVER_DIR/driver_defs.sh.tmp && mv $DRIVER_DIR/driver_defs.sh{.tmp,}
-  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $TASK_MASTER_HOME/state/locations.vars{.tmp,}
   rm $DRIVER_DIR/test_custom_driver.sh
 }
 
@@ -129,7 +129,7 @@ teardown() {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $PROJECT_DIR
 
-  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $TASK_MASTER_HOME/state/locations.vars{.tmp,}
 
   if [[ -d "$TASK_MASTER_HOME/state/runner-proj" ]]
   then

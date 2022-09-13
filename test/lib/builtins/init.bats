@@ -2,7 +2,7 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.init
+  export LOCATION_FILE=$TASK_MASTER_HOME/test/locations.init
   export TEST_DIR=$TASK_MASTER_HOME/test/init_test
   export RUNNING_DIR=$TEST_DIR
   export DEFAULT_TASK_DRIVER=bash
@@ -15,7 +15,7 @@ setup() {
 teardown() {
   echo "OUTPUT:"
   echo "$output"
-  rm -f $LOCATIONS_FILE
+  rm -f $TASK_MASTER_HOME/test/locations.init
   rm -rf $TEST_DIR
   rm -rf $TASK_MASTER_HOME/state/init_test
   rm -rf $TASK_MASTER_HOME/state/project

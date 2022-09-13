@@ -1,8 +1,8 @@
 setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
-  export EXAMPLE_TASKS_FILE=$TASK_MASTER_HOME/test/tasks.sh.bash_driver
-  cat > $EXAMPLE_TASKS_FILE <<EOF
+  export EXAMPLE_TASK_FILE=$TASK_MASTER_HOME/test/tasks.sh.bash_driver
+  cat > $EXAMPLE_TASK_FILE <<EOF
 task_hello() {
   :
 }
@@ -20,7 +20,7 @@ EOF
 }
 
 teardown() {
-  rm $EXAMPLE_TASKS_FILE
+  rm $EXAMPLE_TASK_FILE
 }
 
 @test 'Defines DRIVER_PARSE_ARGS, DRIVER_VALIDATE_ARGS, DRIVER_EXECUTE_TASK, DRIVER_HELP_TASK, ' {
@@ -267,9 +267,9 @@ teardown() {
 @test 'Lists tasks in a task file' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  TASKS_FILE_FOUND=1
+  TASK_FILE_FOUND=1
 
-  run $DRIVER_LIST_TASKS $EXAMPLE_TASKS_FILE
+  run $DRIVER_LIST_TASKS $EXAMPLE_TASK_FILE
   assert_output "hello world foo bar "
   assert_success
 }
@@ -277,16 +277,16 @@ teardown() {
 @test 'Validates tasks file' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
-  run $DRIVER_VALIDATE_TASKS_FILE $EXAMPLE_TASKS_FILE
+  run $DRIVER_VALIDATE_TASK_FILE $EXAMPLE_TASK_FILE
   assert_success
 }
 
 @test 'Does not validate bad tasks file {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
-  grep -v task_bar $EXAMPLE_TASKS_FILE > $EXAMPLE_TASKS_FILE.tmp
-  mv $EXAMPLE_TASKS_FILE{.tmp,}
+  grep -v task_bar $EXAMPLE_TASK_FILE > $EXAMPLE_TASK_FILE.tmp
+  mv $EXAMPLE_TASK_FILE{.tmp,}
 
-  run $DRIVER_VALIDATE_TASKS_FILE $EXAMPLE_TASKS_FILE
+  run $DRIVER_VALIDATE_TASK_FILE $EXAMPLE_TASK_FILE
   assert_failure
 }
 

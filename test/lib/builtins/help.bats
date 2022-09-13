@@ -22,7 +22,7 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 }
 
-@test 'Should call driver help when driver returns zero' {
+@test 'Calls driver help when driver returns zero' {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
 
   declare -A TASK_DRIVER_DICT
@@ -37,7 +37,7 @@ setup() {
   refute_output --partial "Task Master"
 }
 
-@test 'Should display global help when driver returns non-zero' {
+@test 'Displays global help when driver returns non-zero' {
   source $TASK_MASTER_HOME/lib/builtins/help.sh
   TASK_SUBCOMMAND="chester"
 
