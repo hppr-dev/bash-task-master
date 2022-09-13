@@ -4,8 +4,9 @@ setup() {
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
 
+  echo "UUID_runner-proj=$PROJECT_DIR #TEST REMOVE ME" > "$TASK_MASTER_HOME/state/locations.vars"
+
   cat > $PROJECT_DIR/tasks.sh <<EOF
-LOCAL_TASKS_UUID="runner-proj"
 
 arguments_run_test() {
   RUN_TEST_OPTIONS="force:f:bool"
@@ -47,7 +48,8 @@ EOF
 
   export DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers/
 
-  echo "TASK_DRIVERS[testtasks.myfile]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+  echo "TASK_FILE_NAME_DICT[testtasks.myfile]=test_custom #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+  echo "TASK_DRIVER_DICT[test_custom]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
 
   cat > $DRIVER_DIR/test_custom_driver.sh <<EOF
 DRIVER_EXECUTE_TASK=execute_test
@@ -78,6 +80,7 @@ teardown() {
 
   rm -r $DRIVER_TEST_DIR
   awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh > $DRIVER_DIR/driver_defs.sh.tmp && mv $DRIVER_DIR/driver_defs.sh{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
   rm $DRIVER_DIR/test_custom_driver.sh
 }
 
@@ -122,18 +125,20 @@ teardown() {
   assert_success
 }
 
-@test 'Fails when LOCAL_TASKS_UUID is not set in task file' {
+@test 'Infers the LOCAL_TASKS_UUID from directory' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $PROJECT_DIR
 
-  cp tasks.sh tasks.sh.bk
-  awk '/LOCAL_TASKS_UUID/ {next} 0' tasks.sh > tasks.sh.tmp && mv tasks.sh{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $D$TASK_MASTER_HOME/state/locations.vars{.tmp,}
+
+  if [[ -d "$TASK_MASTER_HOME/state/runner-proj" ]]
+  then
+    rm -r "$TASK_MASTER_HOME/state/runner-proj"
+  fi
 
   run task change_dir
 
-  assert_failure
-
-  cp tasks.sh.bk tasks.sh
+  assert [ -d "$TASK_MASTER_HOME/state/runner-proj" ]
 }
 
 @test 'Fails when an argument doesnt exist in spec' {
@@ -257,7 +262,7 @@ teardown() {
   cd $DRIVER_TEST_DIR
 
   run task do something --special
-  assert [ "${lines[1]}" == "I am executing: do something --special" ]
+  assert [ "${lines[0]}" == "I am executing: do something --special" ]
 }
 
 @test 'Fails if task file driver is missing an interface value' {

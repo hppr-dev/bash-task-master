@@ -1,34 +1,3 @@
-setup_file() {
-
-  export local_repo_dir=$TASK_MASTER_HOME/test/repo.global
-  mkdir $local_repo_dir
-
-  export TASK_REPOS=file:///$local_repo_dir/inventory
-
-  cat > $local_repo_dir/inventory <<EOF
-DRIVER_DIR = drivers
-
-driver-yaml = yaml-driver.sh
-EOF
-
-  mkdir $local_repo_dir/drivers
-  cat > $local_repo_dir/drivers/yaml-driver.sh <<EOF
-# tasks_file_name = tasks.yaml
-# extra_file = yaml/executor.py
-# extra_file = yaml/validator.py
-
-echo script goes here
-
-EOF
-
-  mkdir $local_repo_dir/drivers/yaml
-  touch $local_repo_dir/drivers/{executor,validator}.py
-}
-
-teardown_file() {
-  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh}
-}
-
 setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
@@ -43,14 +12,12 @@ setup() {
 
   export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
   echo foo=bar > $OTHER_STATE_FILE
-  cp $TASK_MASTER_HOME/lib/drivers/driver_defs.sh{,.bk}
 }
 
 teardown() {
   rm $LOCATIONS_FILE
   rm $COMMAND_STATE_FILE
   rm $OTHER_STATE_FILE
-  mv $TASK_MASTER_HOME/lib/drivers/driver_defs.sh{.bk,}
 }
 
 @test 'Debug shows all variables when command not given' {
@@ -169,97 +136,6 @@ teardown() {
   assert [ ! -z "$EDIT_DESCRIPTION" ]
   assert [ ! -z "$EDIT_REQUIREMENTS" ]
   assert [ ! -z "$CLEAN_DESCRIPTION" ]
-  assert [ ! -z "$DRIVER_DESCRIPTION" ]
-  assert [ ! -z "$DRIVER_OPTIONS" ]
-}
-
-@test 'Should protect bash driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  ARG_ENABLE=bash
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  assert_failure
-}
-
-@test 'Should enable local driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  add_driver_def "tasks.local" "local" "#"
-
-  ARG_ENABLE=local
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  run cat $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
-  assert_output --partial "TASK_DRIVERS[tasks.local]=local_driver.sh"
-  refute_output --partial "#"
-}
-
-@test 'Should download and enable remote driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  ARG_ENABLE=yaml
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  assert [ -f $TASK_MASTER_HOME/lib/drivers/yaml_driver.sh ]
-  assert [ -f $TASK_MASTER_HOME/lib/drivers/yaml/executor.py ]
-  assert [ -f $TASK_MASTER_HOME/lib/drivers/yaml/validator.py ]
-
-  run cat $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
-  assert_output --partial "TASK_DRIVERS[tasks.yaml]=yaml_driver.sh"
-}
-
-@test 'Should fail to enable missing driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  ARG_ENABLE=miss
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  assert_failure
-}
-
-
-@test 'Should disable driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  add_driver_def "tasks.xml" "xml"
-
-  ARG_DISABLE=xml
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  run cat $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
-  assert_output --partial "#TASK_DRIVERS[tasks.xml]=xml_driver.sh"
-}
-
-@test 'Should fail to disable missing driver' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  ARG_DISABLE=miss
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  assert_failure
-}
-
-@test 'Should list drivers' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
-
-  add_driver_def "tasks.fake" "fake"
-
-  TASK_SUBCOMMAND=driver
-
-  run task_global
-  assert_output --partial "bash"
-  assert_output --partial "fake"
-}
-
-add_driver_def() {
-  echo "${3}TASK_DRIVERS[$1]=${2}_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/driver_defs.sh
 }
 
 persist_var() {

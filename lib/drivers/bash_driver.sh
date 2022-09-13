@@ -10,15 +10,24 @@ bash_parse() {
   then
     "arguments_$TASK_COMMAND"
   fi
+
+  local spec separated
+
   if [[ -z "$SPEC_REQUIREMENT_NAME" ]]
   then
     local SPEC_REQUIREMENT_NAME=${TASK_COMMAND^^}_REQUIREMENTS
     local SPEC_OPTION_NAME=${TASK_COMMAND^^}_OPTIONS
     local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
+    for spec in $requirements
+    do
+      if ! [[ "$spec" =~ [a-Z0-9_-]+:[a-Z0-9]:[a-z]+ ]]
+      then
+        echo "Bad argument specification for $TASK_COMMAND: $spec."
+        return 1
+      fi
+    done
   fi
-  #check if there are more than one specified arg and add the first ones to the end
 
-  local spec separated
   unset ADDED_ARGS
   shift
   while [[ $# != "0" ]]
@@ -38,7 +47,7 @@ bash_parse() {
     if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
     then
       # shellcheck disable=SC2001
-      spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" |tr -d '[:space:]' )
+      spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" | tr -d '[:space:]' )
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[A-Za-z]:[a-z]+$ ]]
       then

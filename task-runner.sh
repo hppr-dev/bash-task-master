@@ -2,7 +2,6 @@
 task(){
   # ALL OF THE FOLLOWING VARIABLES ARE AVAILABLE TO TASK SUBSHELLS
   local RUNNING_DIR
-  local TASK_AWK_DIR
   local GLOBAL_TASKS_FILE
   local TASKS_DIR
   local TASKS_FILE
@@ -19,6 +18,8 @@ task(){
   local GLOBAL_VERBOSE
   local GLOBAL_TASKS
   local LOCAL_TASKS
+  local TASK_DRIVER_DICT
+  local TASK_FILE_NAME_DICT
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
@@ -29,39 +30,41 @@ task(){
     shift
   fi
 
-  # Load task drivers
-  source "$TASK_MASTER_HOME"/lib/drivers/driver_defs.sh
-
   # Load config
-  source "$TASK_MASTER_HOME"/config.sh
+  source "$TASK_MASTER_HOME/config.sh"
+
+  # Load task drivers
+  source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
 
   # Save directory that you are running it from
   RUNNING_DIR=$(pwd)
-  TASK_AWK_DIR=$TASK_MASTER_HOME/awk
+  LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+
   GLOBAL_TASKS_FILE=$TASK_MASTER_HOME/load-global.sh
   TASKS_DIR=$RUNNING_DIR
   TASKS_FILE=""
+
   DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers
-  TASK_FILE_DRIVER=$DRIVER_DIR/bash_driver.sh
-  TASK_DRIVER=$TASK_FILE_DRIVER
-  LOCATIONS_FILE=$TASK_MASTER_HOME/state/locations.vars
+  TASK_DRIVER=bash
+  TASK_FILE_DRIVER=$DEFAULT_TASK_DRIVER
 
 
   TASKS_FILE_NAME=""
   TASKS_FILE_FOUND=""
 
   # Find tasks file
-  while [[ "$TASKS_DIR" != "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]]
+  while [[ ! "$TASKS_DIR" -ef "$HOME" ]] && [[ -z "$TASKS_FILE_FOUND" ]] && [[ ! "$TASKS_DIR" -ef "/" ]]
   do
     TASKS_DIR=$(pwd)
     cd ..
+    _tmverbose_echo "Searching $TASKS_DIR..."
     # shellcheck disable=SC2153
-    for TASKS_FILE_NAME in "${!TASK_DRIVERS[@]}"
+    for TASKS_FILE_NAME in "${!TASK_FILE_NAME_DICT[@]}"
     do
       if [[ -f "$TASKS_DIR/$TASKS_FILE_NAME" ]]
       then
         TASKS_FILE=$TASKS_DIR/$TASKS_FILE_NAME
-	      TASK_FILE_DRIVER=$TASK_MASTER_HOME/lib/drivers/${TASK_DRIVERS[$TASKS_FILE_NAME]}
+	      TASK_FILE_DRIVER=${TASK_FILE_NAME_DICT[$TASKS_FILE_NAME]}
 	      TASKS_FILE_FOUND="T"
 	      break
       fi
@@ -75,13 +78,17 @@ task(){
   TASK_COMMAND=$1
   TASK_SUBCOMMAND=""
 
-  # Load Local Task UUID
+  # Infer task UUID
   if [[ -n "$TASKS_FILE_FOUND" ]]
   then
-    local "$(awk '/^LOCAL_TASKS_UUID=[^$]*$/{print} 0' "$TASKS_FILE")" &> /dev/null
+    LOCAL_TASKS_UUID=$( grep "$TASKS_DIR" "$LOCATIONS_FILE" | head -n 1 )
     if [[ -z "$LOCAL_TASKS_UUID" ]]
     then
-      echo "Warning: Could not find tasks UUID in $TASKS_FILE file"
+      LOCAL_TASKS_UUID=$(basename "$(readlink -f "$TASKS_DIR")")
+      _tmverbose_echo "Warning: $TASKS_DIR is not bookmarked. Saving State in $LOCAL_TASKS_UUID"
+    else
+      LOCAL_TASKS_UUID=${LOCAL_TASKS_UUID#UUID_}
+      LOCAL_TASKS_UUID=${LOCAL_TASKS_UUID%=*}
     fi
   fi
 
@@ -127,14 +134,14 @@ task(){
     # Check if task is already loaded
     if task_in "$GLOBAL_TASKS"
     then
-      TASK_DRIVER=$TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+      TASK_DRIVER=bash
     else
       TASK_DRIVER=$TASK_FILE_DRIVER
     fi
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
-    source "$TASK_DRIVER"
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_DRIVER]}"
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASKS_FILE" ]]
     then
       echo Driver implementation error.
