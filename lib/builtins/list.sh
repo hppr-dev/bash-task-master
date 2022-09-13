@@ -12,15 +12,16 @@ task_list() {
   then
     echo "Available global tasks:"
     echo
-    echo "    $GLOBAL_TASKS" | sed 's/|/    /g'
+    echo "    $GLOBAL_TASKS_REG" | sed 's/|/    /g'
     echo
   fi
   if [[ -n "$ARG_LOCAL$ARG_ALL" ]]
   then
-    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}"
+    # List is a global task, so we need to load the task file driver
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
     echo "Available local tasks:"
     echo
-    echo "     $($DRIVER_LIST_TASKS "$TASKS_FILE")"
+    echo "     $($DRIVER_LIST_TASKS "$TASK_FILE")"
     echo
   fi
 }

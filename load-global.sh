@@ -10,3 +10,5 @@ then
     source "$module"
   done
 fi
+unset enabled
+unset module

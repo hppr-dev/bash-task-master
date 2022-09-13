@@ -18,22 +18,22 @@ task_bookmark() {
   if [[ "$TASK_SUBCOMMAND" == "list" ]]
   then
     echo "Bookmarks:"
-    sed 's/UUID_\(.*\)=.*/    \1/' "$LOCATIONS_FILE" | tr '\n' ' '
+    sed 's/UUID_\(.*\)=.*/    \1/' "$LOCATION_FILE" | tr '\n' ' '
     echo
     echo
   elif [[ "$TASK_SUBCOMMAND" == "rm" ]]
   then
-    if grep -q "UUID_$ARG_NAME=" "$LOCATIONS_FILE"
+    if grep -q "UUID_$ARG_NAME=" "$LOCATION_FILE"
     then
-      awk "/UUID_$ARG_NAME=/ { next } { print }" "$LOCATIONS_FILE" > "$LOCATIONS_FILE.upd"
-      mv "$LOCATIONS_FILE"{.upd,}
+      awk "/UUID_$ARG_NAME=/ { next } { print }" "$LOCATION_FILE" > "$LOCATION_FILE.upd"
+      mv "$LOCATION_FILE"{.upd,}
       echo "Removed bookmark: $ARG_NAME"
     else
       echo "Bookmark $ARG_NAME not found"
     fi
   else
-    echo "Saving location to $LOCATIONS_FILE as $ARG_NAME"
-    echo "UUID_$ARG_NAME=$ARG_DIR" >> "$LOCATIONS_FILE"
+    echo "Saving location to $LOCATION_FILE as $ARG_NAME"
+    echo "UUID_$ARG_NAME=$ARG_DIR" >> "$LOCATION_FILE"
   fi
 }
 

@@ -40,10 +40,10 @@ task_init() {
     return 1
   fi
   
-  NEW_TASKS_FILE=$ARG_DIR/$filename
+  NEW_TASK_FILE=$ARG_DIR/$filename
 
   # Check for existing tasks file
-  if [[ -f "$NEW_TASKS_FILE" ]]
+  if [[ -f "$NEW_TASK_FILE" ]]
   then
     echo "Task file already exists can't init in $ARG_DIR"
     return 1

@@ -2,8 +2,8 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.global
-  echo "UUID_tmhome=$TASK_MASTER_HOME" > "$LOCATIONS_FILE"
+  export LOCATION_FILE=$TASK_MASTER_HOME/test/locations.global
+  echo "UUID_tmhome=$TASK_MASTER_HOME" > "$LOCATION_FILE"
 
   export STATE_DIR=$TASK_MASTER_HOME/state
 
@@ -15,7 +15,7 @@ setup() {
 }
 
 teardown() {
-  rm $LOCATIONS_FILE
+  rm $TASK_MASTER_HOME/test/locations.global
   rm $COMMAND_STATE_FILE
   rm $OTHER_STATE_FILE
 }
@@ -84,13 +84,13 @@ teardown() {
 @test 'Clean removes locations from location file that no longer exist' {
   source $TASK_MASTER_HOME/lib/builtins/global.sh
 
-  echo "UUID_hello=$TASK_MASTER_HOME/test/doesnotexist" >> $LOCATIONS_FILE
+  echo "UUID_hello=$TASK_MASTER_HOME/test/doesnotexist" >> $LOCATION_FILE
 
   TASK_SUBCOMMAND="clean"
 
   task_global
 
-  run cat $LOCATIONS_FILE
+  run cat $LOCATION_FILE
 
   assert_output --partial "UUID_tmhome=$TASK_MASTER_HOME"
   refute_output --partial "UUID_hello=$TASK_MASTER_HOME/test/doesnotexist"
@@ -121,7 +121,7 @@ teardown() {
   assert [ ! -f "$TASK_MASTER_HOME/state/empty.vars" ]
 }
 
-@test 'Should define descriptions and arguments' {
+@test 'Defines descriptions and arguments' {
   source $TASK_MASTER_HOME/lib/builtins/global.sh
   
   arguments_global

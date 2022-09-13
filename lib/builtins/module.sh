@@ -4,10 +4,10 @@ arguments_module() {
   MODULE_DESCRIPTION="Manage modules."
 
   ENABLE_DESCRIPTION="Enable a module. Downloads modules from TASK_REPOS if not found locally."
-  ENABLE_REQUIREMENTS="id:i:str"
+  ENABLE_REQUIREMENTS="name:n:str"
 
   DISABLE_DESCRIPTION="Disable a module"
-  DISABLE_REQUIREMENTS="id:i:str"
+  DISABLE_REQUIREMENTS="name:n:str"
 
   LIST_DESCRIPTION="List modules"
   LIST_OPTIONS="all:a:bool remote:r:bool enabled:e:bool disabled:d:bool local:l:bool"
@@ -27,43 +27,43 @@ task_module() {
 }
 
 module_enable() {
-  filename="$TASK_MASTER_HOME/modules/$ARG_ID-module.sh"
+  filename="$TASK_MASTER_HOME/modules/$ARG_NAME-module.sh"
   if [[ -f "$filename.disabled" ]]
   then
     # Module already downloaded
-    echo "Enabling $ARG_ID module..."
+    echo "Enabling $ARG_NAME module..."
     mv "$filename"{.disabled,}
   else
     echo Searching repositories...
     for repo in $TASK_REPOS
     do
       inventory=$(curl -s "$repo")
-      module_file=$(echo "$inventory" | grep "module-$ARG_ID" | awk -F '=' '{ print $2 }' | xargs )
+      module_file=$(echo "$inventory" | grep "module-$ARG_NAME" | awk -F '=' '{ print $2 }' | xargs )
       if [[ -n "$module_file" ]]
       then
-        echo "$ARG_ID module found in $repo"
+        echo "$ARG_NAME module found in $repo"
         break
       fi
     done
     if [[ -z "$module_file" ]]
     then
-      echo "Unable to find $ARG_ID module"
+      echo "Unable to find $ARG_NAME module"
       return 1
     fi
     module_dir=$(dirname "$repo")/$(echo "$inventory" | grep MODULE_DIR | awk -F '=' '{ print $2 }' | xargs )
     echo "Downloading $module_dir/$module_file..."
     curl -s "$module_dir/$module_file" >> "$filename"
-    echo "$ARG_ID module installed."
+    echo "$ARG_NAME module installed."
   fi 
 }
 
 module_disable() {
-  if [[ -f "$TASK_MASTER_HOME/modules/$ARG_ID-module.sh" ]]
+  if [[ -f "$TASK_MASTER_HOME/modules/$ARG_NAME-module.sh" ]]
   then
-    echo "Disabling $ARG_ID module..."
-    mv "$TASK_MASTER_HOME/modules/$ARG_ID-module.sh"{,.disabled}
+    echo "Disabling $ARG_NAME module..."
+    mv "$TASK_MASTER_HOME/modules/$ARG_NAME-module.sh"{,.disabled}
   else
-    echo "Could not find $ARG_ID module"
+    echo "Could not find $ARG_NAME module"
     return 1
   fi
 }

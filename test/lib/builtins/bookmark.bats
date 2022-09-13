@@ -2,14 +2,14 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-support/load"
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
 
-  export LOCATIONS_FILE=$TASK_MASTER_HOME/test/locations.bookmark
+  export LOCATION_FILE=$TASK_MASTER_HOME/test/locations.bookmark
   export RUNNING_DIR=$(pwd)
 
-  touch $LOCATIONS_FILE
+  touch $LOCATION_FILE
 }
 
 teardown() {
-  rm $LOCATIONS_FILE
+  rm $TASK_MASTER_HOME/test/locations.bookmark
 }
 
 @test "Create a bookmark" {
@@ -17,7 +17,7 @@ teardown() {
 
   task_bookmark
 
-  run cat $LOCATIONS_FILE
+  run cat $LOCATION_FILE
   assert_output "UUID_test_dir=$TASK_MASTER_HOME/test"
 }
 
@@ -26,26 +26,26 @@ teardown() {
 
   task_bookmark
 
-  run cat $LOCATIONS_FILE
+  run cat $LOCATION_FILE
   assert_output "UUID_test_dir=/tmp"
 }
 
 @test "Remove a bookmark by name" {
   source_and_set_vars "rm" "bkmk"
 
-  echo UUID_bkmk=/home/btm/project > $LOCATIONS_FILE
+  echo UUID_bkmk=/home/btm/project > $LOCATION_FILE
   
   task_bookmark
 
-  run cat $LOCATIONS_FILE
+  run cat $LOCATION_FILE
   assert_output ""
 }
 
 @test "List bookmarks" {
   source_and_set_vars "list"
   
-  echo UUID_proj=/home/btm/project > $LOCATIONS_FILE
-  echo UUID_bkmk=/home/btm/project >> $LOCATIONS_FILE
+  echo UUID_proj=/home/btm/project > $LOCATION_FILE
+  echo UUID_bkmk=/home/btm/project >> $LOCATION_FILE
 
   run task_bookmark
 

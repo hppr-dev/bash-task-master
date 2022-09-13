@@ -1,16 +1,17 @@
 arguments_goto() {
-  SUBCOMMANDS="$(sed 's/UUID_\(.*\)=.*/\1|/' "$LOCATIONS_FILE" | tr -d "\n")"
+  SUBCOMMANDS="$(sed 's/UUID_\(.*\)=.*/\1|/' "$LOCATION_FILE" | tr -d "\n")"
+  SUBCOMMANDS="${SUBCOMMANDS%?}"
   GOTO_DESCRIPTION="Change directories to a bookmark"
 }
 
 task_goto() {
   var_name=UUID_$TASK_SUBCOMMAND
-  loc_line=$(grep "^$var_name=.*" "$LOCATIONS_FILE" | head -n1 )
+  loc_line=$(grep "^$var_name=.*" "$LOCATION_FILE" | head -n1 )
   if [[ -z "$loc_line" ]]
   then
      echo "Unknown location: $TASK_SUBCOMMAND"
      echo "Available locations are:"
-     sed 's/^UUID_\(.*\)=.*/\1/' "$LOCATIONS_FILE" | tr '\n' ' '
+     sed 's/^UUID_\(.*\)=.*/\1/' "$LOCATION_FILE" | tr '\n' ' '
      echo
      return 0
   fi

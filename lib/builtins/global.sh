@@ -72,21 +72,21 @@ global_edit() {
 
 global_clean() {
   echo "Removing nonexistant locations from locations file..."
-  sed 's/.*=\(.*\)/\1/' "$LOCATIONS_FILE" | while IFS= read -r file
+  sed 's/.*=\(.*\)/\1/' "$LOCATION_FILE" | while IFS= read -r file
   do
     if [[ ! -d "$file" ]]
     then
-      grep -v "$file" "$LOCATIONS_FILE" > "$LOCATIONS_FILE.tmp"
-      mv "$LOCATIONS_FILE.tmp" "$LOCATIONS_FILE"
+      grep -v "$file" "$LOCATION_FILE" > "$LOCATION_FILE.tmp"
+      mv "$LOCATION_FILE.tmp" "$LOCATION_FILE"
     fi
   done
 
-  echo "Cleaning state files from tasks files not in $LOCATIONS_FILE"
+  echo "Cleaning state files from tasks files not in $LOCATION_FILE"
   for file in "$TASK_MASTER_HOME/state/"*
   do
     if [[ -d "$file" ]]
     then
-      if ! grep -q "$file" "$LOCATIONS_FILE"
+      if ! grep -q "$file" "$LOCATION_FILE"
       then
         echo "Removing $file..."
         rm -r "$file"
@@ -103,6 +103,7 @@ global_clean() {
   fi
 }
 
+readonly -f arguments_global
 readonly -f task_global
 readonly -f global_debug
 readonly -f global_set

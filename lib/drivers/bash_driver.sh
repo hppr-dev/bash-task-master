@@ -1,7 +1,7 @@
 DRIVER_EXECUTE_TASK=execute_task
 DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
-DRIVER_VALIDATE_TASKS_FILE=bash_validate_file
+DRIVER_VALIDATE_TASK_FILE=bash_validate_file
 
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
@@ -258,16 +258,16 @@ bash_help() {
 bash_list() {
   if [[ -f "$1" ]]
   then
-    awk '/task_.*(.*).*/ { print }' "$1" | sed 's/.*task_\(.*\)(.*).*/\1 /' | tr -d "\n"
+    awk '/^task_.*(.*).*/ { print }' "$1" | sed 's/.*task_\(.*\)(.*).*/\1 /' | tr -d "\n"
   fi
 }
 
 execute_task() {
   #Load local tasks if the desired task isn't loaded
-  if [[ -n "$TASKS_FILE_FOUND" ]] 
+  if [[ -n "$TASK_FILE_FOUND" ]] 
   then
     _tmverbose_echo "Sourcing tasks file"
-    source "$TASKS_FILE"
+    source "$TASK_FILE"
   fi
 
   #Parse and validate arguments
@@ -286,3 +286,11 @@ execute_task() {
 bash_validate_file() {
   bash -n "$1"
 }
+
+
+readonly -f bash_parse
+readonly -f bash_validate
+readonly -f bash_help
+readonly -f bash_list
+readonly -f execute_task
+readonly -f bash_validate_file
