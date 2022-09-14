@@ -75,7 +75,7 @@ task(){
 
   cd "$RUNNING_DIR" || return 1
 
-  TASK_COMMAND=$1
+  TASK_COMMAND=${1//-/_}
   TASK_SUBCOMMAND=""
 
   # Infer task UUID

@@ -71,7 +71,7 @@ bash_parse() {
       fi
     elif [[ "$ARGUMENT" =~ ^[[:alnum:]_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
-      TASK_SUBCOMMAND="$ARGUMENT"
+      TASK_SUBCOMMAND="${ARGUMENT//-/_}"
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
       requirements="${requirements} ${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
