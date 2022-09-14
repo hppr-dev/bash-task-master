@@ -79,6 +79,24 @@ teardown() {
   assert [ "$ARG_NUM" == "10" ]
 }
 
+@test 'Parses numeric arguments' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_COMMAND="weirdness"
+
+  bash_parse weirdness number -3
+  assert [ -n "$ARG_THREE" ]
+}
+
+@test 'Parses argument with dash' {
+  source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
+
+  TASK_COMMAND="weirdness"
+
+  bash_parse weirdness dash --some-thing
+  assert [ -n "$ARG_SOME_THING" ]
+}
+
 @test 'Parses subcommand arguments' {
   source $TASK_MASTER_HOME/lib/drivers/bash_driver.sh
 
@@ -325,6 +343,12 @@ arguments_nodescription() {
 
 arguments_boolbunch() {
   BOOLBUNCH_OPTIONS="out:o:bool in:i:bool zoo:z:bool num:n:int"
+}
+
+arguments_weirdness() {
+  SUBCOMMANDS="number|dash"
+  NUMBER_REQUIREMENTS="three:3:bool"
+  DASH_REQUIREMENTS="some-thing:s:bool"
 }
 
 task_example() {

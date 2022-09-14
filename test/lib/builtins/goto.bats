@@ -7,6 +7,7 @@ setup() {
   cat > $LOCATION_FILE <<EOF
 UUID_tmhome=$TASK_MASTER_HOME
 UUID_project=$TASK_MASTER_HOME/test/proj
+UUID_some_thing=$TASK_MASTER_HOME/test/proj
 EOF
 
   cd $TASK_MASTER_HOME/test
@@ -48,7 +49,18 @@ teardown() {
   task_goto
 
   run pwd
-  assert_output $TASK_MASTER_HOME/test
+  assert_output "$TASK_MASTER_HOME/test"
+}
+
+@test "Goes to directory with dash in name" {
+  source $TASK_MASTER_HOME/lib/builtins/goto.sh
+
+  TASK_SUBCOMMAND="some-thing"
+
+  task_goto
+
+  run pwd
+  assert_output $TASK_MASTER_HOME/test/proj
 }
 
 set_return_directory() {

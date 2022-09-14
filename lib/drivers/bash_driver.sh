@@ -33,7 +33,7 @@ bash_parse() {
   while [[ $# != "0" ]]
   do
     ARGUMENT="$1"
-    if [[ $ARGUMENT =~ ^\-[A-Za-z]{2,}$ ]]
+    if [[ $ARGUMENT =~ ^\-[[:alnum:]]{2,}$ ]]
     then
       # Separate -ilt to -i -l -t
       # shellcheck disable=SC2001
@@ -44,12 +44,12 @@ bash_parse() {
       local ADDED_ARGS="$ADDED_ARGS ${separated%-[[:alpha:]]}"
     fi
     #Translate shortend arg
-    if [[ "$ARGUMENT" =~ ^-[A-Za-z]$ ]]
+    if [[ "$ARGUMENT" =~ ^-[[:alnum:]]$ ]]
     then
       # shellcheck disable=SC2001
-      spec=$(sed "s/[A-Za-z_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" | tr -d '[:space:]' )
+      spec=$(sed "s/[[[:alnum:]_-]*:[^${ARGUMENT#-}]:[a-z]*//g" <<< "$requirements" | tr -d '[:space:]' )
       local long_arg="${spec%%:*}"
-      if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[A-Za-z]:[a-z]+$ ]]
+      if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[[:alnum:]]:[a-z]+$ ]]
       then
         echo "Unrecognized short argument: $ARGUMENT"
         return 1
@@ -57,19 +57,19 @@ bash_parse() {
       ARGUMENT="--${long_arg,,}"
     fi
     # shellcheck disable=SC2001
-    spec=$(sed "s/.*\(${ARGUMENT#--}:[A-Za-z]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[:space:]' )
-    if [[ "$ARGUMENT" =~ ^--[a-z_-]+$ ]]
+    spec=$(sed "s/.*\(${ARGUMENT#--}:[[:alnum:]]:[a-z]*\).*/\1/g" <<< "$requirements" |tr -d '[:space:]' )
+    if [[ "$ARGUMENT" =~ ^--[[:alnum:]_-]+$ ]]
     then
       local TRANSLATE_ARG="${ARGUMENT#--}"
       TRANSLATE_ARG=${TRANSLATE_ARG//-/_}
-      if [[ -z "$2" ]] || [[ "$2" =~ ^--[a-z_-]+$ ]] || [[ "$2" =~ ^-[[:alpha:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
+      if [[ -z "$2" ]] || [[ "$2" =~ ^--[[:alnum:]_-]+$ ]] || [[ "$2" =~ ^-[[:alnum:]]$ ]] || [[ "${spec##*:}" == "bool" ]]
       then
         export "ARG_${TRANSLATE_ARG^^}=1"
       else
         shift
         export "ARG_${TRANSLATE_ARG^^}=$1"
       fi
-    elif [[ "$ARGUMENT" =~ ^[a-z0-9_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
+    elif [[ "$ARGUMENT" =~ ^[[:alnum:]_-]*$ ]] && [[ -z "$TASK_SUBCOMMAND" ]]
     then
       TASK_SUBCOMMAND="$ARGUMENT"
       SPEC_REQUIREMENT_NAME=${TASK_SUBCOMMAND^^}_REQUIREMENTS
