@@ -20,7 +20,7 @@ bash_parse() {
     local requirements="${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
     for spec in $requirements
     do
-      if ! [[ "$spec" =~ [a-Z0-9_-]+:[a-Z0-9]:[a-z]+ ]]
+      if ! [[ "$spec" =~ [[:alnum:]_-]+:[[:alnum:]]:[a-z]+ ]]
       then
         echo "Bad argument specification for $TASK_COMMAND: $spec."
         return 1
@@ -264,7 +264,7 @@ bash_list() {
 
 execute_task() {
   #Load local tasks if the desired task isn't loaded
-  if [[ -n "$TASK_FILE_FOUND" ]] 
+  if [[ -n "$TASK_FILE_FOUND" ]] && [[ "$TASK_FILE_DRIVER" == "bash" ]]
   then
     _tmverbose_echo "Sourcing tasks file"
     source "$TASK_FILE"
