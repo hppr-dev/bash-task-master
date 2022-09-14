@@ -8,7 +8,7 @@ task_edit() {
     echo "No tasks file found."
     return 1
   fi
-  source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}"
+  source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
   local validated=1
   cp "$TASK_FILE" "$TASK_FILE.tmp"
   while [[ "$validated" != "0" ]]
