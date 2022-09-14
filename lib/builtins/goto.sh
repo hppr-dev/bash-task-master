@@ -5,7 +5,7 @@ arguments_goto() {
 }
 
 task_goto() {
-  var_name=UUID_$TASK_SUBCOMMAND
+  var_name=UUID_${TASK_SUBCOMMAND//-/_}
   loc_line=$(grep "^$var_name=.*" "$LOCATION_FILE" | head -n1 )
   if [[ -z "$loc_line" ]]
   then

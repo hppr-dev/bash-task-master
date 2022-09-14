@@ -33,7 +33,7 @@ task_bookmark() {
     fi
   else
     echo "Saving location to $LOCATION_FILE as $ARG_NAME"
-    echo "UUID_$ARG_NAME=$ARG_DIR" >> "$LOCATION_FILE"
+    echo "UUID_${ARG_NAME//-/_}=$ARG_DIR" >> "$LOCATION_FILE"
   fi
 }
 

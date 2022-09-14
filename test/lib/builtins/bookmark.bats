@@ -61,6 +61,15 @@ teardown() {
   assert_output --partial "not found"
 }
 
+@test "Creates a bookmark with a dash" {
+  source_and_set_vars "" "my-proj" "bkmk"
+
+  run task_bookmark
+
+  run cat $LOCATION_FILE
+  assert_output --partial "UUID_my_proj=bkmk"
+}
+
 @test "Sets description and defines subcommands and options" {
   source_and_set_vars
 
