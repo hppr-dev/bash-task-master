@@ -93,7 +93,7 @@ teardown() {
 
   TASK_COMMAND="weirdness"
 
-  bash_parse weirdness dash --some-thing
+  bash_parse weirdness dash-test --some-thing
   assert [ -n "$ARG_SOME_THING" ]
 }
 
@@ -346,9 +346,9 @@ arguments_boolbunch() {
 }
 
 arguments_weirdness() {
-  SUBCOMMANDS="number|dash"
+  SUBCOMMANDS="number|dash-test"
   NUMBER_REQUIREMENTS="three:3:bool"
-  DASH_REQUIREMENTS="some-thing:s:bool"
+  DASH_TEST_REQUIREMENTS="some-thing:s:bool"
 }
 
 task_example() {
