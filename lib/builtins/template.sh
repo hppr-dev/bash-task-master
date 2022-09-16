@@ -28,10 +28,7 @@ task_template() {
     echo "Removing $ARG_NAME template."
     rm "$template_file"
   else
-    echo "Available templates:"
-    find "$TASK_MASTER_HOME/templates"  -name '*.template' -exec basename {} \; | sed 's/\(.*\)\.template/    \1/' | tr -d '\n'
-    echo
-    echo
+    find "$TASK_MASTER_HOME/templates"  -name '*.template' -exec basename {} \; | sed 's/\(.*\)\.template/\1/' | pr -5 -tT
   fi
 }
 

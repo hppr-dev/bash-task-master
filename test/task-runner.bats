@@ -48,8 +48,8 @@ EOF
 
   export DRIVER_DIR=$TASK_MASTER_HOME/lib/drivers/
 
-  echo "TASK_FILE_NAME_DICT[testtasks.myfile]=test_custom #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
-  echo "TASK_DRIVER_DICT[test_custom]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/driver_defs.sh
+  echo "TASK_FILE_NAME_DICT[testtasks.myfile]=test_custom #TEST REMOVE ME" >> $DRIVER_DIR/installed_drivers.sh
+  echo "TASK_DRIVER_DICT[test_custom]=test_custom_driver.sh #TEST REMOVE ME" >> $DRIVER_DIR/installed_drivers.sh
 
   cat > $DRIVER_DIR/test_custom_driver.sh <<EOF
 DRIVER_EXECUTE_TASK=execute_test
@@ -62,7 +62,7 @@ execute_test() {
 }
 
 list_test() {
-  echo "do"
+  echo "do something"
 }
 
 help_test() {
@@ -79,7 +79,7 @@ teardown() {
   rm -r $PROJECT_DIR
 
   rm -r $DRIVER_TEST_DIR
-  awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/driver_defs.sh > $DRIVER_DIR/driver_defs.sh.tmp && mv $DRIVER_DIR/driver_defs.sh{.tmp,}
+  awk '/TEST REMOVE ME/ { next } { print }' $DRIVER_DIR/installed_drivers.sh > $DRIVER_DIR/installed_drivers.sh.tmp && mv $DRIVER_DIR/installed_drivers.sh{.tmp,}
   awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $TASK_MASTER_HOME/state/locations.vars{.tmp,}
   rm $DRIVER_DIR/test_custom_driver.sh
 }
@@ -279,10 +279,13 @@ teardown() {
 
 @test 'Calls global list task in custom driver task file scope' {
   source $TASK_MASTER_HOME/task-runner.sh
+
   cd $DRIVER_TEST_DIR
 
   run task list --local
+
   assert_output --partial "do"
+  assert_output --partial "something"
   refute_output --partial "global"
 }
 
