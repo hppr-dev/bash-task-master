@@ -9,6 +9,7 @@ arguments_driver() {
   DISABLE_REQUIREMENTS="name:n:str"
 
   LIST_DESCRIPTION="List available drivers"
+  LIST_OPTIONS="remote:r:bool"
 }
 
 task_driver() {
@@ -142,8 +143,19 @@ task_driver() {
     sed "s/^TASK_DRIVER_DICT\[$ARG_NAME\]=.*/#\0/" "$driver_defs.tmp" > "$driver_defs"
     rm "$driver_defs.tmp"
     echo "$ARG_NAME driver disabled."
-  else
-    printf "%s %s %s %s\n" "${!TASK_DRIVER_DICT[*]}" | column -t
+  elif [[ "$TASK_SUBCOMMAND" == "list" ]]
+  then
+    if [[ -n "$ARG_REMOTE" ]]
+    then
+      for repo in $TASK_REPOS
+      do
+        echo "$repo:"
+        curl -s "$repo" | awk '/driver-.*/ { print } 0' | sed 's/\s*driver-\(.*\) = .*/\1/' | pr -5 -tT
+        echo
+      done
+    else
+      echo "${!TASK_DRIVER_DICT[*]}" | tr ' ' '\n' | pr -5 -tT
+    fi
   fi
 }
 
