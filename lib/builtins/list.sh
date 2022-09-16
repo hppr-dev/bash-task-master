@@ -14,8 +14,10 @@ task_list() {
   fi
   if [[ -n "$ARG_LOCAL$ARG_ALL" ]] && [[ -n "$TASK_FILE" ]]
   then
-    task_list="$task_list $($DRIVER_LIST_TASKS "$TASK_FILE")"
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
+    task_list="$($DRIVER_LIST_TASKS "$TASK_FILE") $task_list"
   fi
+  task_list="${task_list//  / }"
   pr -5 -Tt <<<"${task_list// /$'\n'}" 
 }
 
