@@ -14,6 +14,7 @@ setup() {
 DRIVER_DIR = drivers
 
 driver-yaml = yaml-driver.sh
+driver-fake = fake-driver.sh
 EOF
 
   mkdir $local_repo_dir/drivers
@@ -224,4 +225,16 @@ teardown() {
   run task_driver
   assert_output --partial "bash"
   assert_output --partial "fake"
+}
+
+@test 'Lists remote drivers' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  ARG_REMOTE=1
+  TASK_SUBCOMMAND=list
+
+  run task_driver
+  assert_output --partial "yaml"
+  assert_output --partial "fake"
+  
 }
