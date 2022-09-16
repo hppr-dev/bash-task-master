@@ -72,34 +72,28 @@ module_list() {
   local_files=$(get_local_module_files | awk -F "$TASK_MASTER_HOME/modules/" '{ print $2 }')
   if [[ -z "$ARG_REMOTE$ARG_ENABLED$ARG_DISABLED" ]]
   then
-    ARG_ALL=1
+    ARG_ENABLED=1
   fi
 
   if [[ -n "$ARG_REMOTE" ]]
   then 
-    echo Available Remote Modules:
     get_repo_module_list
-    echo
   fi
   if [[ -n "$ARG_ALL$ARG_DISABLED" ]]
   then
-    echo "Disabled Modules:"
-    echo "$local_files" | grep disabled | sed 's/\(.*\)-module.sh.disabled/    \1/'
-    echo
+    grep disabled <<< "$local_files" | sed 's/\(.*\)-module.sh.disabled/\1/' | pr -5 -tT
   fi
   if [[ -n "$ARG_ALL$ARG_ENABLED" ]]
   then
-    echo "Enabled Modules:"
-    echo "$local_files" | grep -v disabled | sed 's/\(.*\)-module.sh/    \1/'
-    echo
+    grep -v disabled <<< "$local_files" | sed 's/\(.*\)-module.sh/\1/' | pr -5 -tT
   fi
 }
 
 get_repo_module_list() {
   for repo in $TASK_REPOS
   do
-    echo -n "  $repo:"
-    curl -s "$repo" | awk '/module-.*/ { print } 0' | sed 's/\s*module-\(.*\) = .*/    \1/' | tr '\n' ' '
+    echo "$repo:"
+    curl -s "$repo" | awk '/module-.*/ { print } 0' | sed 's/\s*module-\(.*\) = .*/\1/' | pr -5 -tT
     echo
   done
 }

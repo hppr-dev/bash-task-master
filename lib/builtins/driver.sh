@@ -143,9 +143,7 @@ task_driver() {
     rm "$driver_defs.tmp"
     echo "$ARG_NAME driver disabled."
   else
-    echo Current drivers:
-    echo "    ${!TASK_DRIVER_DICT[*]}"
-    echo
+    printf "%s %s %s %s\n" "${!TASK_DRIVER_DICT[*]}" | column -t
   fi
 }
 
