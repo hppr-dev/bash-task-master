@@ -57,7 +57,7 @@ fi
 cat >> ~/.bashrc <<EOF
 alias t=task
 export TASK_MASTER_HOME=$HOME/.task-master
-[ -s \"\$TASK_MASTER_HOME/task-runner.sh\" ] && . \"\$TASK_MASTER_HOME/task-runner.sh\"
+[ -s "\$TASK_MASTER_HOME/task-runner.sh" ] && . "\$TASK_MASTER_HOME/task-runner.sh"
 EOF
 
 cd ..
