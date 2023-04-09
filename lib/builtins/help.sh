@@ -1,6 +1,16 @@
 task_help() {
   source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
+
+  LOCAL_TASKS_REG=$( $DRIVER_LIST_TASKS "$TASK_FILE" | tr '  \n' '|' )
+  LOCAL_TASKS_REG=${LOCAL_TASKS_REG%?}
+
+  if [[ -n "$LOCAL_TASKS_REG" ]] && ! [[ "$TASK_SUBCOMMAND" =~ $LOCAL_TASKS_REG ]]
+  then
+    source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_DRIVER]}" &> /dev/null
+  fi
+
   $DRIVER_HELP_TASK "$TASK_SUBCOMMAND"
+
   if [[ "$?" == "1" ]]
   then
     HELP_STRING="usage: task subcommand [arguments]

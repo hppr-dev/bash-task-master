@@ -6,7 +6,7 @@ arguments_list() {
 task_list() {
   if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL" ]]
   then
-    ARG_ALL='T'
+    ARG_LOCAL='T'
   fi
   if [[ -n "$ARG_GLOBAL$ARG_ALL" ]]
   then
