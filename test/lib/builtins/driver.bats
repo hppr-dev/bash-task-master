@@ -15,11 +15,20 @@ DRIVER_DIR = drivers
 
 driver-yaml = yaml-driver.sh
 driver-fake = fake-driver.sh
+driver-badyaml = yaml-driver.sh.bad
 EOF
 
   mkdir $local_repo_dir/drivers
   cat > $driver_file <<EOF
-# tasks_file_name = tasks.yaml
+# task_file_name = tasks.yaml
+# extra_file = yaml/executor.py
+# extra_file = yaml/validator.py
+
+echo script goes here
+
+EOF
+
+  cat > $driver_file.bad <<EOF
 # extra_file = yaml/executor.py
 # extra_file = yaml/validator.py
 
@@ -35,7 +44,7 @@ EOF
 teardown() {
   echo "OUTPUT:"
   echo "$output"
-  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh}
+  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh,badyaml_driver.sh}
   mv $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh{.bk,}
 }
 
@@ -118,7 +127,7 @@ teardown() {
 
 @test 'Fails when remote extra_file doesnt exist' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
-  echo "# extra_file = yaml/noexist.py" > $driver_file
+  echo "# extra_file = yaml/noexist.py" >> $driver_file
 
   ARG_NAME=yaml
   TASK_SUBCOMMAND=enable
@@ -130,7 +139,7 @@ teardown() {
 
 @test 'Fails when remote setup script fails to run' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
-  echo "# setup = yaml/setup.sh" > $driver_file
+  echo "# setup = yaml/setup.sh" >> $driver_file
   echo "exit 1" > $local_repo_dir/drivers/yaml/setup.sh
 
   ARG_NAME=yaml
@@ -143,7 +152,7 @@ teardown() {
 
 @test 'Fails when remote dependency is not met' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
-  echo "# dependency = thisissomethingthatisntexecutableinyourpath" > $driver_file
+  echo "# dependency = thisissomethingthatisntexecutableinyourpath" >> $driver_file
 
   ARG_NAME=yaml
   TASK_SUBCOMMAND=enable
@@ -153,9 +162,22 @@ teardown() {
   assert_output --partial "thisissomethingthatisntexecutableinyourpath"
 }
 
+@test 'Fails when task_file_name is not set' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  ARG_NAME=badyaml
+  TASK_SUBCOMMAND=enable
+
+  run task_driver
+  assert_failure
+  assert_output --partial "task_file_name"
+  refute [ -f $TASK_MASTER_HOME/lib/drivers/yaml-driver.sh.bad ]
+  refute grep badyaml $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+}
+
 @test 'Downloads and places template' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
-  echo "# template = yaml/templatefile " > $driver_file
+  echo "# template = yaml/templatefile " >> $driver_file
   echo "heyoo this is templ" > $local_repo_dir/drivers/yaml/templatefile
 
   ARG_NAME=yaml
@@ -173,7 +195,7 @@ teardown() {
 
 @test 'Continues on bad template' {
   source $TASK_MASTER_HOME/lib/builtins/driver.sh
-  echo "# template = missingtemplatefile" > $driver_file
+  echo "# template = missingtemplatefile" >> $driver_file
 
   ARG_NAME=yaml
   TASK_SUBCOMMAND=enable
@@ -237,4 +259,39 @@ teardown() {
   assert_output --partial "yaml"
   assert_output --partial "fake"
   
+}
+
+@test 'Cleans disabled driver.sh files and their records without asking with force' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  echo "#TASK_DRIVER_DICT[fake]=fake_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+  echo "#TASK_FILE_NAME_DICT[tasks.fake]=fake" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+  echo "#fake driver" > $TASK_MASTER_HOME/lib/drivers/fake_driver.sh
+
+  ARG_FORCE=1
+  TASK_SUBCOMMAND=clean
+
+  run task_driver
+
+  refute_output --partial "Press enter"
+
+  refute [ -f "$TASK_MASTER_HOME/lib/drivers/fake_driver.sh" ]
+  refute grep fake $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+}
+
+@test 'Cleans disabled driver.sh files and their records with asking' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  echo "#TASK_DRIVER_DICT[fake]=fake_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+  echo "#TASK_FILE_NAME_DICT[tasks.fake]=fake" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+  echo "#fake driver" > $TASK_MASTER_HOME/lib/drivers/fake_driver.sh
+
+  TASK_SUBCOMMAND=clean
+
+  run task_driver <<< "\n"
+
+  assert_output --partial "Press enter"
+
+  refute [ -f "$TASK_MASTER_HOME/lib/drivers/fake_driver.sh" ]
+  refute grep fake $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
 }

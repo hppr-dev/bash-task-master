@@ -169,3 +169,38 @@ teardown() {
   assert_output --partial "or-me"
 }
 
+@test 'Cleans all disabled modules without asking for force' {
+  source $TASK_MASTER_HOME/lib/builtins/module.sh
+  touch $TASK_MASTER_HOME/modules/one-module.sh
+  touch $TASK_MASTER_HOME/modules/other-module.sh
+  touch $TASK_MASTER_HOME/modules/not-me-module.sh.disabled
+  touch $TASK_MASTER_HOME/modules/or-me-module.sh.disabled
+
+  ARG_FORCE=T
+  TASK_SUBCOMMAND="clean"
+
+  run task_module
+  refute_output --partial "Press enter"
+  assert [ -f "$TASK_MASTER_HOME/modules/one-module.sh" ]
+  assert [ -f "$TASK_MASTER_HOME/modules/other-module.sh" ]
+  refute [ -f "$TASK_MASTER_HOME/modules/not-me-module.sh.disabled" ]
+  refute [ -f "$TASK_MASTER_HOME/modules/or-me-module.sh.disabled" ]
+}
+
+@test 'Cleans all disabled modules after asking for confirmation' {
+  source $TASK_MASTER_HOME/lib/builtins/module.sh
+  touch $TASK_MASTER_HOME/modules/one-module.sh
+  touch $TASK_MASTER_HOME/modules/other-module.sh
+  touch $TASK_MASTER_HOME/modules/not-me-module.sh.disabled
+  touch $TASK_MASTER_HOME/modules/or-me-module.sh.disabled
+
+  TASK_SUBCOMMAND="clean"
+
+  run task_module <<< "\n"
+  assert_output --partial "Press enter"
+  assert [ -f "$TASK_MASTER_HOME/modules/one-module.sh" ]
+  assert [ -f "$TASK_MASTER_HOME/modules/other-module.sh" ]
+  refute [ -f "$TASK_MASTER_HOME/modules/not-me-module.sh.disabled" ]
+  refute [ -f "$TASK_MASTER_HOME/modules/or-me-module.sh.disabled" ]
+}
+

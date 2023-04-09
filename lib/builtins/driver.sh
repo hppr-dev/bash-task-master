@@ -67,7 +67,7 @@ task_driver() {
     echo Extracting directive variables...
     setup_script=$(grep "#\s*setup\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
     template=$(grep "#\s*template\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
-    task_file_name=$( grep "#\s*task_file_name" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' )
+    task_file_name=$( grep "#\s*task_file_name\s*=" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' )
 
     if [[ -z "$task_file_name" ]]
     then
@@ -178,8 +178,8 @@ task_driver() {
 
     for f in $( grep "#TASK_DRIVER_DICT\[" "$driver_defs" | sed 's/^#TASK_DRIVER_DICT\[.*\]=\(.*\)/\1/' ) 
     do
-      echo Removing $DRIVER_DIR/$f...
-      rm $DRIVER_DIR/$f
+      echo Removing $TASK_MASTER_HOME/lib/drivers/$f...
+      rm $TASK_MASTER_HOME/lib/drivers/$f
     done
 
     sed 's/^#TASK_FILE_NAME_DICT\[.*\]=.*//' "$driver_defs" > "$driver_defs.tmp"
