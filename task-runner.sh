@@ -193,7 +193,7 @@ _tmverbose_echo(){
 
 _TaskTabCompletion(){
   local tasks cur word aliases
-  tasks=$(task list | grep -v Available | grep -v Running)
+  tasks=$(task list -a | grep -v Available | grep -v Running)
   cur=${COMP_WORDS[COMP_CWORD]}  
   word=${COMP_WORDS[$COMP_CWORD-1]}
   aliases="$(alias | grep task | sed "s/alias \(.*\)='task'/\1/")"

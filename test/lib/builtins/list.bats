@@ -7,13 +7,11 @@ setup() {
   export GLOBAL_TASKS_REG="gtask|gtask2"
 }
 
-@test 'Lists all tasks by default' {
+@test 'Lists local tasks by default' {
   source $TASK_MASTER_HOME/lib/builtins/list.sh
 
   run task_list
 
-  assert_output --partial "gtask"
-  assert_output --partial "gtask2"
   assert_output --partial "ltask1"
   assert_output --partial "ltask2"
 }
