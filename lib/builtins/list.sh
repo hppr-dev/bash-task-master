@@ -4,6 +4,7 @@ arguments_list() {
 }
 
 task_list() {
+  # shellcheck disable=SC2153
   if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL" ]]
   then
     ARG_LOCAL='T'
