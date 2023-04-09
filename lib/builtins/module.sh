@@ -99,7 +99,7 @@ module_clean() {
   if [[ -z "$ARG_FORCE" ]]
   then
     echo -n "This will remove all disabled module files. Press enter to continue... (CTRL-C to cancel)"
-    read
+    read -r
   fi
 
   find "$TASK_MASTER_HOME/modules" -name "*-module.sh.disabled" -exec rm {} \; -exec echo Removing {}... \;

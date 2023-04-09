@@ -72,7 +72,7 @@ task_driver() {
     if [[ -z "$task_file_name" ]]
     then
       echo Required variable task_file_name is not specified in driver file
-      echo Unable to install $ARG_NAME driver
+      echo "Unable to install $ARG_NAME driver"
       return 1
     fi
 
@@ -173,13 +173,14 @@ task_driver() {
     if [[ -z "$ARG_FORCE" ]]
     then
       echo -n "This will remove all disabled driver files and records. Press enter to continue... (CTRL-C to cancel)"
-      read
+      read -r
     fi
 
-    for f in $( grep "#TASK_DRIVER_DICT\[" "$driver_defs" | sed 's/^#TASK_DRIVER_DICT\[.*\]=\(.*\)/\1/' ) 
+    
+    grep "#TASK_DRIVER_DICT\[" "$driver_defs" | sed 's/^#TASK_DRIVER_DICT\[.*\]=\(.*\)/\1/' | while IFS= read -r f
     do
-      echo Removing $TASK_MASTER_HOME/lib/drivers/$f...
-      rm $TASK_MASTER_HOME/lib/drivers/$f
+      echo "Removing $TASK_MASTER_HOME/lib/drivers/$f..."
+      rm "$TASK_MASTER_HOME/lib/drivers/$f"
     done
 
     sed 's/^#TASK_FILE_NAME_DICT\[.*\]=.*//' "$driver_defs" > "$driver_defs.tmp"
