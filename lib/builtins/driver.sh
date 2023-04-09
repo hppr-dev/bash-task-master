@@ -1,5 +1,5 @@
 arguments_driver() {
-  SUBCOMMANDS="enable|disable|list"
+  SUBCOMMANDS="enable|disable|list|clean"
   DRIVER_DESCRIPTION="Manage drivers"
 
   ENABLE_DESCRIPTION="Enable a driver. Will check TASK_REPOS for drivers not available locally."
@@ -10,6 +10,9 @@ arguments_driver() {
 
   LIST_DESCRIPTION="List available drivers"
   LIST_OPTIONS="remote:r:bool"
+
+  CLEAN_DESCRIPTION="Remove all disabled driver records and files"
+  CLEAN_OPTIONS="force:f:bool"
 }
 
 task_driver() {
@@ -61,6 +64,18 @@ task_driver() {
       return 1
     fi
 
+    echo Extracting directive variables...
+    setup_script=$(grep "#\s*setup\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
+    template=$(grep "#\s*template\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
+    task_file_name=$( grep "#\s*task_file_name" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' )
+
+    if [[ -z "$task_file_name" ]]
+    then
+      echo Required variable task_file_name is not specified in driver file
+      echo Unable to install $ARG_NAME driver
+      return 1
+    fi
+
     echo Checking dependencies...
     if ! grep "#\s*dependency" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' | \
       while IFS= read -r dependency
@@ -99,7 +114,6 @@ task_driver() {
       return 1
     fi
 
-    setup_script=$(grep "#\s*setup\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
     if [[ -n "$setup_script" ]]
     then
       echo Running Setup...
@@ -112,7 +126,6 @@ task_driver() {
       fi
     fi
 
-    template=$(grep "#\s*template\s*=" "$local_file" | head -n 1 | awk -F '=' '{ print $2 }' | tr -d ' ')
     if [[ -n "$template" ]]
     then
       echo Creating default template...
@@ -123,10 +136,8 @@ task_driver() {
         echo "Continuing..."
       fi
     fi
-      
 
     echo Adding driver definitions...
-    task_file_name=$( grep "#\s*tasks_file_name" "$local_file" | awk -F '=' '{ print $2 }' | tr -d ' ' )
     echo "TASK_FILE_NAME_DICT[$task_file_name]=${ARG_NAME}" >> "$driver_defs"
     echo "TASK_DRIVER_DICT[$ARG_NAME]=${ARG_NAME}_driver.sh" >> "$driver_defs"
     echo "$ARG_NAME driver enabled for $task_file_name files."
@@ -141,6 +152,7 @@ task_driver() {
 
     sed "s/^TASK_FILE_NAME_DICT\[.*\]=$ARG_NAME/#\0/" "$driver_defs" > "$driver_defs.tmp"
     sed "s/^TASK_DRIVER_DICT\[$ARG_NAME\]=.*/#\0/" "$driver_defs.tmp" > "$driver_defs"
+
     rm "$driver_defs.tmp"
     echo "$ARG_NAME driver disabled."
   elif [[ "$TASK_SUBCOMMAND" == "list" ]]
@@ -156,6 +168,24 @@ task_driver() {
     else
       echo "${!TASK_DRIVER_DICT[*]}" | tr ' ' '\n' | pr -5 -tT
     fi
+  elif [[ "$TASK_SUBCOMMAND" == "clean" ]]
+  then
+    if [[ -z "$ARG_FORCE" ]]
+    then
+      echo -n "This will remove all disabled driver files and records. Press enter to continue... (CTRL-C to cancel)"
+      read
+    fi
+
+    for f in $( grep "#TASK_DRIVER_DICT\[" "$driver_defs" | sed 's/^#TASK_DRIVER_DICT\[.*\]=\(.*\)/\1/' ) 
+    do
+      echo Removing $DRIVER_DIR/$f...
+      rm $DRIVER_DIR/$f
+    done
+
+    sed 's/^#TASK_FILE_NAME_DICT\[.*\]=.*//' "$driver_defs" > "$driver_defs.tmp"
+    sed 's/^#TASK_DRIVER_DICT\[.*\]=.*//' "$driver_defs.tmp" | tr -s '\n' > "$driver_defs"
+    rm "$driver_defs.tmp"
+
   fi
 }
 

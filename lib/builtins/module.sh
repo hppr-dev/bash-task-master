@@ -1,5 +1,5 @@
 arguments_module() {
-  SUBCOMMANDS="enable|disable|list"
+  SUBCOMMANDS="enable|disable|list|clean"
 
   MODULE_DESCRIPTION="Manage modules."
 
@@ -11,6 +11,9 @@ arguments_module() {
 
   LIST_DESCRIPTION="List modules"
   LIST_OPTIONS="all:a:bool remote:r:bool enabled:e:bool disabled:d:bool local:l:bool"
+
+  CLEAN_DESCRIPTION="Remove all disabled modules files"
+  CLEAN_OPTIONS="force:f:bool"
 }
 
 task_module() {
@@ -23,6 +26,9 @@ task_module() {
   elif [[ "$TASK_SUBCOMMAND" == "list" ]]
   then
     module_list
+  elif [[ "$TASK_SUBCOMMAND" == "clean" ]]
+  then
+    module_clean
   fi
 }
 
@@ -89,6 +95,16 @@ module_list() {
   fi
 }
 
+module_clean() {
+  if [[ -z "$ARG_FORCE" ]]
+  then
+    echo -n "This will remove all disabled module files. Press enter to continue... (CTRL-C to cancel)"
+    read
+  fi
+
+  find "$TASK_MASTER_HOME/modules" -name "*-module.sh.disabled" -exec rm {} \; -exec echo Removing {}... \;
+}
+
 get_repo_module_list() {
   for repo in $TASK_REPOS
   do
@@ -108,5 +124,6 @@ readonly -f task_module
 readonly -f module_enable
 readonly -f module_disable
 readonly -f module_list
+readonly -f module_clean
 readonly -f get_repo_module_list
 readonly -f get_local_module_files
