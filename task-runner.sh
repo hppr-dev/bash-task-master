@@ -31,7 +31,7 @@ task(){
   fi
 
   # Load config
-  source "$TASK_MASTER_HOME/config.sh"
+  source "$TASK_MASTER_HOME/config.env"
 
   # Load task drivers
   source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
