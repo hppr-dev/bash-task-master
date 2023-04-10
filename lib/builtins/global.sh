@@ -132,7 +132,7 @@ global_update() {
     echo Current version is the development version
 
     git fetch "$BTM_ASSET_URL" &> /dev/null
-    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}' 2&> /dev/null)" ]]
+    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}')" ]]
     then
       if [[ -n "$ARG_CHECK" ]]
       then
