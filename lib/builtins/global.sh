@@ -1,5 +1,5 @@
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit|clean|driver'
+  SUBCOMMANDS='debug|set|unset|edit|clean|update'
 
   DEBUG_DESCRIPTION="Show variables for a command"
   DEBUG_OPTIONS='command:c:str'
@@ -14,6 +14,9 @@ arguments_global() {
   EDIT_REQUIREMENTS='command:c:str'
 
   CLEAN_DESCRIPTION="Clean up stale location and state files."
+
+  UPDATE_DESCRIPTION="Update bash task master to another version"
+  UPDATE_OPTIONS="dev:d:bool version:v:nowhite check:c:bool"
 }
 
 task_global() {
@@ -32,6 +35,9 @@ task_global() {
   elif [[ $TASK_SUBCOMMAND == "clean" ]]
   then
     global_clean
+  elif [[ $TASK_SUBCOMMAND == "update" ]]
+  then
+    global_update
   fi
 }
 
@@ -103,6 +109,89 @@ global_clean() {
   fi
 }
 
+global_update() {
+  if [[ -z "$ARG_VERSION" ]]
+  then
+    ARG_VERSION=latest
+  fi
+
+  if [[ -z "$ARG_CHECK" ]]
+  then
+    echo Updating bash-task-master files could lead to instability when using older modules.
+    echo It is advisable to check the compatibility of any installed modules and/or drivers before upgrading.
+    echo "Press enter to continue... (CTRL-C to cancel)"
+  fi
+
+  cd "$TASK_MASTER_HOME" || exit 1
+
+  source version.env
+
+  # Dev -> Dev
+  if [[ "$BTM_VERSION" == "dev" ]]
+  then
+    echo Current version is the development version
+
+    git fetch "$BTM_ASSET_URL" &> /dev/null
+    if [[ "$(git rev-parse HEAD)" != "$(git rev-parse '@{u}' 2&> /dev/null)" ]]
+    then
+      if [[ -n "$ARG_CHECK" ]]
+      then
+        echo There are changes to pull.
+        exit 0
+      else
+        git pull
+      fi
+    else
+      echo There are no updates to pull.
+    fi
+  else
+    echo "Current release version is $BTM_VERSION"
+
+    if [[ -z "$ARG_DEV" ]]
+    then
+      echo "Retrieving release $ARG_VERSION info..."
+      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" -o "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      if grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      then
+        echo "Could not retrieve version $ARG_VERSION."
+        rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
+        exit 1
+      fi
+
+      if ! diff version.env "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      then
+        echo "$ARG_VERSION does not differ from installed version: $BTM_VERSION."
+        rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
+        exit 1
+      fi
+
+      if [[ -n "$ARG_CHECK" ]]
+      then
+        echo "Updates are available."
+        rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
+        exit 0
+      fi
+
+      echo "Getting $ARG_VERSION assets..."
+      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/btm.tar.gz" | tar -zu
+
+      echo "Installing $ARG_VERSION assets..."
+      mv -f dist/* "$TASK_MASTER_HOME"
+
+      echo Updating version file...
+      mv "$ARG_VERSION.env" version.env
+      rmdir dist
+
+    else
+      # -> Dev
+      rm -r ../lib ../awk ../task-runner.sh ../LICENSE.md ../version.env
+      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME"
+    fi
+    echo "bash-task-master $ARG_VERSION now installed"
+    echo "Please log out and log back in to complete installation."
+  fi
+}
+
 readonly -f arguments_global
 readonly -f task_global
 readonly -f global_debug
@@ -110,3 +199,4 @@ readonly -f global_set
 readonly -f global_unset
 readonly -f global_edit
 readonly -f global_clean
+readonly -f global_update
