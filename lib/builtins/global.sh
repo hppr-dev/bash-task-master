@@ -149,15 +149,15 @@ global_update() {
     if [[ -z "$ARG_DEV" ]]
     then
       echo "Retrieving release $ARG_VERSION info..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" -o "$TASK_MASTER_HOME/$ARG_VERSION.env"
-      if grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      if ! grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env" > /dev/null
       then
         echo "Could not retrieve version $ARG_VERSION."
         rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
         exit 1
       fi
 
-      if ! diff version.env "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      if [[ -z "$(diff version.env "$TASK_MASTER_HOME/$ARG_VERSION.env")" ]]
       then
         echo "$ARG_VERSION does not differ from installed version: $BTM_VERSION."
         rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
@@ -172,17 +172,18 @@ global_update() {
       fi
 
       echo "Getting $ARG_VERSION assets..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/btm.tar.gz" | tar -zu
+      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/btm.tar.gz" | tar -xz
 
       echo "Installing $ARG_VERSION assets..."
-      mv -f dist/* "$TASK_MASTER_HOME"
+      mv -f dist/lib/* lib &> /dev/null
+      mv -f dist/awk/* awk &> /dev/null
+      mv -f dist/task-runner.sh .  &> /dev/null
+      mv -f dist/LICENSE.md . &> /dev/null
 
       echo Updating version file...
       mv "$ARG_VERSION.env" version.env
-      rmdir dist
-
+      rm -r dist
     else
-      # -> Dev
       rm -r ../lib ../awk ../task-runner.sh ../LICENSE.md ../version.env
       git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME"
     fi

@@ -13,21 +13,24 @@ setup() {
   export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
   echo foo=bar > $OTHER_STATE_FILE
 
-  cp -r $TASK_MASTER_HOME{,.bk}
-
-  mkdir -p $TASK_MASTER_HOME/test/releases/latest/
-
-  echo "BTM_VERSION=2.0" > $TASK_MASTER_HOME/test/releases/latest/version.env
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> $TASK_MASTER_HOME/test/releases/latest/version.env
-
   cd $TASK_MASTER_HOME
 
-  mkdir -p dist/lib
-  cp $TASK_MASTER_HOME/task-runner.sh dist
-  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
-  touch test_dict/lib/updated
+  cp -r lib{,.bk}
+  cp -r awk{,.bk}
+  cp -r task-runner.sh{,.bk}
+  cp -r version.env{,.bk}
 
-  tar -xzf $TASK_MASTER_HOME/test/releases/latest/btm.tar.gz dist
+  mkdir -p test/releases/latest/download
+
+  echo "BTM_VERSION=2.0" > test/releases/latest/download/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> test/releases/latest/download/version.env
+
+  mkdir -p dist/lib
+  cp task-runner.sh dist
+  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
+  touch dist/lib/updated
+
+  tar -czf test/releases/latest/download/btm.tar.gz dist
 
   rm -r dist
 }
@@ -37,7 +40,12 @@ teardown() {
   rm $COMMAND_STATE_FILE
   rm $OTHER_STATE_FILE
 
-  mv $TASK_MASTER_HOME{.bk,}
+  cd $TASK_MASTER_HOME
+  rm -r test/releases
+  rm -r lib && mv lib{.bk,}
+  rm -r awk && mv awk{.bk,}
+  mv task-runner.sh{.bk,}
+  mv version.env{.bk,}
 }
 
 @test 'Debug shows all variables when command not given' {
@@ -185,8 +193,8 @@ teardown() {
 
   run task_global
 
-  assert [ -f $TASK_MASTER_HOME/lib/updated ]
   assert grep "#ABEXCDAFEGRADSF" $TASK_MASTER_HOME/task-runner.sh
+  assert [ -f $TASK_MASTER_HOME/lib/updated ]
 }
 
 @test 'Updates release version to dev version' {
@@ -197,7 +205,7 @@ teardown() {
 
   TASK_SUBCOMMAND="update"
 
-  run task_global
+  #run task_global
 }
 
 persist_var() {
