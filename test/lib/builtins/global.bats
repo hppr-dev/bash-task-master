@@ -12,12 +12,32 @@ setup() {
 
   export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
   echo foo=bar > $OTHER_STATE_FILE
+
+  cp -r $TASK_MASTER_HOME{,.bk}
+
+  mkdir -p $TASK_MASTER_HOME/test/releases/latest/
+
+  echo "BTM_VERSION=2.0" > $TASK_MASTER_HOME/test/releases/latest/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> $TASK_MASTER_HOME/test/releases/latest/version.env
+
+  cd $TASK_MASTER_HOME
+
+  mkdir -p dist/lib
+  cp $TASK_MASTER_HOME/task-runner.sh dist
+  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
+  touch test_dict/lib/updated
+
+  tar -xzf $TASK_MASTER_HOME/test/releases/latest/btm.tar.gz dist
+
+  rm -r dist
 }
 
 teardown() {
   rm $TASK_MASTER_HOME/test/locations.global
   rm $COMMAND_STATE_FILE
   rm $OTHER_STATE_FILE
+
+  mv $TASK_MASTER_HOME{.bk,}
 }
 
 @test 'Debug shows all variables when command not given' {
@@ -136,6 +156,48 @@ teardown() {
   assert [ ! -z "$EDIT_DESCRIPTION" ]
   assert [ ! -z "$EDIT_REQUIREMENTS" ]
   assert [ ! -z "$CLEAN_DESCRIPTION" ]
+}
+
+@test 'Updates development version to development version' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
+
+  git() {
+    echo "$@"
+  }
+
+  TASK_SUBCOMMAND="update"
+
+  run task_global
+
+  assert_output --partial pull
+}
+
+@test 'Updates release version to release version' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  TASK_SUBCOMMAND="update"
+
+  run task_global
+
+  assert [ -f $TASK_MASTER_HOME/lib/updated ]
+  assert grep "#ABEXCDAFEGRADSF" $TASK_MASTER_HOME/task-runner.sh
+}
+
+@test 'Updates release version to dev version' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  TASK_SUBCOMMAND="update"
+
+  run task_global
 }
 
 persist_var() {

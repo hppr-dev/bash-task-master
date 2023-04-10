@@ -126,7 +126,6 @@ global_update() {
 
   source version.env
 
-  # Dev -> Dev
   if [[ "$BTM_VERSION" == "dev" ]]
   then
     echo Current version is the development version
