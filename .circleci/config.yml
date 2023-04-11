@@ -14,6 +14,9 @@ jobs:
             git submodule sync --recursive
             git submodule update --recursive --init
       - run:
+          name: "Install kcov"
+          command: sudo apt-get install kcov
+      - run:
           name: "Shellcheck"
           command: |
             . /home/circleci/project/task-runner.sh
