@@ -144,10 +144,10 @@ global_update() {
     then
       echo "Retrieving release $ARG_VERSION info..."
       curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
-      if ! grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env" > /dev/null
+      if ! grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env" &> /dev/null
       then
         echo "Could not retrieve version $ARG_VERSION."
-        rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
+        rm "$TASK_MASTER_HOME/$ARG_VERSION.env" &> /dev/null
         exit 1
       fi
 

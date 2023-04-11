@@ -245,6 +245,22 @@ teardown() {
   assert [ -f $TASK_MASTER_HOME/lib/updated ]
 }
 
+@test 'Fails to update release to release when target version does not exist' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  ARG_VERSION=6.6
+  TASK_SUBCOMMAND="update"
+
+  run task_global <<< "\n"
+
+  assert_output --partial "Could not retrieve version"
+  refute_output --partial "grep:"
+  refute_output --partial "rm:"
+}
+
 @test 'Checks release to release when there are updates' {
   source $TASK_MASTER_HOME/lib/builtins/global.sh
 
