@@ -199,6 +199,14 @@ global_update() {
       rm -r lib awk task-runner.sh LICENSE.md version.env
       git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME.tmp"
 
+      for d in modules state templates
+      do
+        cp "$TASK_MASTER_HOME/$d"/* "$TASK_MASTER_HOME.tmp/$d"
+      done
+
+      mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
+      mv "$TASK_MASTER_HOME"{.tmp,}
+
     fi
     echo "bash-task-master $ARG_VERSION now installed"
     echo "Please log out and log back in to complete installation."
