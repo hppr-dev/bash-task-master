@@ -115,7 +115,6 @@ global_update() {
     ARG_VERSION=latest
   fi
 
-
   cd "$TASK_MASTER_HOME" || exit 1
 
   source version.env
@@ -143,7 +142,14 @@ global_update() {
     if [[ -z "$ARG_DEV" ]]
     then
       echo "Retrieving release $ARG_VERSION info..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
+
+      full_asset_url=$BTM_ASSET_URL/download/$ARG_VERSION
+      if [[ "$ARG_VERSION" == "latest" ]]
+      then
+        full_asset_url=$BTM_ASSET_URL/latest/download
+      fi
+  
+      curl -Ls "$full_asset_url/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
       if ! grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env" &> /dev/null
       then
         echo "Could not retrieve version $ARG_VERSION."
@@ -171,7 +177,7 @@ global_update() {
       fi
 
       echo "Getting $ARG_VERSION assets..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/btm.tar.gz" | tar -xz
+      curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
 
       echo "Installing $ARG_VERSION assets..."
       mv -f dist/lib/* lib &> /dev/null
@@ -191,7 +197,8 @@ global_update() {
       read -r 
 
       rm -r lib awk task-runner.sh LICENSE.md version.env
-      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME"
+      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME.tmp"
+
     fi
     echo "bash-task-master $ARG_VERSION now installed"
     echo "Please log out and log back in to complete installation."

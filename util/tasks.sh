@@ -12,7 +12,7 @@ task_release() {
   
   mkdir dist
   
-  cat > dist/version.env << EOF
+  cat > version.env << EOF
 BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master/releases
 BTM_VERSION=$ARG_VERSION
 BTM_COMMIT_HASH=$COMMIT_HASH
