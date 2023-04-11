@@ -14,29 +14,24 @@ jobs:
             git submodule sync --recursive
             git submodule update --recursive --init
       - run:
-          name: "Install"
-          command: |
-            sudo apt-get install kcov
-            /home/circleci/project/install-task-master.sh
-      - run:
           name: "Shellcheck"
           command: |
-            . /home/circleci/.bashrc
-            export TASK_MASTER_HOME=/home/circleci/.task-master
-            /home/circleci/.task-master/test/shellcheck_all.sh
+            . /home/circleci/project/task-runner.sh
+            export TASK_MASTER_HOME=/home/circleci/project
+            /home/circleci/project/test/shellcheck_all.sh
       - run:
           name: "Test"
           command: |
-            . /home/circleci/.bashrc
-            export TASK_MASTER_HOME=/home/circleci/.task-master
-            /home/circleci/.task-master/test/test_all.sh
+            . /home/circleci/project/task-runner.sh
+            export TASK_MASTER_HOME=/home/circleci/project
+            /home/circleci/project/test/test_all.sh
       - run:
           name: "Coverage"
           command: |
-            . /home/circleci/.bashrc
-            export TASK_MASTER_HOME=/home/circleci/.task-master
-            /home/circleci/.task-master/test/coverage.sh
-            bash <(curl -s https://codecov.io/bash) -s /home/circleci/.task-master/test/kcov
+            . /home/circleci/project/task-runner.sh
+            export TASK_MASTER_HOME=/home/circleci/project
+            /home/circleci/project/test/coverage.sh
+            bash <(curl -s https://codecov.io/bash) -s /home/circleci/project/test/kcov
 
 
 workflows:
