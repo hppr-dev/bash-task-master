@@ -115,12 +115,6 @@ global_update() {
     ARG_VERSION=latest
   fi
 
-  if [[ -z "$ARG_CHECK" ]]
-  then
-    echo Updating bash-task-master files could lead to instability when using older modules.
-    echo It is advisable to check the compatibility of any installed modules and/or drivers before upgrading.
-    echo "Press enter to continue... (CTRL-C to cancel)"
-  fi
 
   cd "$TASK_MASTER_HOME" || exit 1
 
@@ -169,6 +163,11 @@ global_update() {
         echo "Updates are available."
         rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
         exit 0
+      else
+        echo Updating bash-task-master files could lead to instability when using older modules.
+        echo It is advisable to check the compatibility of any installed modules and/or drivers before upgrading.
+        echo "Press enter to continue... (CTRL-C to cancel)"
+        read -r 
       fi
 
       echo "Getting $ARG_VERSION assets..."
@@ -183,8 +182,15 @@ global_update() {
       echo Updating version file...
       mv "$ARG_VERSION.env" version.env
       rm -r dist
+
     else
-      rm -r ../lib ../awk ../task-runner.sh ../LICENSE.md ../version.env
+      echo Updating bash-task-master files could lead to instability when using older modules.
+      echo It is advisable to check the compatibility of any installed modules and/or drivers before upgrading.
+      echo Updating from a release version to the development version is irreversible
+      echo "Press enter to continue... (CTRL-C to cancel)"
+      read -r 
+
+      rm -r lib awk task-runner.sh LICENSE.md version.env
       git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME"
     fi
     echo "bash-task-master $ARG_VERSION now installed"
