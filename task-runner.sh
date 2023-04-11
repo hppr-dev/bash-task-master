@@ -31,7 +31,7 @@ task(){
   fi
 
   # Load config
-  source "$TASK_MASTER_HOME/config.sh"
+  source "$TASK_MASTER_HOME/config.env"
 
   # Load task drivers
   source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
@@ -40,7 +40,7 @@ task(){
   RUNNING_DIR=$(pwd)
   LOCATION_FILE=$TASK_MASTER_HOME/state/locations.vars
 
-  GLOBAL_TASK_FILE=$TASK_MASTER_HOME/load-global.sh
+  GLOBAL_TASK_FILE=$TASK_MASTER_HOME/lib/global-tasks.sh
   TASK_DIR=$RUNNING_DIR
   TASK_FILE=""
 

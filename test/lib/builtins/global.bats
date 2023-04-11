@@ -12,12 +12,44 @@ setup() {
 
   export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
   echo foo=bar > $OTHER_STATE_FILE
+
+  cd $TASK_MASTER_HOME
+
+  cp -r lib{,.bk}
+  cp -r awk{,.bk}
+  cp -r task-runner.sh{,.bk}
+  cp -r version.env{,.bk}
+  cp -r LICENSE.md{,.bk}
+
+  mkdir -p test/releases/latest/download
+
+  echo "BTM_VERSION=2.0" > test/releases/latest/download/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> test/releases/latest/download/version.env
+
+  mkdir -p dist/lib
+  cp task-runner.sh dist
+  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
+  touch dist/lib/updated
+
+  tar -czf test/releases/latest/download/btm.tar.gz dist
+
+  rm -r dist
 }
 
 teardown() {
   rm $TASK_MASTER_HOME/test/locations.global
   rm $COMMAND_STATE_FILE
   rm $OTHER_STATE_FILE
+
+  cd $TASK_MASTER_HOME
+  rm -r test/releases
+  rm -r lib
+  mv lib{.bk,}
+  rm -r awk
+  mv awk{.bk,}
+  mv task-runner.sh{.bk,}
+  mv version.env{.bk,}
+  mv LICENSE.md{.bk,}
 }
 
 @test 'Debug shows all variables when command not given' {
@@ -136,6 +168,156 @@ teardown() {
   assert [ ! -z "$EDIT_DESCRIPTION" ]
   assert [ ! -z "$EDIT_REQUIREMENTS" ]
   assert [ ! -z "$CLEAN_DESCRIPTION" ]
+}
+
+@test 'Updates development to development' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
+
+  git() {
+    echo git "$@"
+  }
+
+  TASK_SUBCOMMAND="update"
+
+  run task_global
+
+  assert_output --partial "git pull"
+}
+
+@test 'Checks development to development when there are no updates' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
+
+  git() {
+    if [[ "$1" == "rev-parse" ]]
+    then
+      echo same
+      return
+    fi
+    echo git "$@"
+  }
+
+  ARG_CHECK=T
+  TASK_SUBCOMMAND="update"
+
+  run task_global
+
+  assert_output --partial "no updates"
+  refute_output --partial "git pull"
+}
+
+@test 'Checks development to development when there are updates' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
+
+  git() {
+    echo git "$@"
+  }
+
+  ARG_CHECK=T
+  TASK_SUBCOMMAND="update"
+
+  run task_global
+
+  assert_output --partial "changes to pull."
+  refute_output --partial "git pull"
+}
+
+@test 'Updates release to release' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  TASK_SUBCOMMAND="update"
+
+  run task_global <<< "\n"
+
+  assert_output --partial "Press enter"
+  assert grep "#ABEXCDAFEGRADSF" $TASK_MASTER_HOME/task-runner.sh
+  assert [ -f $TASK_MASTER_HOME/lib/updated ]
+}
+
+@test 'Fails to update release to release when target version does not exist' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  ARG_VERSION=6.6
+  TASK_SUBCOMMAND="update"
+
+  run task_global <<< "\n"
+
+  assert_output --partial "Could not retrieve version"
+  refute_output --partial "grep:"
+  refute_output --partial "rm:"
+}
+
+@test 'Checks release to release when there are updates' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  TASK_SUBCOMMAND="update"
+
+  ARG_CHECK=T
+  run task_global
+
+  assert_output --partial "Updates are available"
+  refute_output --partial "Press enter"
+  refute grep "#ABEXCDAFEGRADSF" $TASK_MASTER_HOME/task-runner.sh
+  refute [ -f $TASK_MASTER_HOME/lib/updated ]
+}
+
+@test 'Checks release to release when there are no updates' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=2.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> $TASK_MASTER_HOME/version.env
+
+  TASK_SUBCOMMAND="update"
+
+  ARG_CHECK=T
+  run task_global
+
+  assert_output --partial "does not differ"
+  refute_output --partial "Press enter"
+  refute grep "#ABEXCDAFEGRADSF" $TASK_MASTER_HOME/task-runner.sh
+  refute [ -f $TASK_MASTER_HOME/lib/updated ]
+}
+
+@test 'Updates release version to dev version' {
+  source $TASK_MASTER_HOME/lib/builtins/global.sh
+
+  echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
+
+  ARG_DEV=T
+  TASK_SUBCOMMAND="update"
+
+  git() {
+    echo "$@"
+  }
+
+  run task_global <<< "\n"
+
+  assert_output --partial "Press enter"
+  assert_output --partial "clone"
+  refute [ -f $TASK_MASTER_HOME/task-runner.sh ]
+  refute [ -f $TASK_MASTER_HOME/LICENSE.md ]
+  refute [ -f $TASK_MASTER_HOME/version.env ]
+  refute [ -d $TASK_MASTER_HOME/lib ]
+  refute [ -d $TASK_MASTER_HOME/awk ]
+
 }
 
 persist_var() {

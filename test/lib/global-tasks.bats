@@ -12,7 +12,7 @@ task_something() {
 }
 EOF
 
-  source $TASK_MASTER_HOME/load-global.sh
+  source $TASK_MASTER_HOME/lib/global-tasks.sh
 
   assert [ "$(task_something)" == "I AM HERE" ]
 
@@ -20,7 +20,7 @@ EOF
 }
 
 @test 'Loads global modules when are no enabled modules' {
-  source $TASK_MASTER_HOME/load-global.sh
+  source $TASK_MASTER_HOME/lib/global-tasks.sh
 
   run declare -F
 
