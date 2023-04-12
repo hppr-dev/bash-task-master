@@ -27,20 +27,22 @@ setup() {
   mkdir -p "$LATEST_URL/dist/lib" "$OLDVER_URL/dist/lib"
 
   # Create latest repo
-  echo "BTM_VERSION=2.0" > "$LATEST_URL/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> "$LATEST_URL/version.env"
-  cp task-runner.sh "$LATEST_URL/dist"
-  echo "#ABEXCDAFEGRADSF" >> "$LATEST_URL/dist/task-runner.sh"
-  touch "$LATEST_URL/dist/lib/updated"
-  tar -czf "$LATEST_URL/btm.tar.gz" -C "$LATEST_URL" "$LATEST_URL/dist"
+  cd "$LATEST_URL" || exit
+  echo "BTM_VERSION=2.0" > version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
+  cp task-runner.sh dist
+  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh"
+  touch dist/lib/updated"
+  tar -czf "btm.tar.gz" dist
 
   #Create oldversion repo
-  echo "BTM_VERSION=0.1" > "$OLDVER_URL/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> "$OLDVER_URL/version.env"
-  cp task-runner.sh "$OLDVER_URL/dist"
-  echo "#OLDVER1234" >> "$OLDVER_URL/dist/task-runner.sh"
-  touch "$OLDVER_URL/dist/lib/downgraded"
-  tar -czf "$OLDVER_URL/btm.tar.gz" -C "$OLDVER_URL" "$OLDVER_URL/dist"
+  cd "$OLDVER_URL" || exit
+  echo "BTM_VERSION=0.1" > version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
+  cp task-runner.sh dist
+  echo "#OLDVER1234" >> dist/task-runner.sh
+  touch dist/lib/downgraded
+  tar -czf "btm.tar.gz" dist
 
   rm -r "$LATEST_URL/dist" "$OLDVER_URL/dist"
 }
