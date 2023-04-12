@@ -30,7 +30,7 @@ setup() {
   cd "$LATEST_URL" || exit
   echo "BTM_VERSION=2.0" > version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
-  cp task-runner.sh dist
+  cp "$TASK_MASTER_HOM/task-runner.sh" dist
   echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh"
   touch dist/lib/updated"
   tar -czf "btm.tar.gz" dist
@@ -39,7 +39,7 @@ setup() {
   cd "$OLDVER_URL" || exit
   echo "BTM_VERSION=0.1" > version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
-  cp task-runner.sh dist
+  cp "$TASK_MASTER_HOME/task-runner.sh" dist
   echo "#OLDVER1234" >> dist/task-runner.sh
   touch dist/lib/downgraded
   tar -czf "btm.tar.gz" dist
