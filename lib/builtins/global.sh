@@ -180,10 +180,7 @@ global_update() {
       curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
 
       echo "Installing $ARG_VERSION assets..."
-      mv -f dist/lib/* lib &> /dev/null
-      mv -f dist/awk/* awk &> /dev/null
-      mv -f dist/task-runner.sh .  &> /dev/null
-      mv -f dist/LICENSE.md . &> /dev/null
+      cp -rl dist/* "$TASK_MASTER_HOME"
 
       echo Updating version file...
       mv "$ARG_VERSION.env" version.env
@@ -196,16 +193,17 @@ global_update() {
       echo "Press enter to continue... (CTRL-C to cancel)"
       read -r 
 
-      rm -r lib awk task-runner.sh LICENSE.md version.env
-      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME.tmp"
+      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME.new"
 
       for d in modules state templates
       do
-        cp "$TASK_MASTER_HOME/$d"/* "$TASK_MASTER_HOME.tmp/$d"
+        mv "$TASK_MASTER_HOME/"{,.new}/$d
       done
 
+      mv "$TASK_MASTER_HOME"{,.new}/lib/drivers/installed_drivers.sh
+
       mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
-      mv "$TASK_MASTER_HOME"{.tmp,}
+      mv "$TASK_MASTER_HOME"{.new,}
 
     fi
     echo "bash-task-master $ARG_VERSION now installed"
