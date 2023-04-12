@@ -8,12 +8,12 @@ setup() {
   export STATE_DIR=$TASK_MASTER_HOME/state
 
   export COMMAND_STATE_FILE=$TASK_MASTER_HOME/state/command.vars
-  echo hello=world > $COMMAND_STATE_FILE
+  echo hello=world > "$COMMAND_STATE_FILE"
 
   export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
-  echo foo=bar > $OTHER_STATE_FILE
+  echo foo=bar > "$OTHER_STATE_FILE"
 
-  cd $TASK_MASTER_HOME
+  cd "$TASK_MASTER_HOME" || exit
 
   cp -r lib{,.bk}
   cp -r awk{,.bk}
@@ -21,27 +21,38 @@ setup() {
   cp -r version.env{,.bk}
   cp -r LICENSE.md{,.bk}
 
-  mkdir -p test/releases/latest/download
+  LATEST_URL=$TASK_MASTER_HOME/test/releases/latest/download
+  OLDVER_URL=$TASK_MASTER_HOME/test/releases/download/0.1
 
-  echo "BTM_VERSION=2.0" > test/releases/latest/download/version.env
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> test/releases/latest/download/version.env
+  mkdir -p "$LATEST_URL/dist/lib" "$OLDVER_URL/dist/lib"
 
-  mkdir -p dist/lib
-  cp task-runner.sh dist
+  # Create latest repo
+  cd "$LATEST_URL" || exit
+  echo "BTM_VERSION=2.0" > version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
+  cp "$TASK_MASTER_HOME/task-runner.sh" dist
   echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
   touch dist/lib/updated
+  tar -czf btm.tar.gz dist
 
-  tar -czf test/releases/latest/download/btm.tar.gz dist
+  #Create oldversion repo
+  cd "$OLDVER_URL" || exit
+  echo "BTM_VERSION=0.1" > version.env
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
+  cp "$TASK_MASTER_HOME/task-runner.sh" dist
+  echo "#OLDVER1234" >> dist/task-runner.sh
+  touch dist/lib/downgraded
+  tar -czf btm.tar.gz dist
 
-  rm -r dist
+  rm -r "$LATEST_URL/dist" "$OLDVER_URL/dist"
 }
 
 teardown() {
-  rm $TASK_MASTER_HOME/test/locations.global
-  rm $COMMAND_STATE_FILE
-  rm $OTHER_STATE_FILE
+  rm "$TASK_MASTER_HOME/test/locations.global"
+  rm "$COMMAND_STATE_FILE"
+  rm "$OTHER_STATE_FILE"
 
-  cd $TASK_MASTER_HOME
+  cd "$TASK_MASTER_HOME" || exit
   rm -r test/releases
   rm -r lib
   mv lib{.bk,}
@@ -53,7 +64,7 @@ teardown() {
 }
 
 @test 'Debug shows all variables when command not given' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   TASK_SUBCOMMAND="debug"
 
@@ -64,7 +75,7 @@ teardown() {
 }
 
 @test 'Debug shows variables for given command' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   ARG_COMMAND=command
   TASK_SUBCOMMAND="debug"
@@ -76,7 +87,7 @@ teardown() {
 }
 
 @test 'Sets a variable for a command' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   ARG_KEY=key
   ARG_VALUE=value
@@ -89,7 +100,7 @@ teardown() {
 }
 
 @test 'Unsets a variable for a command' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   ARG_KEY=key
   ARG_COMMAND=command
@@ -101,7 +112,7 @@ teardown() {
 }
 
 @test 'Edits a commands variables' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   DEFAULT_EDITOR=echo
 
@@ -114,7 +125,7 @@ teardown() {
 }
 
 @test 'Clean removes locations from location file that no longer exist' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "UUID_hello=$TASK_MASTER_HOME/test/doesnotexist" >> $LOCATION_FILE
 
@@ -129,7 +140,7 @@ teardown() {
 }
 
 @test 'Clean removes state files that refer to locations that no longer exist' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   mkdir -p $TASK_MASTER_HOME/state/doesnotexist
   echo some=var > $TASK_MASTER_HOME/state/doesnotexist/command.vars
@@ -142,7 +153,7 @@ teardown() {
 }
 
 @test 'Clean removes empty state files' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   touch $TASK_MASTER_HOME/state/empty.vars
 
@@ -154,7 +165,7 @@ teardown() {
 }
 
 @test 'Defines descriptions and arguments' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
   
   arguments_global
 
@@ -171,7 +182,7 @@ teardown() {
 }
 
 @test 'Updates development to development' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
@@ -188,7 +199,7 @@ teardown() {
 }
 
 @test 'Checks development to development when there are no updates' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
@@ -212,7 +223,7 @@ teardown() {
 }
 
 @test 'Checks development to development when there are updates' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=dev" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> $TASK_MASTER_HOME/version.env
@@ -230,8 +241,8 @@ teardown() {
   refute_output --partial "git pull"
 }
 
-@test 'Updates release to release' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+@test 'Updates release to latest release' {
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
@@ -245,8 +256,24 @@ teardown() {
   assert [ -f $TASK_MASTER_HOME/lib/updated ]
 }
 
+@test 'Updates release to specified release' {
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
+
+  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+
+  ARG_VERSION=0.1
+  TASK_SUBCOMMAND="update"
+
+  run task_global <<< "\n"
+
+  assert_output --partial "Press enter"
+  assert grep "#OLDVER1234" $TASK_MASTER_HOME/task-runner.sh
+  assert [ -f $TASK_MASTER_HOME/lib/downgraded ]
+}
+
 @test 'Fails to update release to release when target version does not exist' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
@@ -262,7 +289,7 @@ teardown() {
 }
 
 @test 'Checks release to release when there are updates' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
@@ -279,7 +306,7 @@ teardown() {
 }
 
 @test 'Checks release to release when there are no updates' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=2.0" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> $TASK_MASTER_HOME/version.env
@@ -296,7 +323,7 @@ teardown() {
 }
 
 @test 'Updates release version to dev version' {
-  source $TASK_MASTER_HOME/lib/builtins/global.sh
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
   echo "BTM_VERSION=1.0" > $TASK_MASTER_HOME/version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> $TASK_MASTER_HOME/version.env
@@ -305,18 +332,31 @@ teardown() {
   TASK_SUBCOMMAND="update"
 
   git() {
-    echo "$@"
+    if [[ "$1" == "clone" ]]
+    then
+      mkdir "$3"
+    fi
+    echo git "$@"
   }
+
+
+  mv() {
+    echo moving "$@"
+  }
+
 
   run task_global <<< "\n"
 
+  unset -f mv 
+
   assert_output --partial "Press enter"
-  assert_output --partial "clone"
-  refute [ -f $TASK_MASTER_HOME/task-runner.sh ]
-  refute [ -f $TASK_MASTER_HOME/LICENSE.md ]
-  refute [ -f $TASK_MASTER_HOME/version.env ]
-  refute [ -d $TASK_MASTER_HOME/lib ]
-  refute [ -d $TASK_MASTER_HOME/awk ]
+  assert_output --partial "git clone"
+  assert_output --partial "moving $TASK_MASTER_HOME /tmp/task-master-1.0"
+  assert_output --partial "moving $TASK_MASTER_HOME.new $TASK_MASTER_HOME"
+  assert_output --partial "moving $TASK_MASTER_HOME/modules $TASK_MASTER_HOME.new/modules"
+  assert_output --partial "moving $TASK_MASTER_HOME/templates $TASK_MASTER_HOME.new/templates"
+  assert_output --partial "moving $TASK_MASTER_HOME/state $TASK_MASTER_HOME.new/state"
+  assert_output --partial "moving -f $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh $TASK_MASTER_HOME.new/lib/drivers/installed_drivers.sh"
 
 }
 

@@ -115,7 +115,6 @@ global_update() {
     ARG_VERSION=latest
   fi
 
-
   cd "$TASK_MASTER_HOME" || exit 1
 
   source version.env
@@ -143,7 +142,14 @@ global_update() {
     if [[ -z "$ARG_DEV" ]]
     then
       echo "Retrieving release $ARG_VERSION info..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
+
+      full_asset_url=$BTM_ASSET_URL/download/$ARG_VERSION
+      if [[ "$ARG_VERSION" == "latest" ]]
+      then
+        full_asset_url=$BTM_ASSET_URL/latest/download
+      fi
+  
+      curl -Ls "$full_asset_url/version.env" --output "$TASK_MASTER_HOME/$ARG_VERSION.env"
       if ! grep BTM_VERSION "$TASK_MASTER_HOME/$ARG_VERSION.env" &> /dev/null
       then
         echo "Could not retrieve version $ARG_VERSION."
@@ -171,13 +177,10 @@ global_update() {
       fi
 
       echo "Getting $ARG_VERSION assets..."
-      curl -s "$BTM_ASSET_URL/$ARG_VERSION/download/btm.tar.gz" | tar -xz
+      curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
 
       echo "Installing $ARG_VERSION assets..."
-      mv -f dist/lib/* lib &> /dev/null
-      mv -f dist/awk/* awk &> /dev/null
-      mv -f dist/task-runner.sh .  &> /dev/null
-      mv -f dist/LICENSE.md . &> /dev/null
+      cp -rf dist/* "$TASK_MASTER_HOME"
 
       echo Updating version file...
       mv "$ARG_VERSION.env" version.env
@@ -190,8 +193,18 @@ global_update() {
       echo "Press enter to continue... (CTRL-C to cancel)"
       read -r 
 
-      rm -r lib awk task-runner.sh LICENSE.md version.env
-      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME"
+      git clone https://github.com/hppr-dev/bash-task-master.git "$TASK_MASTER_HOME.new"
+
+      for d in modules state templates
+      do
+        mv "$TASK_MASTER_HOME"{,.new}/$d
+      done
+
+      mv -f "$TASK_MASTER_HOME"{,.new}/lib/drivers/installed_drivers.sh
+
+      mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
+      mv "$TASK_MASTER_HOME"{.new,}
+
     fi
     echo "bash-task-master $ARG_VERSION now installed"
     echo "Please log out and log back in to complete installation."
