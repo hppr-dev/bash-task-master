@@ -32,7 +32,7 @@ setup() {
   cp task-runner.sh "$LATEST_URL/dist"
   echo "#ABEXCDAFEGRADSF" >> "$LATEST_URL/dist/task-runner.sh"
   touch "$LATEST_URL/dist/lib/updated"
-  tar -czf "$LATEST_URL/btm.tar.gz" dist
+  tar -czf "$LATEST_URL/btm.tar.gz" "$LATEST_URL/dist"
 
   #Create oldversion repo
   echo "BTM_VERSION=0.1" > "$OLDVER_URL/version.env"
@@ -40,7 +40,7 @@ setup() {
   cp task-runner.sh "$OLDVER_URL/dist"
   echo "#OLDVER1234" >> "$OLDVER_URL/dist/task-runner.sh"
   touch "$OLDVER_URL/dist/lib/downgraded"
-  tar -czf "$OLDVER_URL/btm.tar.gz" dist
+  tar -czf "$OLDVER_URL/btm.tar.gz" "$OLDVER_URL/dist"
 
   rm -r "$LATEST_URL/dist" "$OLDVER_URL/dist"
 }
