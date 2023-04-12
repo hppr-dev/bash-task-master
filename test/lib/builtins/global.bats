@@ -31,9 +31,9 @@ setup() {
   echo "BTM_VERSION=2.0" > version.env
   echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> version.env
   cp "$TASK_MASTER_HOME/task-runner.sh" dist
-  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh"
-  touch dist/lib/updated"
-  tar -czf "btm.tar.gz" dist
+  echo "#ABEXCDAFEGRADSF" >> dist/task-runner.sh
+  touch dist/lib/updated
+  tar -czf btm.tar.gz dist
 
   #Create oldversion repo
   cd "$OLDVER_URL" || exit
@@ -42,7 +42,7 @@ setup() {
   cp "$TASK_MASTER_HOME/task-runner.sh" dist
   echo "#OLDVER1234" >> dist/task-runner.sh
   touch dist/lib/downgraded
-  tar -czf "btm.tar.gz" dist
+  tar -czf btm.tar.gz dist
 
   rm -r "$LATEST_URL/dist" "$OLDVER_URL/dist"
 }
@@ -339,9 +339,14 @@ teardown() {
     echo git "$@"
   }
 
-  mv() {
+
+  aliased_mv() {
     echo moving "$@"
   }
+
+  alias mv=aliased_mv
+
+  trap "alias mv=mv" EXIT 
 
   touch modules/som-mod templates/somet state/state_file
 

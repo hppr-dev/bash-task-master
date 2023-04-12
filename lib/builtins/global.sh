@@ -180,7 +180,7 @@ global_update() {
       curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
 
       echo "Installing $ARG_VERSION assets..."
-      cp -rl dist/* "$TASK_MASTER_HOME"
+      cp -rf dist/* "$TASK_MASTER_HOME"
 
       echo Updating version file...
       mv "$ARG_VERSION.env" version.env
