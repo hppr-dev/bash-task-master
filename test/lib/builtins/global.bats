@@ -340,17 +340,14 @@ teardown() {
   }
 
 
-  aliased_mv() {
+  mv() {
     echo moving "$@"
   }
 
-  alias mv=aliased_mv
-
-  trap "alias mv=mv" EXIT 
-
-  touch modules/som-mod templates/somet state/state_file
 
   run task_global <<< "\n"
+
+  unset -f mv 
 
   assert_output --partial "Press enter"
   assert_output --partial "git clone"
@@ -359,7 +356,8 @@ teardown() {
   assert_output --partial "moving $TASK_MASTER_HOME/modules $TASK_MASTER_HOME.new/modules"
   assert_output --partial "moving $TASK_MASTER_HOME/templates $TASK_MASTER_HOME.new/templates"
   assert_output --partial "moving $TASK_MASTER_HOME/state $TASK_MASTER_HOME.new/state"
-  assert_output --partial "moving $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh $TASK_MASTER_HOME.new/lib/drivers/installed_drivers.sh"
+  assert_output --partial "moving -f $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh $TASK_MASTER_HOME.new/lib/drivers/installed_drivers.sh"
+
 }
 
 persist_var() {

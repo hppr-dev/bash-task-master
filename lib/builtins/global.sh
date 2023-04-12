@@ -197,10 +197,10 @@ global_update() {
 
       for d in modules state templates
       do
-        mv "$TASK_MASTER_HOME/"{,.new}/$d
+        mv "$TASK_MASTER_HOME"{,.new}/$d
       done
 
-      mv "$TASK_MASTER_HOME"{,.new}/lib/drivers/installed_drivers.sh
+      mv -f "$TASK_MASTER_HOME"{,.new}/lib/drivers/installed_drivers.sh
 
       mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
       mv "$TASK_MASTER_HOME"{.new,}
