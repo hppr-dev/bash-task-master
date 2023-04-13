@@ -58,7 +58,7 @@ module_enable() {
     fi
     module_dir=$(dirname "$repo")/$(echo "$inventory" | grep MODULE_DIR | awk -F '=' '{ print $2 }' | xargs )
     echo "Downloading $module_dir/$module_file..."
-    curl -s "$module_dir/$module_file" >> "$filename"
+    curl -s "$module_dir/$module_file" --output "$filename"
     echo "$ARG_NAME module installed."
   fi 
 }

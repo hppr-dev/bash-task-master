@@ -176,6 +176,9 @@ global_update() {
         read -r 
       fi
 
+      echo "Backing up current version in /tmp/task-master-$BTM_VERSION..."
+      cp -r "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
+
       echo "Getting $ARG_VERSION assets..."
       curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
 
@@ -190,6 +193,7 @@ global_update() {
       echo Updating bash-task-master files could lead to instability when using older modules.
       echo It is advisable to check the compatibility of any installed modules and/or drivers before upgrading.
       echo Updating from a release version to the development version is irreversible
+      echo You will need to reinstall any custom drivers.
       echo "Press enter to continue... (CTRL-C to cancel)"
       read -r 
 
@@ -197,10 +201,8 @@ global_update() {
 
       for d in modules state templates
       do
-        mv "$TASK_MASTER_HOME"{,.new}/$d
+        cp -r "$TASK_MASTER_HOME/$d"/* "$TASK_MASTER_HOME.new/$d"
       done
-
-      mv -f "$TASK_MASTER_HOME"{,.new}/lib/drivers/installed_drivers.sh
 
       mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
       mv "$TASK_MASTER_HOME"{.new,}

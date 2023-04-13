@@ -38,6 +38,7 @@ fi
 
 cp ~/.bashrc{,.bk}
 mkdir -p "$HOME/.task-master/"{modules,state,templates}
+touch "$HOME/.task-master/state/locations.vars"
 
 revert() {
   mv ~/.bashrc{.bk,} &> /dev/null
