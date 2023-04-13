@@ -344,19 +344,22 @@ teardown() {
     echo moving "$@"
   }
 
+  cp() {
+    echo copying "$@"
+  }
 
   run task_global <<< "\n"
 
   unset -f mv 
+  unset -f cp 
 
   assert_output --partial "Press enter"
   assert_output --partial "git clone"
   assert_output --partial "moving $TASK_MASTER_HOME /tmp/task-master-1.0"
   assert_output --partial "moving $TASK_MASTER_HOME.new $TASK_MASTER_HOME"
-  assert_output --partial "moving $TASK_MASTER_HOME/modules $TASK_MASTER_HOME.new/modules"
-  assert_output --partial "moving $TASK_MASTER_HOME/templates $TASK_MASTER_HOME.new/templates"
-  assert_output --partial "moving $TASK_MASTER_HOME/state $TASK_MASTER_HOME.new/state"
-  assert_output --partial "moving -f $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh $TASK_MASTER_HOME.new/lib/drivers/installed_drivers.sh"
+  assert_output --partial "copying -r $TASK_MASTER_HOME/modules $TASK_MASTER_HOME.new/modules"
+  assert_output --partial "copying -r $TASK_MASTER_HOME/templates $TASK_MASTER_HOME.new/templates"
+  assert_output --partial "copying -r $TASK_MASTER_HOME/state $TASK_MASTER_HOME.new/state"
 
 }
 
