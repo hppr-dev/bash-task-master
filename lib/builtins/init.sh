@@ -42,26 +42,21 @@ task_init() {
   
   NEW_TASK_FILE=$ARG_DIR/$filename
 
-  # Check for existing tasks file
-  if [[ -f "$NEW_TASK_FILE" ]]
-  then
-    echo "Task file already exists can't init in $ARG_DIR"
-    return 1
-  fi
-
-  # Copy template to ARG_DIR
-  if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" ]]
+  if [[ -z "$TASK_FILE" ]] && [[ ! -f "$NEW_TASK_FILE" ]]
   then
     echo "Initializing tasks.sh file in $ARG_DIR..."
-    cp "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" "$ARG_DIR/$filename"
+    if [[ -f "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" ]]
+    then
+      # Copy template to ARG_DIR
+      cp "$TASK_MASTER_HOME/templates/$ARG_TEMPLATE.template" "$ARG_DIR/$filename"
+    else
+      echo "Template $ARG_TEMPLATE not found."
+      echo "Creating empty $filename..."
+      touch "$ARG_DIR/$filename"
+    fi
   else
-    echo "Template $ARG_TEMPLATE not found."
-    echo "Creating empty $filename..."
-    touch "$ARG_DIR/$filename"
+    echo "Task file already exists..."
   fi
-
-  echo "Creating state directory..."
-  mkdir "$TASK_MASTER_HOME/state/$LOCAL_TASKS_UUID"
 
   echo "Bookmarking location..."
   # Uses ARG_NAME and ARG_DIR

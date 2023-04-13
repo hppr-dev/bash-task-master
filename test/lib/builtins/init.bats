@@ -41,6 +41,25 @@ teardown() {
   assert_output ""
 }
 
+@test 'Fails to initialize tasks file when a task file is already set' {
+  source $TASK_MASTER_HOME/lib/builtins/init.sh
+
+  declare -A TASK_FILE_NAME_DICT
+  TASK_FILE_NAME_DICT[tasks.sh]=bash
+  TASK_FILE_NAME_DICT[.tasks.sh]=bash
+  declare -A TASK_DRIVER_DICT
+  TASK_DRIVER_DICT[bash]=bash_driver.sh
+
+  cd $TEST_DIR
+
+  TASK_FILE=tasks.sh
+
+  run task_init
+
+  assert_output --partial "Bookmark $TEST_DIR init_test"
+  refute [ -f "$TEST_DIR/tasks.sh" ]
+}
+
 @test 'Initialize tasks file with specified template and bookmarks the directory' {
   source $TASK_MASTER_HOME/lib/builtins/init.sh
 
