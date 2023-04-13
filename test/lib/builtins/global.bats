@@ -353,13 +353,17 @@ teardown() {
   unset -f mv 
   unset -f cp 
 
+  mods="$(ls $TASK_MASTER_HOME/modules/* | tr '\n' ' ')"
+  templs="$(ls $TASK_MASTER_HOME/templates/* | tr '\n' ' ')"
+  states="$(ls $TASK_MASTER_HOME/state/* | tr '\n' ' ')"
+
   assert_output --partial "Press enter"
   assert_output --partial "git clone"
   assert_output --partial "moving $TASK_MASTER_HOME /tmp/task-master-1.0"
   assert_output --partial "moving $TASK_MASTER_HOME.new $TASK_MASTER_HOME"
-  assert_output --partial "copying -r $TASK_MASTER_HOME/modules $TASK_MASTER_HOME.new/modules"
-  assert_output --partial "copying -r $TASK_MASTER_HOME/templates $TASK_MASTER_HOME.new/templates"
-  assert_output --partial "copying -r $TASK_MASTER_HOME/state $TASK_MASTER_HOME.new/state"
+  assert_output --partial "copying -r $mods$TASK_MASTER_HOME.new/modules"
+  assert_output --partial "copying -r $templs$TASK_MASTER_HOME.new/templates"
+  assert_output --partial "copying -r $states$TASK_MASTER_HOME.new/state"
 
 }
 

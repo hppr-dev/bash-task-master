@@ -201,7 +201,7 @@ global_update() {
 
       for d in modules state templates
       do
-        cp -r "$TASK_MASTER_HOME"{,.new}/$d
+        cp -r "$TASK_MASTER_HOME/$d"/* "$TASK_MASTER_HOME.new/$d"
       done
 
       mv "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
