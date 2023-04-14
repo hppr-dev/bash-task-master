@@ -28,6 +28,10 @@ task_run_recurse() {
   task run_test
 }
 
+task_save_something() {
+  echo "saved=something" >> \$STATE_FILE
+}
+
 task_change_dir() {
   echo "TASK_RETURN_DIR=$TASK_MASTER_HOME" >> \$STATE_FILE
 }
@@ -131,14 +135,14 @@ teardown() {
 
   awk '/TEST REMOVE ME/ { next } { print }' $TASK_MASTER_HOME/state/locations.vars > $TASK_MASTER_HOME/state/locations.vars.tmp && mv $TASK_MASTER_HOME/state/locations.vars{.tmp,}
 
-  if [[ -d "$TASK_MASTER_HOME/state/runner-proj" ]]
+  if [[ -f "$TASK_MASTER_HOME/state/runner-proj.vars" ]]
   then
-    rm -r "$TASK_MASTER_HOME/state/runner-proj"
+    rm "$TASK_MASTER_HOME/state/runner-proj.vars"
   fi
 
-  run task change_dir
+  run task save_something
 
-  assert [ -d "$TASK_MASTER_HOME/state/runner-proj" ]
+  assert [ -f "$TASK_MASTER_HOME/state/runner-proj.vars" ]
 }
 
 @test 'Fails when an argument doesnt exist in spec' {

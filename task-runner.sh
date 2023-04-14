@@ -13,8 +13,8 @@ task(){
   local TASK_FILE_FOUND
   local TASK_COMMAND
   local TASK_SUBCOMMAND
-  local STATE_DIR
   local STATE_FILE
+  local MODULE_STATE_FILE
   local GLOBAL_VERBOSE
   local GLOBAL_TASKS_REG
   local LOCAL_TASKS_REG
@@ -81,26 +81,18 @@ task(){
   # Infer task UUID
   if [[ -n "$TASK_FILE_FOUND" ]]
   then
-    STATE_DIR=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 )
-    if [[ -z "$STATE_DIR" ]]
+    STATE_FILE=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 | sed "s/^UUID_\($TASK_DIR\)=.*$/\\1/" 2&> /dev/null )
+    if [[ -z "$STATE_FILE" ]]
     then
-      STATE_DIR=$(basename "$(readlink -f "$TASK_DIR")")
-      _tmverbose_echo "Warning: $TASK_DIR is not bookmarked. Saving State in $STATE_DIR"
-    else
-      STATE_DIR=${STATE_DIR#UUID_}
-      STATE_DIR=${STATE_DIR%=*}
+      STATE_FILE=$(basename "$(readlink -f "$TASK_DIR")")
+      _tmverbose_echo "Warning: $TASK_DIR is not bookmarked. Saving State in $STATE_FILE"
     fi
   fi
 
-  STATE_DIR="$TASK_MASTER_HOME/state/$STATE_DIR"
-  STATE_FILE=$STATE_DIR/$TASK_COMMAND.vars
+  STATE_FILE="$TASK_MASTER_HOME/state/$STATE_FILE.vars"
+  MODULE_STATE_FILE="$TASK_MASTER_HOME/state/$TASK_COMMAND.vars"
   
-  _tmverbose_echo "State Dir: $STATE_DIR\nState file: $STATE_FILE"
-
-  if [[ ! -d "$STATE_DIR" ]]
-  then
-    mkdir "$STATE_DIR"
-  fi
+  _tmverbose_echo "State file: $STATE_FILE"
 
   #Run requested task in subshell
   (
@@ -118,7 +110,7 @@ task(){
     then
       _tmverbose_echo "Loading internal functions"
 
-      source "$TASK_MASTER_HOME"/lib/state.sh
+      source "$TASK_MASTER_HOME"/lib/state-functions.sh
       source "$GLOBAL_TASK_FILE"
 
       GLOBAL_TASKS_REG=$(declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_//' | tr '\n' '|')
