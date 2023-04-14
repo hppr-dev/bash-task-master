@@ -5,50 +5,30 @@ setup() {
   export LOCATION_FILE=$TASK_MASTER_HOME/test/locations.state
   echo "UUID_tmhome=$TASK_MASTER_HOME" > "$LOCATION_FILE"
 
-  export STATE_DIR=$TASK_MASTER_HOME/state
-
-  export COMMAND_STATE_FILE=$TASK_MASTER_HOME/state/command.vars
-  echo hello=world > "$COMMAND_STATE_FILE"
-
-  export OTHER_STATE_FILE=$TASK_MASTER_HOME/state/other.vars
-  echo foo=bar > "$OTHER_STATE_FILE"
+  export STATE_FILE=$TASK_MASTER_HOME/state/command.vars
+  echo hello=world > "$STATE_FILE"
 }
 
 teardown() {
   rm "$TASK_MASTER_HOME/test/locations.state"
-  rm "$COMMAND_STATE_FILE"
-  rm "$OTHER_STATE_FILE"
+  rm "$STATE_FILE"
 }
 
-@test 'Debug shows all variables when command not given' {
+@test 'Shows all variables' {
   source "$TASK_MASTER_HOME/lib/builtins/state.sh"
 
-  TASK_SUBCOMMAND="debug"
+  TASK_SUBCOMMAND="show"
 
   run task_state
 
   assert_output --partial "hello=world"
-  assert_output --partial "foo=bar"
 }
 
-@test 'Debug shows variables for given command' {
-  source "$TASK_MASTER_HOME/lib/builtins/state.sh"
-
-  ARG_COMMAND=command
-  TASK_SUBCOMMAND="debug"
-
-  run task_state
-
-  assert_output --partial "hello=world"
-  refute_output --partial "foo=bar"
-}
-
-@test 'Sets a variable for a command' {
+@test 'Sets a variable' {
   source "$TASK_MASTER_HOME/lib/builtins/state.sh"
 
   ARG_KEY=key
   ARG_VALUE=value
-  ARG_COMMAND=command
   TASK_SUBCOMMAND="set"
 
   run task_state
@@ -56,11 +36,10 @@ teardown() {
   assert_output --partial "set key=value"
 }
 
-@test 'Unsets a variable for a command' {
+@test 'Unsets a variable' {
   source "$TASK_MASTER_HOME/lib/builtins/state.sh"
 
   ARG_KEY=key
-  ARG_COMMAND=command
   TASK_SUBCOMMAND="unset"
 
   run task_state

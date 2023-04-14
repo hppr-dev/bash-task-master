@@ -44,15 +44,13 @@ state_edit() {
 state_set() {
   local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
   persist_var "$ARG_KEY" "$ARG_VALUE"
-  echo "Value saved, variables for $ARG_COMMAND :"
-  state_debug
+  echo "Saved $ARG_KEY in $STATE_FILE"
 }
 
 state_unset() {
   local STATE_FILE=$TASK_MASTER_HOME/state/$ARG_COMMAND.vars
   remove_var "$ARG_KEY" "$ARG_VALUE"
-  echo "Value removed, variables for $ARG_COMMAND :"
-  state_debug
+  echo "Removed $ARG_KEY from $STATE_FILE"
 }
 
 
