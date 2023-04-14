@@ -80,7 +80,7 @@ task(){
   # Infer task UUID
   if [[ -n "$TASK_FILE_FOUND" ]]
   then
-    STATE_FILE=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 | sed "s/^UUID_\($TASK_DIR\)=.*$/\\1/" )
+    STATE_FILE=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 | sed "s/^UUID_\($TASK_DIR\)=.*$/\\1/" 2&> /dev/null )
     if [[ -z "$STATE_FILE" ]]
     then
       STATE_FILE=$(basename "$(readlink -f "$TASK_DIR")")
