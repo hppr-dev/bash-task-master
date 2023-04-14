@@ -82,7 +82,11 @@ set_return_directory() {
 load_state() {
   if [[ -f $STATE_FILE ]]
   then
-      source "$STATE_FILE"
+    source "$STATE_FILE"
+  fi
+  if [[ -f $MODULE_STATE_FILE ]]
+  then
+    source "$MODULE_STATE_FILE"
   fi
 }
 

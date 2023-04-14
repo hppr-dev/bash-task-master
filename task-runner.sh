@@ -20,6 +20,11 @@ task(){
   local LOCAL_TASKS_REG
   local TASK_DRIVER_DICT
   local TASK_FILE_NAME_DICT
+  local DEFAULT_EDITOR
+  local DEFAULT_TASK_DRIVER
+  local TASK_REPOS
+  local BTM_VERSION
+  local BTM_ASSET_URL
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
@@ -32,6 +37,9 @@ task(){
 
   # Load config
   source "$TASK_MASTER_HOME/config.env"
+
+  # Load version
+  source "$TASK_MASTER_HOME/version.env"
 
   # Load task drivers
   source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"

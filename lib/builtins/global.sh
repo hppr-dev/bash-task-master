@@ -1,14 +1,20 @@
 arguments_global() {
-  SUBCOMMANDS='update'
+  SUBCOMMANDS='update|version'
 
   UPDATE_DESCRIPTION="Update bash task master to another version"
   UPDATE_OPTIONS="dev:d:bool version:v:nowhite check:c:bool"
+
+  UPDATE_DESCRIPTION="Show version information"
 }
 
 task_global() {
   if [[ $TASK_SUBCOMMAND == "update" ]]
   then
     global_update
+  elif [[ $TASK_SUBCOMMAND == "version" ]]
+  then
+    echo "Current Version: $BTM_VERSION"
+    echo "Asset URL: $BTM_ASSET_URL"
   fi
 }
 
@@ -17,10 +23,9 @@ global_update() {
   then
     ARG_VERSION=latest
   fi
+  current_version=$BTM_VERSION
 
   cd "$TASK_MASTER_HOME" || exit 1
-
-  source version.env
 
   if [[ "$BTM_VERSION" == "dev" ]]
   then
@@ -38,6 +43,7 @@ global_update() {
       fi
     else
       echo There are no updates to pull.
+      exit 0
     fi
   else
     echo "Current release version is $BTM_VERSION"
@@ -60,7 +66,8 @@ global_update() {
         exit 1
       fi
 
-      if [[ -z "$(diff version.env "$TASK_MASTER_HOME/$ARG_VERSION.env")" ]]
+      source "$TASK_MASTER_HOME/$ARG_VERSION.env"
+      if [[ "$current_version" == "$BTM_VERSION" ]]
       then
         echo "$ARG_VERSION does not differ from installed version: $BTM_VERSION."
         rm "$TASK_MASTER_HOME/$ARG_VERSION.env"
@@ -80,7 +87,7 @@ global_update() {
       fi
 
       echo "Backing up current version in /tmp/task-master-$BTM_VERSION..."
-      cp -r "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
+      cp -rf "$TASK_MASTER_HOME" "/tmp/task-master-$BTM_VERSION"
 
       echo "Getting $ARG_VERSION assets..."
       curl -Ls "$full_asset_url/btm.tar.gz" | tar -xz
@@ -111,7 +118,7 @@ global_update() {
       mv "$TASK_MASTER_HOME"{.new,}
 
     fi
-    echo "bash-task-master $ARG_VERSION now installed"
+    echo "bash-task-master $BTM_VERSION now installed"
     echo "Please log out and log back in to complete installation."
   fi
 }

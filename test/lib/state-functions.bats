@@ -149,14 +149,16 @@ teardown() {
   assert_output "TASK_RETURN_DIR=\"$TASK_MASTER_HOME\""
 }
 
-@test 'Loads state file' {
+@test 'Loads state files' {
   source "$TASK_MASTER_HOME/lib/state-functions.sh"
 
   echo 'LOADME="yes"' >> "$STATE_FILE"
+  echo 'MOD_LOADME="hello"' >> "$MODULE_STATE_FILE"
 
   load_state
 
   assert [ "$LOADME" == "yes" ]
+  assert [ "$MOD_LOADME" == "hello" ]
 }
 
 @test 'Removes value from file' {
