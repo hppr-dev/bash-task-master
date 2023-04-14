@@ -20,6 +20,9 @@ task(){
   local LOCAL_TASKS_REG
   local TASK_DRIVER_DICT
   local TASK_FILE_NAME_DICT
+  local DEFAULT_EDITOR
+  local DEFAULT_TASK_DRIVER
+  local TASK_REPOS
 
   # Check for special verbose argument
   unset GLOBAL_VERBOSE
