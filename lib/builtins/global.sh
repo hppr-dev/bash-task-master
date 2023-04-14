@@ -1,41 +1,12 @@
 arguments_global() {
-  SUBCOMMANDS='debug|set|unset|edit|clean|update'
-
-  DEBUG_DESCRIPTION="Show variables for a command"
-  DEBUG_OPTIONS='command:c:str'
-
-  SET_DESCRIPTION="Set a variable for a command"
-  SET_REQUIREMENTS='key:k:str value:v:str command:c:str'
-
-  UNSET_DESCRIPTION="Unset a variable for a command"
-  UNSET_REQUIREMENTS='key:k:str command:c:str'
-
-  EDIT_DESCRIPTION="Edit a command's variables"
-  EDIT_REQUIREMENTS='command:c:str'
-
-  CLEAN_DESCRIPTION="Clean up stale location and state files."
+  SUBCOMMANDS='update'
 
   UPDATE_DESCRIPTION="Update bash task master to another version"
   UPDATE_OPTIONS="dev:d:bool version:v:nowhite check:c:bool"
 }
 
 task_global() {
-  if [[ $TASK_SUBCOMMAND == "debug" ]]
-  then
-    global_debug
-  elif [[ $TASK_SUBCOMMAND == "set" ]]
-  then
-    global_set
-  elif [[ $TASK_SUBCOMMAND == "unset" ]]
-  then
-    global_unset
-  elif [[ $TASK_SUBCOMMAND == "edit" ]]
-  then
-    global_edit
-  elif [[ $TASK_SUBCOMMAND == "clean" ]]
-  then
-    global_clean
-  elif [[ $TASK_SUBCOMMAND == "update" ]]
+  if [[ $TASK_SUBCOMMAND == "update" ]]
   then
     global_update
   fi
@@ -44,7 +15,7 @@ task_global() {
 global_debug() {
   if [[ -n "$ARG_COMMAND" ]]
   then
-    for f in "$STATE_DIR/$ARG_COMMAND.vars"*
+    for f in "$STATE_FILE"*
     do
       echo "==================== $f ======================"
       cat "$f"
@@ -215,9 +186,4 @@ global_update() {
 
 readonly -f arguments_global
 readonly -f task_global
-readonly -f global_debug
-readonly -f global_set
-readonly -f global_unset
-readonly -f global_edit
-readonly -f global_clean
 readonly -f global_update
