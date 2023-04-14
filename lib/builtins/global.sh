@@ -1,14 +1,23 @@
 arguments_global() {
-  SUBCOMMANDS='update'
+  SUBCOMMANDS='update|version'
 
   UPDATE_DESCRIPTION="Update bash task master to another version"
   UPDATE_OPTIONS="dev:d:bool version:v:nowhite check:c:bool"
+
+  UPDATE_DESCRIPTION="Show version information"
 }
 
 task_global() {
   if [[ $TASK_SUBCOMMAND == "update" ]]
   then
     global_update
+  elif [[ $TASK_SUBCOMMAND == "version" ]]
+  then
+    local BTM_VERSION
+    local BTM_ASSET_URL
+    source "$TASK_MASTER_HOME/version.env"
+    echo "Current Version: $BTM_VERSION"
+    echo "Asset URL: $BTM_ASSET_URL"
   fi
 }
 

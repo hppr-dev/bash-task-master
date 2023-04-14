@@ -242,3 +242,15 @@ teardown() {
   assert_output --partial "copying -r $states$TASK_MASTER_HOME.new/state"
 
 }
+
+@test 'Shows version information' {
+  echo "BTM_VERSION=9.9" > "$TASK_MASTER_HOME/version.env"
+  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+
+  TASK_SUBCOMMAND="version"
+
+  run task_global
+
+  assert_output --partial "9.9"
+  assert_output --partial "file:///$TASK_MASTER_HOME/test/releases/"
+}
