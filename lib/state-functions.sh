@@ -36,6 +36,30 @@ release_var() {
   fi
 }
 
+persist_module_var() {
+  remove_file_value "$1" "$MODULE_STATE_FILE"
+  echo "$1=\"$2\"" >> "$MODULE_STATE_FILE"
+  eval "$1=\"$2\""
+}
+
+remove_module_var() {
+  remove_file_value "$1" "$MODULE_STATE_FILE"
+}
+
+hold_module_var() {
+  remove_file_value "$1" "$MODULE_STATE_FILE".hold
+  echo "$1=\"${!1}\"" >> "$MODULE_STATE_FILE".hold
+}
+
+release_module_var() {
+  if [[ -f $MODULE_STATE_FILE.hold ]]
+  then
+    remove_file_value "$1" "$MODULE_STATE_FILE".export
+    grep -e "$1" "$MODULE_STATE_FILE".hold >> "$STATE_FILE".export
+    remove_file_value "$1" "$MODULE_STATE_FILE".hold
+  fi
+}
+
 set_trap() {
   persist_var TASK_TERM_TRAP "$1"
 }

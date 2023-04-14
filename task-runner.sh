@@ -14,6 +14,7 @@ task(){
   local TASK_COMMAND
   local TASK_SUBCOMMAND
   local STATE_FILE
+  local MODULE_STATE_FILE
   local GLOBAL_VERBOSE
   local GLOBAL_TASKS_REG
   local LOCAL_TASKS_REG
@@ -89,6 +90,7 @@ task(){
   fi
 
   STATE_FILE="$TASK_MASTER_HOME/state/$STATE_FILE.vars"
+  MODULE_STATE_FILE="$TASK_MASTER_HOME/state/$TASK_COMMAND.vars"
   
   _tmverbose_echo "State file: $STATE_FILE"
 
@@ -108,7 +110,7 @@ task(){
     then
       _tmverbose_echo "Loading internal functions"
 
-      source "$TASK_MASTER_HOME"/lib/state.sh
+      source "$TASK_MASTER_HOME"/lib/state-functions.sh
       source "$GLOBAL_TASK_FILE"
 
       GLOBAL_TASKS_REG=$(declare -F  | grep -e 'declare -fr task_' | sed 's/declare -fr task_//' | tr '\n' '|')
