@@ -128,6 +128,8 @@ teardown() {
   run task_global <<< "\n"
 
   assert_output --partial "Press enter"
+  assert_output --partial "1.0"
+  assert_output --partial "2.0"
   assert grep "#ABEXCDAFEGRADSF" "$TASK_MASTER_HOME/task-runner.sh"
   assert [ -f "$TASK_MASTER_HOME/lib/updated" ]
 }
@@ -144,6 +146,8 @@ teardown() {
   run task_global <<< "\n"
 
   assert_output --partial "Press enter"
+  assert_output --partial "1.0"
+  assert_output --partial "0.1"
   assert grep "#OLDVER1234" "$TASK_MASTER_HOME/task-runner.sh"
   assert [ -f "$TASK_MASTER_HOME/lib/downgraded" ]
 }
@@ -234,6 +238,7 @@ teardown() {
   states="$(find "$TASK_MASTER_HOME/state/"* | tr '\n' ' ')"
 
   assert_output --partial "Press enter"
+  assert_output --partial "1.0"
   assert_output --partial "git clone"
   assert_output --partial "moving $TASK_MASTER_HOME /tmp/task-master-1.0"
   assert_output --partial "moving $TASK_MASTER_HOME.new $TASK_MASTER_HOME"
@@ -244,6 +249,8 @@ teardown() {
 }
 
 @test 'Shows version information' {
+  source "$TASK_MASTER_HOME/lib/builtins/global.sh"
+
   BTM_VERSION=9.9
   BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
