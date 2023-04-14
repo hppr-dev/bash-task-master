@@ -54,9 +54,9 @@ hold_module_var() {
 release_module_var() {
   if [[ -f $MODULE_STATE_FILE.hold ]]
   then
-    remove_file_value "$1" "$MODULE_STATE_FILE".export
+    remove_file_value "$1" "$STATE_FILE".export
     grep -e "$1" "$MODULE_STATE_FILE".hold >> "$STATE_FILE".export
-    remove_file_value "$1" "$MODULE_STATE_FILE".hold
+    remove_file_value "$1" "$STATE_FILE".hold
   fi
 }
 
