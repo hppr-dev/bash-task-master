@@ -13,9 +13,6 @@ task_global() {
     global_update
   elif [[ $TASK_SUBCOMMAND == "version" ]]
   then
-    local BTM_VERSION
-    local BTM_ASSET_URL
-    source "$TASK_MASTER_HOME/version.env"
     echo "Current Version: $BTM_VERSION"
     echo "Asset URL: $BTM_ASSET_URL"
   fi
@@ -28,8 +25,6 @@ global_update() {
   fi
 
   cd "$TASK_MASTER_HOME" || exit 1
-
-  source version.env
 
   if [[ "$BTM_VERSION" == "dev" ]]
   then

@@ -60,8 +60,8 @@ teardown() {
 @test 'Updates development to development' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=dev" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=dev
+  BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git
 
   git() {
     echo git "$@"
@@ -77,8 +77,8 @@ teardown() {
 @test 'Checks development to development when there are no updates' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=dev" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=dev
+  BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git
 
   git() {
     if [[ "$1" == "rev-parse" ]]
@@ -101,8 +101,8 @@ teardown() {
 @test 'Checks development to development when there are updates' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=dev" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=dev
+  BTM_ASSET_URL=https://github.com/hppr-dev/bash-task-master.git
 
   git() {
     echo git "$@"
@@ -120,8 +120,8 @@ teardown() {
 @test 'Updates release to latest release' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=1.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   TASK_SUBCOMMAND="update"
 
@@ -135,8 +135,8 @@ teardown() {
 @test 'Updates release to specified release' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=1.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   ARG_VERSION=0.1
   TASK_SUBCOMMAND="update"
@@ -151,8 +151,8 @@ teardown() {
 @test 'Fails to update release to release when target version does not exist' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=1.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   ARG_VERSION=6.6
   TASK_SUBCOMMAND="update"
@@ -167,8 +167,8 @@ teardown() {
 @test 'Checks release to release when there are updates' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=1.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   TASK_SUBCOMMAND="update"
 
@@ -184,8 +184,8 @@ teardown() {
 @test 'Checks release to release when there are no updates' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=2.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=2.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases
 
   TASK_SUBCOMMAND="update"
 
@@ -201,8 +201,8 @@ teardown() {
 @test 'Updates release version to dev version' {
   source "$TASK_MASTER_HOME/lib/builtins/global.sh"
 
-  echo "BTM_VERSION=1.0" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=1.0
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   ARG_DEV=T
   TASK_SUBCOMMAND="update"
@@ -244,8 +244,8 @@ teardown() {
 }
 
 @test 'Shows version information' {
-  echo "BTM_VERSION=9.9" > "$TASK_MASTER_HOME/version.env"
-  echo "BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/" >> "$TASK_MASTER_HOME/version.env"
+  BTM_VERSION=9.9
+  BTM_ASSET_URL=file:///$TASK_MASTER_HOME/test/releases/
 
   TASK_SUBCOMMAND="version"
 
