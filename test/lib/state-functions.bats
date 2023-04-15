@@ -126,7 +126,7 @@ teardown() {
   unset_trap
 
   run cat "$STATE_FILE"
-  assert_output ""
+  assert_output 'TASK_TERM_TRAP="-"'
 }
 
 @test 'Sets state file for clean up' {
