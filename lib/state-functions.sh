@@ -65,7 +65,7 @@ set_trap() {
 }
 
 unset_trap() {
-  remove_var TASK_TERM_TRAP
+  persist_var TASK_TERM_TRAP "-"
 }
 
 clean_up_state() {
