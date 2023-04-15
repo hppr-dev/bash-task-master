@@ -95,6 +95,8 @@ task(){
       STATE_FILE=$(basename "$(readlink -f "$TASK_DIR")")
       _tmverbose_echo "Warning: $TASK_DIR is not bookmarked. Saving State in $STATE_FILE"
     fi
+  else
+    STATE_FILE=global
   fi
 
   STATE_FILE="$TASK_MASTER_HOME/state/$STATE_FILE.vars"

@@ -129,7 +129,7 @@ teardown() {
   assert_success
 }
 
-@test 'Infers the LOCAL_TASKS_UUID from directory' {
+@test 'Infers the STATE_FILE from a prokect directory' {
   source $TASK_MASTER_HOME/task-runner.sh
   cd $PROJECT_DIR
 
@@ -143,6 +143,20 @@ teardown() {
   run task save_something
 
   assert [ -f "$TASK_MASTER_HOME/state/runner-proj.vars" ]
+}
+
+@test 'Infers the STATE_FILE when running globally' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  
+  cd "$HOME"
+
+  task_something_global() {
+    echo "state file is $STATE_FILE"
+  }
+
+  run task something_global
+
+  assert_output --partial "state file is $TASK_MASTER_HOME/state/global.vars"
 }
 
 @test 'Fails when an argument doesnt exist in spec' {
