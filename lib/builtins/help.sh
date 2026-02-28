@@ -1,3 +1,7 @@
+arguments_help() {
+  HELP_OPTIONS="json:j:bool"
+}
+
 task_help() {
   source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_FILE_DRIVER]}" &> /dev/null
 
@@ -10,9 +14,15 @@ task_help() {
   fi
 
   $DRIVER_HELP_TASK "$TASK_SUBCOMMAND"
+  local help_ret=$?
 
-  if [[ "$?" == "1" ]]
+  if [[ "$help_ret" == "1" ]]
   then
+    if [[ -n "$ARG_JSON" ]]
+    then
+      echo '{"description":"","required":[],"optional":[],"subcommands":[]}'
+      return 0
+    fi
     HELP_STRING="usage: task subcommand [arguments]
 
 Task Master 0.1: Bash Task Management Utility
@@ -41,4 +51,5 @@ You may also record tasks on command by using 'task record'. run 'task record he
   fi
 }
 
+readonly -f arguments_help
 readonly -f task_help

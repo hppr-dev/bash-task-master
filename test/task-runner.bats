@@ -322,6 +322,76 @@ teardown() {
   assert_output --partial "_TaskTabCompletion mytaskalias"
 }
 
+@test 'list -a --json outputs valid JSON array of task names' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+
+  run task list -a --json
+  assert_success
+  assert_output --partial '['
+  assert_output --partial ']'
+  assert_output --partial '"run_test"'
+  assert_output --partial '"require_task"'
+}
+
+@test 'list -a -j outputs same JSON as --json' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+
+  run task list -a -j
+  assert_success
+  assert_output --partial '['
+  assert_output --partial '"run_test"'
+}
+
+@test 'list --json with no tasks outputs empty JSON array' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $TASK_MASTER_HOME
+
+  run task list --json
+  assert_success
+  assert_output --partial '[]'
+  assert_line --partial '[]'
+}
+
+@test 'help require_task --json outputs valid JSON with required optional subcommands' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+
+  run task help require_task --json
+  assert_success
+  assert_output --partial '"description"'
+  assert_output --partial '"required"'
+  assert_output --partial '"optional"'
+  assert_output --partial '"subcommands"'
+  assert_output --partial '"long"'
+  assert_output --partial '"short"'
+  assert_output --partial '"type"'
+  assert_output --partial '"--in"'
+  assert_output --partial '"-i"'
+  assert_output --partial '"int"'
+}
+
+@test 'help --json mytask works like help mytask --json' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+
+  run task help --json require_task
+  assert_success
+  assert_output --partial '"required"'
+  assert_output --partial '"--in"'
+}
+
+@test 'help --json with no task outputs minimal JSON not HELP_STRING' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+
+  run task help --json
+  assert_success
+  assert_output --partial '{"description":"","required":[],"optional":[],"subcommands":[]}'
+  refute_output --partial "Task Master"
+}
+
 display_completes() {
   complete | grep _TaskTabCompletion
 }

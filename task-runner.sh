@@ -16,6 +16,7 @@ task(){
   local STATE_FILE
   local MODULE_STATE_FILE
   local GLOBAL_VERBOSE
+  local GLOBAL_SILENT
   local GLOBAL_TASKS_REG
   local LOCAL_TASKS_REG
   local TASK_DRIVER_DICT
@@ -26,23 +27,29 @@ task(){
   local BTM_VERSION
   local BTM_ASSET_URL
 
-  # Check for special verbose argument
+  # Check for special global arguments (+v verbose, +s silent)
   unset GLOBAL_VERBOSE
-  if [[ "$1" == "+v" || "$1" == "+verbose" ]]
-  then
-    echo "GLOBAL VERBOSE SET"
-    GLOBAL_VERBOSE=1
+  unset GLOBAL_SILENT
+  while [[ "$1" == "+v" || "$1" == "+verbose" || "$1" == "+s" || "$1" == "+silent" ]]
+  do
+    if [[ "$1" == "+v" || "$1" == "+verbose" ]]; then GLOBAL_VERBOSE=1; unset GLOBAL_SILENT; fi
+    if [[ "$1" == "+s" || "$1" == "+silent" ]]; then GLOBAL_SILENT=1; unset GLOBAL_VERBOSE; fi
     shift
+  done
+  if [[ -n "$GLOBAL_VERBOSE" ]]; then echo "GLOBAL VERBOSE SET"; fi
+
+  # Only load config, version and task drivers in the first run
+  if [[ -z "$RUN_NUMBER" ]]
+  then
+    # Load config
+    source "$TASK_MASTER_HOME/config.env"
+
+    # Load version
+    source "$TASK_MASTER_HOME/version.env"
+
+    # Load task drivers
+    source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
   fi
-
-  # Load config
-  source "$TASK_MASTER_HOME/config.env"
-
-  # Load version
-  source "$TASK_MASTER_HOME/version.env"
-
-  # Load task drivers
-  source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
 
   # Save directory that you are running it from
   RUNNING_DIR=$(pwd)
@@ -106,6 +113,7 @@ task(){
 
   #Run requested task in subshell
   (
+    [[ -n "$GLOBAL_SILENT" ]] && exec 2>/dev/null
     _tmverbose_echo "Task master has called itself ${RUN_NUMBER:-0} times"
 
     if [[ -z "$RUN_NUMBER" ]]
@@ -146,8 +154,8 @@ task(){
     source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_DRIVER]}"
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASK_FILE" ]]
     then
-      echo Driver implementation error.
-      echo "$TASK_DRIVER is missing required definitions"
+      echo Driver implementation error. >&2
+      echo "$TASK_DRIVER is missing required definitions" >&2
       return 1
     fi
 
@@ -157,8 +165,8 @@ task(){
     then
       $DRIVER_EXECUTE_TASK "$@"
     else
-      echo "Invalid task: $TASK_COMMAND"
-      task_list
+      echo "Invalid task: $TASK_COMMAND" >&2
+      task_list >&2
       return 1
     fi
   )
@@ -189,13 +197,13 @@ task(){
 _tmverbose_echo(){
   if [[ -n "$GLOBAL_VERBOSE" ]]
   then
-    echo -e "$1"
+    echo -e "$1" >&2
   fi
 }
 
 _TaskTabCompletion(){
   local tasks cur word aliases
-  tasks=$(task list -a | grep -v Available | grep -v Running)
+  tasks=$(task +s list -a | grep -v Available)
   cur=${COMP_WORDS[COMP_CWORD]}  
   word=${COMP_WORDS[$COMP_CWORD-1]}
   aliases="$(alias | grep task | sed "s/alias \(.*\)='task'/\1/")"

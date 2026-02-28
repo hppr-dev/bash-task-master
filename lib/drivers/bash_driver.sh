@@ -36,7 +36,7 @@ bash_parse() {
     do
       if ! [[ "$spec" =~ [[:alnum:]_-]+:[[:alnum:]]:[a-z]+ ]]
       then
-        echo "Bad argument specification for $TASK_COMMAND: $spec."
+        echo "Bad argument specification for $TASK_COMMAND: $spec." >&2
         return 1
       fi
     done
@@ -65,7 +65,7 @@ bash_parse() {
       local long_arg="${spec%%:*}"
       if [[ -z "$long_arg" ]] || [[ ! "$spec" =~ ^[a-z_-]+:[[:alnum:]]:[a-z]+$ ]]
       then
-        echo "Unrecognized short argument: $ARGUMENT"
+        echo "Unrecognized short argument: $ARGUMENT" >&2
         return 1
       fi
       ARGUMENT="--${long_arg,,}"
@@ -90,7 +90,7 @@ bash_parse() {
       SPEC_OPTION_NAME=${TASK_SUBCOMMAND^^}_OPTIONS
       requirements="${requirements} ${!SPEC_REQUIREMENT_NAME} ${!SPEC_OPTION_NAME}"
     else
-      echo "Unrecognized value: $ARGUMENT"
+      echo "Unrecognized value: $ARGUMENT" >&2
       return 1
     fi
     shift
@@ -141,13 +141,13 @@ bash_validate() {
           local valname="ARG_${name^^}"
           if [[ -z "${!valname}" ]]
           then
-            echo "Missing required argument: --${name,,}"
+            echo "Missing required argument: --${name,,}" >&2
             return 1
           fi
           # Make sure that the argument is the right type
           if [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
-            echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}"
+            echo "--${name,,} argument does not follow verification requirements: $atype:::${verif[$atype]}" >&2
             return 1
           fi
         done
@@ -164,18 +164,99 @@ bash_validate() {
           local valname="ARG_${name^^}"
           if [[ -n "${!valname}" ]] && [[ ! "${!valname}" =~ ${verif[$atype]} ]]
           then
-            echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}"
+            echo "Argument does not follow verification requirements: $name=${!valname} $atype:::${verif[$atype]}" >&2
             return 1
           fi
         done
       fi
     else
-      echo "Unknown subcommand: $TASK_SUBCOMMAND"
-      echo "Available subcommands: $SUBCOMMANDS"
-      return 1
+      if [[ -n "$SUBCOMMANDS" ]]
+      then
+        echo "Unknown subcommand: $TASK_SUBCOMMAND" >&2
+        echo "Available subcommands: $SUBCOMMANDS" >&2
+        return 1
+      fi
     fi
   fi
   return 0
+}
+
+_bash_json_escape() {
+  local s="$1"
+  s="${s//\\/\\\\}"
+  s="${s//\"/\\\"}"
+  s="${s//$'\n'/\\n}"
+  printf '%s' "$s"
+}
+
+_bash_help_arg_to_json() {
+  local spec="$1"
+  local longname="${spec%%:*}"
+  local rest="${spec#*:}"
+  local short="${rest%%:*}"
+  local type="${rest#*:}"
+  local long="--${longname}"
+  local short_opt="-${short}"
+  printf '{"long":"%s","short":"%s","type":"%s"}' "$(_bash_json_escape "$long")" "$(_bash_json_escape "$short_opt")" "$(_bash_json_escape "$type")"
+}
+
+_bash_help_emit_json() {
+  local reqname="$1"
+  local optname="$2"
+  local descname="$3"
+  local desc_val="${!descname}"
+  local first=1
+  printf '%s' '{"description":"'
+  _bash_json_escape "${desc_val:-}"
+  printf '%s' '","required":['
+  for req in ${!reqname}
+  do
+    [[ $first -eq 1 ]] || printf '%s' ','
+    _bash_help_arg_to_json "$req"
+    first=0
+  done
+  first=1
+  printf '%s' '],"optional":['
+  for opt in ${!optname}
+  do
+    [[ $first -eq 1 ]] || printf '%s' ','
+    _bash_help_arg_to_json "$opt"
+    first=0
+  done
+  printf '%s' '],"subcommands":['
+  first=1
+  for sub_orig in ${SUBCOMMANDS//\|/ }
+  do
+    [[ $first -eq 1 ]] || printf '%s' ','
+    sub_norm="${sub_orig//-/_}"
+    reqname_sub="${sub_norm^^}_REQUIREMENTS"
+    optname_sub="${sub_norm^^}_OPTIONS"
+    descname_sub="${sub_norm^^}_DESCRIPTION"
+    desc_sub="${!descname_sub}"
+    printf '%s' '{"name":"'
+    _bash_json_escape "$sub_orig"
+    printf '%s' '","description":"'
+    _bash_json_escape "${desc_sub:-}"
+    printf '%s' '","required":['
+    local first_inner=1
+    for req in ${!reqname_sub}
+    do
+      [[ $first_inner -eq 1 ]] || printf '%s' ','
+      _bash_help_arg_to_json "$req"
+      first_inner=0
+    done
+    printf '%s' '],"optional":['
+    first_inner=1
+    for opt in ${!optname_sub}
+    do
+      [[ $first_inner -eq 1 ]] || printf '%s' ','
+      _bash_help_arg_to_json "$opt"
+      first_inner=0
+    done
+    printf '%s' ']}'
+    first=0
+  done
+  printf '%s\n' ']}'
 }
 
 bash_help() {
@@ -187,6 +268,15 @@ bash_help() {
       reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
       optname=${TASK_SUBCOMMAND^^}_OPTIONS
       descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
+      if [[ -n "$ARG_JSON" ]]
+      then
+        TASK_SUBCOMMAND=${TASK_SUBCOMMAND//-/_}
+        reqname=${TASK_SUBCOMMAND^^}_REQUIREMENTS
+        optname=${TASK_SUBCOMMAND^^}_OPTIONS
+        descname=${TASK_SUBCOMMAND^^}_DESCRIPTION
+        _bash_help_emit_json "$reqname" "$optname" "$descname"
+        return 0
+      fi
       if [[ "${SUBCOMMANDS/\|\|/}" != "$SUBCOMMANDS" ]] || [[ -n "${!reqname}" ]] || [[ -n "${!optname}" ]] || [[ -n "${!descname}" ]]
       then
         echo "Command: task $TASK_SUBCOMMAND"
@@ -262,7 +352,12 @@ bash_help() {
       done
       
     else
-      echo "No arguments are defined"
+      if [[ -n "$ARG_JSON" ]]
+      then
+        echo '{"description":"","required":[],"optional":[],"subcommands":[]}'
+      else
+        echo "No arguments are defined"
+      fi
     fi
     return 0
   fi
@@ -293,7 +388,7 @@ execute_task() {
     return 1 
   fi
 
-  echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..."
+  echo "Running $TASK_COMMAND:$TASK_SUBCOMMAND task..." >&2
   "task_$TASK_COMMAND"
 }
 
@@ -306,6 +401,9 @@ readonly -f task_spec
 readonly -f has_arg
 readonly -f bash_parse
 readonly -f bash_validate
+readonly -f _bash_json_escape
+readonly -f _bash_help_arg_to_json
+readonly -f _bash_help_emit_json
 readonly -f bash_help
 readonly -f bash_list
 readonly -f execute_task

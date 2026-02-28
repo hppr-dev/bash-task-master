@@ -1,6 +1,6 @@
 arguments_list() {
   LIST_DESCRIPTION="List available tasks"
-  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool"
+  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool json:j:bool"
 }
 
 task_list() {
@@ -19,7 +19,26 @@ task_list() {
     task_list="$($DRIVER_LIST_TASKS "$TASK_FILE") $task_list"
   fi
   task_list="${task_list//  / }"
-  pr -5 -Tt <<<"${task_list// /$'\n'}" 
+  task_list="$(echo "$task_list" | xargs)"
+  if [[ -n "$ARG_JSON" ]]
+  then
+    if [[ -z "$task_list" ]]
+    then
+      echo "[]"
+    else
+      first=1
+      printf '%s' '['
+      for t in $task_list
+      do
+        [[ $first -eq 1 ]] || printf '%s' ','
+        printf '%s' "\"$t\""
+        first=0
+      done
+      printf '%s\n' ']'
+    fi
+  else
+    pr -5 -Tt <<<"${task_list// /$'\n'}"
+  fi
 }
 
 readonly -f arguments_list
