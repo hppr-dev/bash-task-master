@@ -12,3 +12,7 @@ templates/*.template
 backup
 test/kcov
 config.sh
+
+util/dist
+util/btm.tar.gz
+util/version.env

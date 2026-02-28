@@ -3,6 +3,20 @@ DRIVER_LIST_TASKS=bash_list
 DRIVER_HELP_TASK=bash_help
 DRIVER_VALIDATE_TASK_FILE=bash_validate_file
 
+# Helpers for terse task definitions (available when tasks.sh is sourced)
+task_spec() {
+  local name="$1" desc="$2" req="${3:-}" opt="${4:-}"
+  local n="${name^^}"
+  n="${n//-/_}"
+  declare -g "${n}_DESCRIPTION=$desc"
+  [[ -n "$req" ]] && declare -g "${n}_REQUIREMENTS=$req"
+  [[ -n "$opt" ]] && declare -g "${n}_OPTIONS=$opt"
+}
+
+has_arg() {
+  [[ -n "${ARG_${1^^}}" ]]
+}
+
 bash_parse() {
   # All arguments after the command will be parsed into environment variables
   # load argument specification
@@ -288,6 +302,8 @@ bash_validate_file() {
 }
 
 
+readonly -f task_spec
+readonly -f has_arg
 readonly -f bash_parse
 readonly -f bash_validate
 readonly -f bash_help

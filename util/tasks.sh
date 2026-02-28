@@ -1,7 +1,4 @@
-arguments_release() {
-  RELEASE_DESCRIPTION="Build a new release"
-  RELEASE_REQUIREMENTS="version:v:nowhite"
-}
+task_spec release "Build a new release" "version:v:nowhite" ""
 
 task_release() {
   cd "$TASK_DIR" || exit

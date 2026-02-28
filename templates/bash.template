@@ -1,13 +1,6 @@
-arguments_example() {
-  EXAMPLE_DESCRIPTION="An example task"
-  EXAMPLE_REQUIREMENTS="in:i:str out:o:str"
-  EXAMPLE_OPTIONS="force:f:bool"
-}
+task_spec example "An example task" "in:i:str out:o:str" "force:f:bool"
 
 task_example() {
-  if [[ -n "$ARG_FORCE" ]]
-  then
-    echo Forcing...
-  fi
+  has_arg force && echo Forcing...
   echo "IN:$ARG_IN OUT:$ARG_OUT"
 }

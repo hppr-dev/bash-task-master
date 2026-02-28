@@ -7,3 +7,6 @@
 [submodule "test/run/bats"]
 	path = test/run/bats
 	url = https://github.com/bats-core/bats-core.git
+[submodule "docs"]
+	path = docs
+	url = git@github.com:hppr-dev/docs-bash-task-master.git
