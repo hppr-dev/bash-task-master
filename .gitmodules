@@ -10,3 +10,6 @@
 [submodule "docs"]
 	path = docs
 	url = git@github.com:hppr-dev/docs-bash-task-master.git
+[submodule "vscode-extension"]
+	path = vscode-extension
+	url = https://github.com/hppr-dev/btm-vscode.git
