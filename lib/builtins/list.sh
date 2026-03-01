@@ -1,17 +1,21 @@
 arguments_list() {
   LIST_DESCRIPTION="List available tasks"
-  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool json:j:bool"
+  LIST_OPTIONS="global:g:bool local:l:bool all:a:bool modules:m:bool json:j:bool"
 }
 
 task_list() {
   # shellcheck disable=SC2153
-  if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL" ]]
+  if [[ -z "$ARG_GLOBAL$ARG_LOCAL$ARG_ALL$ARG_MODULES" ]]
   then
     ARG_LOCAL='T'
   fi
   if [[ -n "$ARG_GLOBAL$ARG_ALL" ]]
   then
     task_list="${GLOBAL_TASKS_REG//|/ }"
+  fi
+  if [[ -n "$ARG_MODULES$ARG_ALL" ]] && [[ -n "${MODULE_TASKS_REG:-}" ]]
+  then
+    task_list="${MODULE_TASKS_REG//|/ } $task_list"
   fi
   if [[ -n "$ARG_LOCAL$ARG_ALL" ]] && [[ -n "$TASK_FILE" ]]
   then
