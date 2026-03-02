@@ -1,4 +1,4 @@
-# This file defines functions to interacte through the state files
+# This file defines functions to interact through the state files
 # Any thing that is requested loads after the task is finished
 
 
@@ -28,10 +28,10 @@ hold_var() {
 
 # release a held value of a variable and export it back to the outside session
 release_var() {
-  if [[ -f $STATE_FILE.hold ]]
+  if [[ -f "$STATE_FILE".hold ]]
   then
     remove_file_value "$1" "$STATE_FILE".export
-    grep -e "$1" "$STATE_FILE".hold >> "$STATE_FILE".export
+    grep -F -- "$1=" "$STATE_FILE".hold >> "$STATE_FILE".export
     remove_file_value "$1" "$STATE_FILE".hold
   fi
 }
@@ -52,10 +52,10 @@ hold_module_var() {
 }
 
 release_module_var() {
-  if [[ -f $MODULE_STATE_FILE.hold ]]
+  if [[ -f "$MODULE_STATE_FILE".hold ]]
   then
     remove_file_value "$1" "$STATE_FILE".export
-    grep -e "$1" "$MODULE_STATE_FILE".hold >> "$STATE_FILE".export
+    grep -F -- "$1=" "$MODULE_STATE_FILE".hold >> "$STATE_FILE".export
     remove_file_value "$1" "$MODULE_STATE_FILE".hold
   fi
 }
@@ -69,7 +69,7 @@ unset_trap() {
 }
 
 clean_up_state() {
-  if [[ -f $STATE_FILE ]]
+  if [[ -f "$STATE_FILE" ]]
   then
     persist_var DESTROY_STATE_FILE 1
   fi
@@ -80,20 +80,20 @@ set_return_directory() {
 }
 
 load_state() {
-  if [[ -f $STATE_FILE ]]
+  if [[ -f "$STATE_FILE" ]]
   then
     source "$STATE_FILE"
   fi
-  if [[ -f $MODULE_STATE_FILE ]]
+  if [[ -f "$MODULE_STATE_FILE" ]]
   then
     source "$MODULE_STATE_FILE"
   fi
 }
 
 remove_file_value() {
-  if [[ -f $2 ]]
+  if [[ -f "$2" ]]
   then
-    awk "/^$1=/ { next } { print }" "$2" > "$2".tmp
+    awk -v key="$1" 'index($0, key "=") != 1 { print }' "$2" > "$2".tmp
     mv "$2".tmp "$2"
   fi
 }

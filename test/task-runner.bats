@@ -3,6 +3,7 @@ setup() {
   load "$TASK_MASTER_HOME/test/run/bats-assert/load"
   export PROJECT_DIR=$TASK_MASTER_HOME/test/runner-proj
   mkdir -p $PROJECT_DIR
+  mkdir -p $PROJECT_DIR/subdir
 
   echo "UUID_runner-proj=$PROJECT_DIR #TEST REMOVE ME" >> "$TASK_MASTER_HOME/state/locations.vars"
 
@@ -46,6 +47,12 @@ task_set_trap() {
 
 task_remove_state() {
   echo "DESTROY_STATE_FILE=T" >> \$STATE_FILE
+}
+
+task_show_task_vars() {
+  echo "TASK_DIR=\$TASK_DIR"
+  echo "TASK_FILE=\$TASK_FILE"
+  echo "RUNNING_DIR=\$RUNNING_DIR"
 }
 
 EOF
@@ -225,6 +232,86 @@ teardown() {
   run wrap_export_var
 
   assert_output --partial "some value"
+}
+
+@test 'Internal task variables do not leak into caller environment' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  # Run task in this shell (no run) so we can inspect caller env after
+  task list || true
+  # Internal subshell-only variables must not be set in the caller
+  refute [ -v TASK_DRIVER_DICT ]
+  refute [ -v TASK_FILE_NAME_DICT ]
+  refute [ -v TASK_FILE ]
+  refute [ -v STATE_FILE ]
+  refute [ -v RUN_NUMBER ]
+  refute [ -v LOCAL_TASKS_REG ]
+}
+
+@test 'Caller shell variables are not changed by task subshell' {
+  ISOLATED_TEST_VAR="caller value"
+  ANOTHER_CALLER_VAR="unchanged"
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  task run_test
+  # Variables that existed in the caller must be unchanged
+  assert [ "$ISOLATED_TEST_VAR" = "caller value" ]
+  assert [ "$ANOTHER_CALLER_VAR" = "unchanged" ]
+}
+
+@test 'Task file discovery uses parent directory when run from subdirectory' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR/subdir
+  run task list
+  assert_success
+  assert_output --partial "run_test"
+}
+
+@test 'Sourcing task-runner adds only task, _TaskTabCompletion, _tmverbose_echo and TASK_MASTER_HOME' {
+  run bash -c "export TASK_MASTER_HOME=$TASK_MASTER_HOME; source $TASK_MASTER_HOME/task-runner.sh; declare -F | grep -E 'declare -f (task|_TaskTabCompletion|_tmverbose_echo)\$' | wc -l"
+  assert_success
+  assert_output "3"
+}
+
+@test 'Global flag +v +s runs in silent mode (last wins)' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  run task +v +s run_test
+  assert_success
+  refute_output --partial "Running run_test"
+}
+
+@test 'Global flag +s +v runs in verbose mode (last wins)' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  run task +s +v run_test
+  assert_success
+  assert_output --partial "Running run_test"
+}
+
+@test 'Silent mode does not include runner or driver chatter in output' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  run task +s run_test
+  assert_success
+  refute_output --partial "Running run_test"
+  assert_output --partial "test has been run"
+}
+
+@test 'Task sees correct TASK_DIR, TASK_FILE, and RUNNING_DIR' {
+  source $TASK_MASTER_HOME/task-runner.sh
+  cd $PROJECT_DIR
+  run task show_task_vars
+  assert_success
+  assert_output --partial "TASK_DIR=$PROJECT_DIR"
+  assert_output --partial "TASK_FILE=$PROJECT_DIR/tasks.sh"
+  assert_output --partial "RUNNING_DIR=$PROJECT_DIR"
+  cd $PROJECT_DIR/subdir
+  run task show_task_vars
+  assert_success
+  assert_output --partial "TASK_DIR=$PROJECT_DIR"
+  assert_output --partial "TASK_FILE=$PROJECT_DIR/tasks.sh"
+  assert_output --partial "RUNNING_DIR=$PROJECT_DIR/subdir"
 }
 
 @test 'Lists all tasks for tab completion' {

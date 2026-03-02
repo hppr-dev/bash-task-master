@@ -41,7 +41,8 @@ module_enable() {
     mv "$filename"{.disabled,}
   else
     echo Searching repositories...
-    for repo in $TASK_REPOS
+    read -ra repo_arr <<< "$TASK_REPOS"
+    for repo in "${repo_arr[@]}"
     do
       inventory=$(curl -s "$repo")
       module_file=$(echo "$inventory" | grep "module-$ARG_NAME" | awk -F '=' '{ print $2 }' | xargs )
@@ -106,7 +107,8 @@ module_clean() {
 }
 
 get_repo_module_list() {
-  for repo in $TASK_REPOS
+  read -ra repo_arr <<< "$TASK_REPOS"
+  for repo in "${repo_arr[@]}"
   do
     echo "$repo:"
     curl -s "$repo" | awk '/module-.*/ { print } 0' | sed 's/\s*module-\(.*\) = .*/\1/' | pr -5 -tT

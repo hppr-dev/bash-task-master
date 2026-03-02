@@ -19,8 +19,7 @@ task(){
   local GLOBAL_SILENT
   local GLOBAL_TASKS_REG
   local LOCAL_TASKS_REG
-  local TASK_DRIVER_DICT
-  local TASK_FILE_NAME_DICT
+  # TASK_DRIVER_DICT and TASK_FILE_NAME_DICT are not local so recursive task calls in the subshell can use them
   local DEFAULT_EDITOR
   local DEFAULT_TASK_DRIVER
   local TASK_REPOS
@@ -96,7 +95,7 @@ task(){
   # Infer task UUID
   if [[ -n "$TASK_FILE_FOUND" ]]
   then
-    STATE_FILE=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 | sed "s/^UUID_\($TASK_DIR\)=.*$/\\1/" 2&> /dev/null )
+    STATE_FILE=$( grep "$TASK_DIR" "$LOCATION_FILE" | head -n 1 | sed 's/^UUID_\([^=]*\)=.*$/\1/' 2>/dev/null )
     if [[ -z "$STATE_FILE" ]]
     then
       STATE_FILE=$(basename "$(readlink -f "$TASK_DIR")")
@@ -150,6 +149,8 @@ task(){
     fi
 
     _tmverbose_echo "Loading $TASK_DRIVER as task driver"
+    # Subshell does not inherit associative arrays; ensure driver dict is available (e.g. recursive task call)
+    source "$TASK_MASTER_HOME/lib/drivers/driver_defs.sh"
     # This should set commands for DRIVER_EXECUTE_TASK DRIVER_HELP_TASK and DRIVER_LIST_TASK
     source "$DRIVER_DIR/${TASK_DRIVER_DICT[$TASK_DRIVER]}"
     if [[ -z "$DRIVER_EXECUTE_TASK" ]] || [[ -z "$DRIVER_LIST_TASKS" ]] || [[ -z "$DRIVER_HELP_TASK" ]] || [[ -z "$DRIVER_VALIDATE_TASK_FILE" ]]
@@ -217,7 +218,8 @@ _TaskTabCompletion(){
 complete -F _TaskTabCompletion -o bashdefault -o default task
 
 # Setup tab completion for any aliases for task
-for a in $(alias | grep task | sed "s/alias \(.*\)='task'/\1/")
+readarray -t task_aliases < <(alias 2>/dev/null | grep task | sed "s/alias \(.*\)='task'/\1/")
+for a in "${task_aliases[@]}"
 do
   complete -F _TaskTabCompletion -o bashdefault -o default "$a"
 done

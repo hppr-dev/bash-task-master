@@ -36,7 +36,8 @@ task_driver() {
     fi
 
     echo "Searching repositories for $ARG_NAME driver..."
-    for repo in $TASK_REPOS
+    read -ra repo_arr <<< "$TASK_REPOS"
+    for repo in "${repo_arr[@]}"
     do
       inventory=$(curl -s "$repo")
       remote_driver_file=$(echo "$inventory" | grep "driver-$ARG_NAME" | awk -F '=' '{ print $2 }' | xargs )
@@ -159,7 +160,8 @@ task_driver() {
   then
     if [[ -n "$ARG_REMOTE" ]]
     then
-      for repo in $TASK_REPOS
+      read -ra repo_arr <<< "$TASK_REPOS"
+      for repo in "${repo_arr[@]}"
       do
         echo "$repo:"
         curl -s "$repo" | awk '/driver-.*/ { print } 0' | sed 's/\s*driver-\(.*\) = .*/\1/' | pr -5 -tT

@@ -30,4 +30,15 @@ Dependencies
  - GNU sed 4.2.2
  - GNU bash 4.3.42
 
-Bash Task Master was tested using these versions. It is likely that it works on other versions as well. 
+Bash Task Master was tested using these versions. It is likely that it works on other versions as well.
+
+Development
+============================
+
+For contributors: clone with `git clone --recurse-submodules` so docs and submodules are present.
+
+- **Lint:** Set `TASK_MASTER_HOME` to the repo root, source `task-runner.sh`, then run `test/shellcheck_all.sh`.
+- **Tests:** Same env; run `test/test_all.sh` (requires [Bats](https://github.com/bats-core/bats-core); use the vendored copy under `test/run/bats`).
+- **Coverage:** Run `test/coverage.sh` (requires kcov); results under `test/kcov`.
+
+Core scripts do not use `set -e`/`set -u`; errors are handled explicitly with `|| return`/`|| exit` and conditionals.

@@ -9,7 +9,7 @@ arguments_template() {
   LIST_DESCRIPTION="List templates"
   
   RM_DESCRIPTION="Remove a template"
-  RM_REQUIREMENTS="name:n:star"
+  RM_REQUIREMENTS="name:n:str"
 }
 
 task_template() {

@@ -32,12 +32,13 @@ task_list() {
     else
       first=1
       printf '%s' '['
-      for t in $task_list
+      while IFS= read -r t
       do
+        [[ -z "$t" ]] && continue
         [[ $first -eq 1 ]] || printf '%s' ','
         printf '%s' "\"$t\""
         first=0
-      done
+      done <<< "${task_list// /$'\n'}"
       printf '%s\n' ']'
     fi
   else

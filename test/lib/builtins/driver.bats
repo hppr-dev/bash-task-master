@@ -44,7 +44,7 @@ EOF
 teardown() {
   echo "OUTPUT:"
   echo "$output"
-  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh,badyaml_driver.sh}
+  rm -rf $local_repo_dir $TASK_MASTER_HOME/lib/drivers/{yaml,yaml_driver.sh,badyaml_driver.sh,nondestructive_test_driver.sh}
   mv $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh{.bk,}
 }
 
@@ -219,6 +219,29 @@ teardown() {
   run cat $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
   assert_output --partial "#TASK_DRIVER_DICT[xml]=xml_driver.sh"
   assert_output --partial "#TASK_FILE_NAME_DICT[tasks.xml]=xml"
+}
+
+@test 'Disabling a driver leaves the driver file in place' {
+  source $TASK_MASTER_HOME/lib/builtins/driver.sh
+
+  cat > $TASK_MASTER_HOME/lib/drivers/nondestructive_test_driver.sh <<'EOF'
+DRIVER_EXECUTE_TASK=execute_nd
+DRIVER_LIST_TASKS=list_nd
+DRIVER_HELP_TASK=help_nd
+DRIVER_VALIDATE_TASK_FILE=true
+execute_nd() { :; }
+list_nd() { :; }
+help_nd() { :; }
+EOF
+  echo "TASK_DRIVER_DICT[nondestructive_test]=nondestructive_test_driver.sh" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+  echo "TASK_FILE_NAME_DICT[tasks.nondestructive]=nondestructive_test" >> $TASK_MASTER_HOME/lib/drivers/installed_drivers.sh
+
+  ARG_NAME=nondestructive_test
+  TASK_SUBCOMMAND=disable
+
+  run task_driver
+  assert_success
+  assert [ -f "$TASK_MASTER_HOME/lib/drivers/nondestructive_test_driver.sh" ]
 }
 
 @test 'Fails to disable missing driver' {
