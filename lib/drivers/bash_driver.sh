@@ -14,7 +14,9 @@ task_spec() {
 }
 
 has_arg() {
-  [[ -n "${ARG_${1^^}}" ]]
+  local arg_var="ARG_${1^^}"
+  arg_var="${arg_var//-/_}"
+  [[ -n "${!arg_var}" ]]
 }
 
 bash_parse() {
