@@ -21,7 +21,7 @@ Bash Task Master was designed with flexibility and expandibility in mind.
 
 Read the full documentation [here](https://bash-task-master.readthedocs.io).
 
-The [VSCode/Cursor extension](vscode-extension) lives in the `vscode-extension/` submodule; use `git clone --recurse-submodules` or `git submodule update --init --recursive` to include it.
+The [VSCode/Cursor extension](vscode-extension) lives in the `vscode-extension/` submodule, and the [BTM MCP server](btm-mcp) in the `btm-mcp/` submodule; use `git clone --recurse-submodules` or `git submodule update --init --recursive` to include them.
 
 Dependencies
 ============================

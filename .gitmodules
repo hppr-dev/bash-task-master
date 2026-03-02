@@ -13,3 +13,6 @@
 [submodule "vscode-extension"]
 	path = vscode-extension
 	url = https://github.com/hppr-dev/btm-vscode.git
+[submodule "btm-mcp"]
+	path = btm-mcp
+	url = git@github.com:hppr-dev/btm-mcp.git
