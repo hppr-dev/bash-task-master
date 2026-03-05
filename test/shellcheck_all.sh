@@ -1,5 +1,9 @@
 #!/bin/bash
 
+cd "$(dirname $0)"
+
+export TASK_MASTER_HOME=$(realpath ..)
+
 shellcheck \
   "$TASK_MASTER_HOME/task-runner.sh" \
   "$TASK_MASTER_HOME/install-latest.sh" \

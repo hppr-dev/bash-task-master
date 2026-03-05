@@ -1,12 +1,7 @@
 #!/bin/bash
 
-if [[ -z "$TASK_MASTER_HOME" ]]
-then
-  echo TASK_MASTER_HOME not set.
-  echo Install and retry
-  exit 1
-fi
+cd "$(dirname $0)"
 
-cd $(dirname $0)
+export TASK_MASTER_HOME=$(realpath ..)
 
 run/bats/bin/bats task-runner.bats lib/*.bats lib/builtins/*.bats lib/drivers/*.bats
